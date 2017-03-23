@@ -828,6 +828,8 @@ test/*.vcxproj
 
 test/*.vcxproj.filters
 
+packages.config
+
 *.sln
 
 *.vcxproj
