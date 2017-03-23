@@ -510,17 +510,17 @@ namespace sn_Log {
 
 
 		
-#define LOG_TRACE if (sn_Log::logger::Logger::logLevel() <= sn_Log::logger::LogLevel::TRACE) \
+#define SN_LOG_TRACE if (sn_Log::logger::Logger::logLevel() <= sn_Log::logger::LogLevel::TRACE) \
 	sn_Log::logger::Logger(__FILE__, __LINE__, sn_Log::logger::LogLevel::TRACE, __func__).stream()
-#define LOG_DEBUG if (sn_Log::logger::Logger::logLevel() <= sn_Log::logger::LogLevel::DEBUG) \
+#define SN_LOG_DEBUG if (sn_Log::logger::Logger::logLevel() <= sn_Log::logger::LogLevel::DEBUG) \
 	sn_Log::logger::Logger(__FILE__, __LINE__, sn_Log::logger::LogLevel::DEBUG, __func__).stream()
-#define LOG_INFO if (sn_Log::logger::Logger::logLevel() <= sn_Log::logger::LogLevel::INFO) \
+#define SN_LOG_INFO if (sn_Log::logger::Logger::logLevel() <= sn_Log::logger::LogLevel::INFO) \
 	sn_Log::logger::Logger(__FILE__, __LINE__, sn_Log::logger::LogLevel::INFO, __func__).stream()
-#define LOG_WARN sn_Log::logger::Logger(__FILE__, __LINE__, sn_Log::logger::LogLevel::WARN, __func__).stream()
-#define LOG_ERROR sn_Log::logger::Logger(__FILE__, __LINE__, sn_Log::logger::LogLevel::ERR, __func__).stream()
-#define LOG_FATAL sn_Log::logger::Logger(__FILE__, __LINE__, sn_Log::logger::LogLevel::FATAL, __func__).stream()
-#define LOG_SYSERR sn_Log::logger::Logger(__FILE__, __LINE__, false).stream()
-#define LOG_SYSFATAL sn_Log::logger::Logger(__FILE__, __LINE__, true).stream()
+#define SN_LOG_WARN sn_Log::logger::Logger(__FILE__, __LINE__, sn_Log::logger::LogLevel::WARN, __func__).stream()
+#define SN_LOG_ERROR sn_Log::logger::Logger(__FILE__, __LINE__, sn_Log::logger::LogLevel::ERR, __func__).stream()
+#define SN_LOG_FATAL sn_Log::logger::Logger(__FILE__, __LINE__, sn_Log::logger::LogLevel::FATAL, __func__).stream()
+#define SN_LOG_SYSERR sn_Log::logger::Logger(__FILE__, __LINE__, false).stream()
+#define SN_LOG_SYSFATAL sn_Log::logger::Logger(__FILE__, __LINE__, true).stream()
 
 
 		
