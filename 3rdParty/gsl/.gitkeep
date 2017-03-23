@@ -818,9 +818,6 @@ __pycache__/
 
 3rdParty/gsl/*
 
-!3rdParty/mysql/.gitkeep
-!3rdParty/gsl/.gitkeep
-
 ## Debug Files
 
 test/Debug/*
