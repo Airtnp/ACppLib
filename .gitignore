@@ -824,6 +824,16 @@ test/Debug/*
 
 Debug/
 
+test/*.vcxproj
+
+test/*.vcxproj.filters
+
+*.sln
+
+*.vcxproj
+
+*.vcxproj.filters
+
 ## Misc
 
 Readme-truth.md
