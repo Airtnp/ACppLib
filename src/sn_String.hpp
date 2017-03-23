@@ -1,0 +1,174 @@
+#ifndef SN_STRING_H
+#define SN_STRING_H
+
+#include "sn_CommonHeader.h"
+
+//TODO: add string view
+//TODO: add UTF-8/UTF-16/UCS-2/ANSI/WIDE support
+//TODO: add bytestr
+//TODO: add async support
+namespace sn_String {
+	namespace formatter {
+		
+		std::tuple<int, int, int> find_string_token(const std::string& base_string, std::string::size_type& pos, std::string::size_type& prev_len, const std::string& arg) {
+			int pprev_len = prev_len;
+			int first = base_string.find('{', pos);
+			int second = base_string.find('}', first);
+			std::string numeric = base_string.substr(first + 1, second - first - 1);
+			if (numeric.find_first_not_of("0123456789") == numeric.npos) {
+				pos = second;
+				auto res = std::make_tuple(first, second, pprev_len);
+				prev_len = arg.length();
+				return res;
+			}
+			else {
+				++pos;
+				return find_string_token(base_string, pos, prev_len, arg);
+			}
+		}
+
+		template <typename ...Args, std::size_t ...I>
+		void string_formatter_impl(std::string& base_string, const std::vector<std::tuple<int, int, int>>& v, std::index_sequence<I...>, Args... args) {
+			std::initializer_list<int>{ (base_string.replace(get<0>(v[I]) + get<2>(v[I]) - 3 - static_cast<int>(floor(I == 0 ? 0 : log10(I))), get<1>(v[I]) - get<0>(v[I]) + 1, args), 0)...};
+		}
+
+		template <typename ...Args>
+		std::string string_formatter(std::string base_string, Args... args) {
+			auto format_list = std::make_index_sequence<sizeof...(args)>();
+			std::vector<std::tuple<int, int, int>> token_pos{};
+			std::string::size_type current_pos = 0;
+			std::string::size_type previous_length = 3;
+			std::initializer_list<int>{(token_pos.push_back(find_string_token(base_string, current_pos, previous_length, args)), 0)...};
+			
+			string_formatter_impl(base_string, token_pos, format_list, args...);
+			return base_string;
+		}
+	}
+	namespace splitter {
+				using std::vector;
+		using std::size_t;
+		struct split_option {
+			enum empty_t { empty_remain, empty_discard };
+		};
+		
+		template<typename T>
+		vector<T> string_split(const T& str, const T& delimiter = "\t", split_option::empty_t empty_option = split_option::empty_remain) {
+			vector<T> v;
+			size_t current;
+			size_t next = -1;
+			do {
+				if (empty_option == split_option::empty_discard) {
+					next = str.find_first_not_of(delimiter, next + 1);
+					if (next == string::npos)
+						break;
+					next -= 1;
+				}
+				current = next + 1;
+				next = str.find_first_of(delimiter, current);
+				v.push_back(str.substr(current, next - current));
+			} while (next != string::npos);
+			return v;
+		}
+
+	}
+	namespace wide_conv {
+		using std::string;
+		using std::wstring;
+		using std::stringstream;
+		using std::setw;
+		using std::setfill;
+		string wstring_to_utf8(const wstring& str) {
+			std::wstring_convert<std::codecvt_utf8<wchar_t>> myconv;
+			return myconv.to_bytes(str);
+		}
+
+		wstring gbk_to_wstring(const string& gbk_str) {
+			string gbk_locale_name = ".936";
+			std::wstring_convert<std::codecvt_byname<wchar_t, char, mbstate_t>> conv(new std::codecvt_byname<wchar_t, char, mbstate_t>(gbk_locale_name));
+			return conv.from_bytes(gbk_str);
+		}
+
+		//for outputing chinese rows, we use wcout(.imbue(local("chs"))) << utf8_to_wstring(content)
+		wstring utf8_to_wstring(const string& str) {
+			std::wstring_convert<std::codecvt_utf8<wchar_t>> myconv;
+			return myconv.from_bytes(str);
+		}
+
+		wstring string_to_wstring(const string& str) {
+			try {
+				std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> conv;
+				wstring wstr = conv.from_bytes(str);
+				return wstr;
+			}
+			catch (std::range_error&)
+			{
+				wstring wstr = gbk_to_wstring(str);
+				return wstr;
+			}
+		}
+
+		string wstring_to_string(const wstring& wstr) {
+			std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> conv;
+			string str = conv.to_bytes(wstr);
+			return str;
+		}
+
+		//for chinese fields, we use hex(field_name) = wstring_to_hex(L'example')
+		string wstring_to_hex(const wstring& str) {
+			string u8str = wstring_to_utf8(str);
+			stringstream ss;
+			ss << std::hex;
+			for (unsigned char c : u8str)
+				ss << setw(2) << setfill('0') << static_cast<int>(c);
+			string hexstr = ss.str();
+			hexstr = "\'" + hexstr + "\'";
+			return hexstr;
+		}
+
+		//to chinese name, use wstring_to_unhex('example');
+		string wstring_to_unhex(const wstring& str) {
+			string unhexstr = "unhex(" + wstring_to_hex(str) + ")";
+			return unhexstr;
+		}
+
+		string string_to_hex(const string& str) {
+			wstring wstr = string_to_wstring(str);
+			return wstring_to_hex(wstr);
+		}
+
+		string string_to_unhex(const string& str) {
+			wstring wstr = string_to_wstring(str);
+			return wstring_to_unhex(wstr);
+		}
+	}
+	namespace misc {
+		using std::to_string;
+		using std::string;
+		string to_string(string input) {
+			return input;
+		}
+
+		string to_string(char* input) {
+			return static_cast<string>(input);
+		}
+
+	}
+	
+	namespace cstring {
+		class CStringHelper {
+		public: //unsigned  = unsigned int
+			CStringHelper(const char* str, unsigned int len) : str_(str), len_(len) {
+				assert(strlen(str_) == len_);
+			}
+			const char* str_;
+			const unsigned int len_;
+		};
+
+	}
+
+}
+
+
+
+
+#endif
