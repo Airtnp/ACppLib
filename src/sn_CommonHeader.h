@@ -31,13 +31,13 @@ for detail: https://gcc.gnu.org/onlinedocs/libstdc++/ext/pb_ds/
 
 //#include <bits/stdc++.h>
 
-//	For STL io/stream operation
+// For STL io/stream operation
 #include <iostream>
 #include <codecvt>
 #include <sstream>
 #include <iomanip>
 
-//	For STL generic operation
+// For STL generic operation
 #include <algorithm>
 #include <numeric>
 #include <functional>
@@ -47,8 +47,9 @@ for detail: https://gcc.gnu.org/onlinedocs/libstdc++/ext/pb_ds/
 // For STL memory/thread operation
 #include <mutex>
 #include <memory>
+#include <atomic>
 
-//	For STL ds
+// For STL ds
 #include <tuple>
 #include <string>
 #include <vector>

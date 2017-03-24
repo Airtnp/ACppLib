@@ -6,6 +6,7 @@
 #include "sn_String_test.hpp"
 #include "sn_Log_test.hpp"
 
+
 #ifdef SN_TEST_DB
 
 namespace sn_DBConfig {

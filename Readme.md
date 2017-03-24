@@ -4,6 +4,8 @@ This is a Cpp library full of super naive wheels and **collected** wheels (see r
 
 Because it's so naive, no comments and documentation supported.
 
+No common namespace, because loosely connected
+
 ## Wheel List (super naive, all incomplete)
 * sn_Alg: some algorithms
 * sn_AOP: a simple AOP frame

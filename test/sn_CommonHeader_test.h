@@ -19,6 +19,7 @@
 #include "../src/sn_Reflection.hpp"
 #include "../src/sn_String.hpp"
 #include "../src/sn_Log.hpp"
+#include "../src/sn_Builtin.hpp"
 
 
 #endif

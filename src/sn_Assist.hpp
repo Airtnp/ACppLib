@@ -444,6 +444,69 @@ namespace sn_Assist {
 		*/
 
 	}
+
+	namespace sn_invoke {
+		template <typename F, typename ...Args>
+		auto invoke(F&& fn, Args&&... args) noexcept(noexcept(std::forward<F>(fn)(std::forward<Args>(args)...))) {
+			return std::forward<F>(fn)(std::forward<Args>(args)...);
+		}
+
+		template <typename R, typename C, typename ...Args>
+		auto invoke(R(C::*ptr_fn)(Args...), C* p, Args&&... args) noexcept(noexcept(p->ptr_fn(std::forward<Args>(args)...))) {
+			return p->*ptr_fn(std::forward<Args>(args)...);
+		}
+
+		template <typename R, typename C, typename ...Args>
+		auto invoke(R(C::*ptr_fn)(Args...), C&& c, Args&&... args) noexcept(noexcept(std::forward<C>(c).ptr_fn(std::forward<Args>(args)...))) {
+				return std::forward<C>(c).*ptr_fn(std::forward<Args>(args)...);
+		}
+
+#define SN_INVOKE_GEN(SUFFIX) \
+		template <typename R, typename C, typename ...Args> \
+		auto invoke(R(C::*ptr_fn)(Args...) SUFFIX, C* p, Args&&... args) noexcept(noexcept(p->ptr_fn(std::forward<Args>(args)...))) { \
+			return p->*ptr_fn(std::forward<Args>(args)...); \
+		} \
+		template <typename R, typename C, typename ...Args> \
+		auto invoke(R(C::*ptr_fn)(Args...) SUFFIX, C&& c, Args&&... args) noexcept(noexcept(std::forward<C>(c).ptr_fn(std::forward<Args>(args)...))) { \
+			return std::forward<C>(c).*ptr_fn(std::forward<Args>(args)...); \
+		} \
+
+
+		//For p::f() & and p::f() &&
+		SN_INVOKE_GEN(&)
+		SN_INVOKE_GEN(&&)
+		SN_INVOKE_GEN(const)
+		SN_INVOKE_GEN(const &)
+		SN_INVOKE_GEN(const &&)
+		SN_INVOKE_GEN(volatile)
+		SN_INVOKE_GEN(volatile &)
+		SN_INVOKE_GEN(volatile &&)
+		SN_INVOKE_GEN(const volatile)
+		SN_INVOKE_GEN(const volatile &)
+		SN_INVOKE_GEN(const volatile &&)
+	}
+
+	namespace sn_cast {
+		template <typename T, typename U, typename = U>
+		struct static_dynamic_cast_impl{
+			static U impl(T&& t) {
+				return dynamic_cast<U>(static_cast<T&&>(t));
+			}
+		};
+		template <typename T, typename U>
+		struct static_dynamic_cast_impl<T, U, decltype(static_cast<U>(std::declval<T>()))> {
+			static U impl(T&& t) {
+				return static_cast<U>(static_cast<T&&>(t));
+			}
+		};
+
+		template <typename T, typename U>
+		constexpr U static_dynamic_cast(T&& t) {
+			return static_dynamic_cast_impl<T, U>::impl(t);
+		}
+
+	}
+
 }
 
 
