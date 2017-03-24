@@ -10,6 +10,7 @@
 #include <vector>
 #include <utility>
 #include <typeindex>
+#include <iterator>
 #include "../src/sn_DBPool.hpp"
 #include "../src/sn_DB.hpp"
 #include "../src/sn_Alg.hpp"

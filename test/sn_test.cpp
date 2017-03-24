@@ -109,9 +109,8 @@ int main() {
 	sn_Assist_test::sn_assist_test();
 	sn_Reflection_test::sn_reflection_test();
 	sn_String_test::sn_string_test();
-#endif
 	sn_Log_test::sn_log_test();
-
+#endif
 	getchar();
 	return 0;
 }

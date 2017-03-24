@@ -23,7 +23,7 @@ namespace sn_Log {
 
 
 	namespace timestamp {
-		class TimeStamp : sn_Assist::sn_less_operator::less_than<TimeStamp> {
+		class TimeStamp : sn_Assist::sn_functional_base::less_than<TimeStamp> {
 		public:
 			TimeStamp() noexcept : microSecondsSinceEpoch_(0) {}
 			TimeStamp(int64_t microSecondsSinceEpoch__) noexcept : microSecondsSinceEpoch_(microSecondsSinceEpoch__) {}
@@ -376,6 +376,11 @@ namespace sn_Log {
 			"FATAL ",
 		};
 
+#ifdef _WIN32
+		const char sep = '\\';
+#else
+		const char sep = '/';
+#endif
 		void defaultOutput(const char* msg, std::size_t len) {
 			std::size_t n = std::fwrite(msg, 1, len, stdout);
 		}
@@ -387,7 +392,7 @@ namespace sn_Log {
 		public:
 			template <std::size_t N>
 			inline SourceFile(const char(&arr)[N]) : data_(arr), size_(N - 1) {
-				const char* slash = std::strrchr(data_, '/');
+				const char* slash = std::strrchr(data_, sep);
 				if (slash) {
 					data_ = slash + 1;
 					size_ -= static_cast<std::size_t>(data_ - arr);
@@ -395,7 +400,7 @@ namespace sn_Log {
 			}
 
 			explicit SourceFile(const char* filename) : data_(filename) {
-				const char* slash = std::strrchr(filename, '/');
+				const char* slash = std::strrchr(filename, sep);
 				if (slash)
 					data_ = slash + 1;
 				size_ = static_cast<std::size_t>(strlen(data_));

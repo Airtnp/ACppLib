@@ -58,6 +58,7 @@ for detail: https://gcc.gnu.org/onlinedocs/libstdc++/ext/pb_ds/
 #include <unordered_map>
 #include <queue>
 #include <initializer_list>
+#include <iterator>
 
 template <typename T>
 using observer_ptr = T*;

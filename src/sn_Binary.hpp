@@ -17,8 +17,12 @@ namespace sn_Binary {
 			static const auto s_endian = reinterpret_cast<const uint8_t*>(&test_short) == 0x12 ? Endian::BigEndian : Endian::LittleEndian;
 			return s_endian;
 		}
-
 	}
+
+	namespace reader {
+		
+	}
+
 }
 
 

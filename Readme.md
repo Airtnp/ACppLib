@@ -2,6 +2,8 @@
 
 This is a Cpp library full of super naive wheels and **collected** wheels (see ref).
 
+Because it's so naive, no comments and documentation supported.
+
 ## Wheel List (super naive, all incomplete)
 * sn_Alg: some algorithms
 * sn_AOP: a simple AOP frame
@@ -12,7 +14,7 @@ This is a Cpp library full of super naive wheels and **collected** wheels (see r
 * sn_DS: some data structures
 * sn_Log: a log class
 * sn_Macro: some macros
-* sn_Reflect: two realizations of reflection (magic_get/pod_reflect && register_reflect/typeless)
+* sn_Reflection: two realizations of reflection (magic_get/pod_reflect && register_reflect/typeless)
 * sn_String: a class dealing with string
 
 
