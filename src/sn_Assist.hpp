@@ -489,14 +489,14 @@ namespace sn_Assist {
 	namespace sn_cast {
 		template <typename T, typename U, typename = U>
 		struct static_dynamic_cast_impl{
-			static U impl(T&& t) {
-				return dynamic_cast<U>(static_cast<T&&>(t));
+			static U impl(T& t) {
+				return dynamic_cast<U>(std::forward<T>(t));
 			}
 		};
 		template <typename T, typename U>
 		struct static_dynamic_cast_impl<T, U, decltype(static_cast<U>(std::declval<T>()))> {
-			static U impl(T&& t) {
-				return static_cast<U>(static_cast<T&&>(t));
+			static U impl(T& t) {
+				return static_cast<U>(std::forward<T>(t));
 			}
 		};
 

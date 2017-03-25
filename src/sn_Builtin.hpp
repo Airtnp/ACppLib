@@ -289,7 +289,7 @@ namespace sn_Builtin {
 			template <typename U>
 			friend class IntrusiveWeakReferencePtr;
 
-			using t_WRV = typename T::WeakReferenceView;
+			using t_WRV = typename T::t_WRV;
 			using p_WRV = observer_ptr<t_WRV>;
 
 			static p_WRV get_view_from(const volatile observer_ptr<T> item) {
@@ -536,6 +536,8 @@ namespace sn_Builtin {
 			mutable std::atomic<p_WRV> m_view;
 
 		};
+
+		//IWR_ptr -> WRV_ptr -> IR_ptr
 
 	}
 
