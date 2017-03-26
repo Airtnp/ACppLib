@@ -1,7 +1,9 @@
 #ifndef SN_LOG_H
 #define SN_LOG_H
 
+#ifndef _CRT_SECURE_NO_WARNING
 #define _CRT_SECURE_NO_WARNING  //C-style time
+#endif
 
 #include "sn_CommonHeader.h"
 #include "sn_Assist.hpp"
@@ -513,33 +515,85 @@ namespace sn_Log {
 			Impl impl_;
 		};
 
+		enum class sn_Error : unsigned int {
+			Normal,
+			Unknown, 
+			InvalidArgs, 
+			OutofRange,
+			InternalError,
+			NotImplemented,
+			NotSupported,
+			NotFound,
+			IllegalState,
+			CheckFailed,
+			NumofError,
+		};
 
-		
+		const char* sn_ErrorName[static_cast<unsigned int>(sn_Error::NumofError)] = {
+			"Normal: ",
+			"UnknownError: ",
+			"InvalidArgumentsError: ",
+			"OutofRangeError: ",
+			"InternalError: ",
+			"NotImplementError: ",
+			"NotSupportedError",
+			"NotFoundError: ",
+			"IllegalStateError: ",
+			"CheckFailedError: "
+		};
+
+		std::string get_error_name(sn_Error err) {
+			return sn_ErrorName[static_cast<unsigned int>(err)];
+		}
+
+
 #define SN_LOG_TRACE if (sn_Log::logger::Logger::logLevel() <= sn_Log::logger::LogLevel::TRACE) \
-	sn_Log::logger::Logger(__FILE__, __LINE__, sn_Log::logger::LogLevel::TRACE, __func__).stream()
+	sn_Log::logger::Logger(__FILE__, __LINE__, sn_Log::logger::LogLevel::TRACE, __FUNCTION__).stream()
 #define SN_LOG_DEBUG if (sn_Log::logger::Logger::logLevel() <= sn_Log::logger::LogLevel::DEBUG) \
-	sn_Log::logger::Logger(__FILE__, __LINE__, sn_Log::logger::LogLevel::DEBUG, __func__).stream()
+	sn_Log::logger::Logger(__FILE__, __LINE__, sn_Log::logger::LogLevel::DEBUG, __FUNCTION__).stream()
 #define SN_LOG_INFO if (sn_Log::logger::Logger::logLevel() <= sn_Log::logger::LogLevel::INFO) \
-	sn_Log::logger::Logger(__FILE__, __LINE__, sn_Log::logger::LogLevel::INFO, __func__).stream()
-#define SN_LOG_WARN sn_Log::logger::Logger(__FILE__, __LINE__, sn_Log::logger::LogLevel::WARN, __func__).stream()
-#define SN_LOG_ERROR sn_Log::logger::Logger(__FILE__, __LINE__, sn_Log::logger::LogLevel::ERR, __func__).stream()
-#define SN_LOG_FATAL sn_Log::logger::Logger(__FILE__, __LINE__, sn_Log::logger::LogLevel::FATAL, __func__).stream()
+	sn_Log::logger::Logger(__FILE__, __LINE__, sn_Log::logger::LogLevel::INFO, __FUNCTION__).stream()
+#define SN_LOG_WARN sn_Log::logger::Logger(__FILE__, __LINE__, sn_Log::logger::LogLevel::WARN, __FUNCTION__).stream()
+#define SN_LOG_ERROR sn_Log::logger::Logger(__FILE__, __LINE__, sn_Log::logger::LogLevel::ERR, __FUNCTION__).stream()
+#define SN_LOG_FATAL sn_Log::logger::Logger(__FILE__, __LINE__, sn_Log::logger::LogLevel::FATAL, __FUNCTION__).stream()
 #define SN_LOG_SYSERR sn_Log::logger::Logger(__FILE__, __LINE__, false).stream()
 #define SN_LOG_SYSFATAL sn_Log::logger::Logger(__FILE__, __LINE__, true).stream()
 
+#define SN_LOG_TRACE_WITH_THROW(err) \
+	do { SN_LOG_TRACE << err; \
+	throw err; } while (false)
+#define SN_LOG_DEBUG_WITH_THROW(err) \
+	do { SN_LOG_DEBUG << err; \
+	throw err; } while (false)
+#define SN_LOG_INFO_WITH_THROW(err) \
+	do { SN_LOG_INFO << err; \
+	throw err; } while (false)
+#define SN_LOG_WARN_WITH_THROW(err) \
+	do { SN_LOG_WARN << err; \
+	throw err; } while (false)
+#define SN_LOG_ERROR_WITH_THROW(err) \
+	do { SN_LOG_ERROR << err; \
+	throw err; } while (false)
+#define SN_LOG_FATAL_WITH_THROW(err) \
+	do { SN_LOG_FATAL << err; \
+	throw err; } while (false)
+		
+#define SN_LOG_ERROR_WTL(level, err) \
+	do { SN_LOG_ERROR << sn_Log::logger::get_error_name(level) << err; \
+	throw err; } while (false)
 
+#define SN_LOG_FATAL_WTL(level, err) \
+	do { SN_LOG_FATAL << sn_Log::logger::get_error_name(level) << err; \
+	throw err; } while (false)
+
+		//TODO: add some more errors
 		
 	}
 
 
 }
 
-
-
-
-
-
-
+using sn_Log::logger::sn_Error;
 
 
 #endif

@@ -2,9 +2,9 @@
 
 This is a Cpp library full of super naive wheels and **collected** wheels (see ref).
 
-Because it's so naive, no comments and documentation supported.
+Because it's so naive, no comments and documentation supported. And its code-style is much messy.
 
-No common namespace, because loosely connected
+No common namespace, because it's loosely connected
 
 ## Wheel List (super naive, all incomplete)
 * sn_Alg: some algorithms

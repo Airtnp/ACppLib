@@ -5,6 +5,7 @@
 #include "sn_Reflection_test.hpp"
 #include "sn_String_test.hpp"
 #include "sn_Log_test.hpp"
+#include "sn_Thread_test.hpp"
 
 
 #ifdef SN_TEST_DB
@@ -112,6 +113,7 @@ int main() {
 	sn_String_test::sn_string_test();
 	sn_Log_test::sn_log_test();
 #endif
+	sn_Thread_test::sn_thread_test();
 	getchar();
 	return 0;
 }

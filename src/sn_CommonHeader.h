@@ -48,6 +48,7 @@ for detail: https://gcc.gnu.org/onlinedocs/libstdc++/ext/pb_ds/
 #include <mutex>
 #include <memory>
 #include <atomic>
+#include <future>
 
 // For STL ds
 #include <tuple>

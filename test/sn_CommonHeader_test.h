@@ -20,6 +20,7 @@
 #include "../src/sn_String.hpp"
 #include "../src/sn_Log.hpp"
 #include "../src/sn_Builtin.hpp"
+#include "../src/sn_Thread.hpp"
 
 
 #endif
