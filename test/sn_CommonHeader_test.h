@@ -21,6 +21,7 @@
 #include "../src/sn_Log.hpp"
 #include "../src/sn_Builtin.hpp"
 #include "../src/sn_Thread.hpp"
+#include "../src/sn_Stream.hpp"
 
 
 #endif

@@ -526,6 +526,7 @@ namespace sn_Log {
 			NotFound,
 			IllegalState,
 			CheckFailed,
+			APIFailed,
 			NumofError,
 		};
 
@@ -539,7 +540,8 @@ namespace sn_Log {
 			"NotSupportedError",
 			"NotFoundError: ",
 			"IllegalStateError: ",
-			"CheckFailedError: "
+			"CheckFailedError: ",
+			"APIFailed: "
 		};
 
 		std::string get_error_name(sn_Error err) {

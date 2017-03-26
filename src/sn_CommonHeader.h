@@ -14,6 +14,11 @@
 #ifndef _STDC_FORMAT_MACROS
 #define _STDC_FORMAT_MACROS
 #endif
+
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+
 #if defined(__GNUC__)
 
 /* gcc policy-based data structure
@@ -61,6 +66,13 @@ for detail: https://gcc.gnu.org/onlinedocs/libstdc++/ext/pb_ds/
 #include <queue>
 #include <initializer_list>
 #include <iterator>
+
+// For platform-related
+#ifdef _WIN32
+#include <fstream>
+#else
+#include <fcntl.h>
+#endif
 
 template <typename T>
 using observer_ptr = T*;

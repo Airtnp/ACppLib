@@ -74,23 +74,23 @@ namespace sn_Builtin {
 				return *this;
 			}
 
-			constexpr IntrusiveReferencePtr(const IntrusiveReferencePtr&& rhs) : ptr_(rhs.ptr_) noexcept {
+			constexpr IntrusiveReferencePtr(IntrusiveReferencePtr&& rhs) noexcept : ptr_(rhs.ptr_) {
 				rhs.ptr_ = nullptr;
 			}
-			IntrusiveReferencePtr& operator=(const IntrusiveReferencePtr&& rhs) noexcept {
+			IntrusiveReferencePtr& operator=(IntrusiveReferencePtr&& rhs) noexcept {
 				IntrusiveReferencePtr(static_cast<IntrusiveReferencePtr&&>(rhs)).swap(*this);
 				return *this;
 			}
 
 			template <typename U>
-			friend class intrusive_ptr;
+			friend class IntrusiveReferencePtr;
 			
 			template <typename U>
-			IntrusiveReferencePtr(const IntrusiveReferencePtr<U>&& rhs) : ptr_(rhs.ptr_) noexcept {
+			IntrusiveReferencePtr(IntrusiveReferencePtr<U>&& rhs) noexcept : ptr_(rhs.ptr_) {
 				rhs.ptr_ = nullptr;
 			}
 			template <typename U>
-			IntrusiveReferencePtr& operator=(const IntrusiveReferencePtr<U>&& rhs) noexcept {
+			IntrusiveReferencePtr& operator=(IntrusiveReferencePtr<U>&& rhs) noexcept {
 				IntrusiveReferencePtr(static_cast<IntrusiveReferencePtr<U>&&>(rhs)).swap(*this);
 				return *this;
 			}
@@ -433,10 +433,24 @@ namespace sn_Builtin {
 		private:
 			template <typename U>
 			friend class IntrusiveWeakReferencePtr;
+			
 
-			using Base = ReferenceCounterBase<T>;
+			template <typename U, typename ...Args>
+			friend inline IR_ptr<U> make_ref_ptr(Args&& ...args);
+
+		protected:
+			void* operator new(std::size_t size) {
+				return ::operator new(size);
+			}
+
+			void operator delete(void* ptr) {
+				::operator delete(ptr);
+			}
+
 		public:
 
+			using Base = ReferenceCounterBase<T>;
+			using DefaultBase = ReferenceCounterBase<IReferenceCounter>;
 			using deleter_type = Deleter;
 			using t_WRV = WeakReferenceView<ReferenceCounter>;
 			using p_WRV = std::add_pointer_t<t_WRV>;
@@ -449,11 +463,14 @@ namespace sn_Builtin {
 
 			virtual ~ReferenceCounter() {
 				const auto view = m_view.load(std::memory_order_consume);
-				if (view)
-					if (static_cast<const volatile observer_ptr<Base<IReferenceCounter>>>(view)->release())
+				if (view) {
+					if (static_cast<const observer_ptr<DefaultBase>>(view)->release()) {
 						delete view;
-					else
+					}
+					else {
 						view->clear_owner();
+					}
+				}
 			}
 
 			bool release() const volatile override {

@@ -470,6 +470,15 @@ namespace sn_Assist {
 
 		class noncopymoveable : public noncopyable, public nonmoveable {};
 
+		class nondirectconstructable {
+		protected:
+			void* operator new(std::size_t size) {
+				return ::operator new(size);
+			}
+			void operator delete(void* ptr) {
+				::operator delete(ptr);
+			}
+		};
 
 	}
 

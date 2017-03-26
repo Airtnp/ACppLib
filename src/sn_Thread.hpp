@@ -61,7 +61,7 @@ namespace sn_Thread {
 		template <typename ...Args>
 		class MultipleLockGuard : sn_Assist::sn_functional_base::nonmoveable {
 		private:
-			static_assert(std::conjunction<IsLockableAndUnLockable<Args>...>::value; , "Locks should be lockable and unlockable");
+			static_assert(std::conjunction<IsLockableAndUnLockable<Args>...>::value, "Locks should be lockable and unlockable");
 			
 			template <std::size_t a, std::size_t b, std::size_t step>
 			struct GetNextConstant : std::conditional_t < a < b, std::integral_constant<std::size_t, a + step>, std::integral_constant<std::size_t, a - step>> {};
@@ -82,7 +82,7 @@ namespace sn_Thread {
 			};
 
 			template <std::size_t current>
-			struct Impl<end, end> {
+			struct Impl<current, current> {
 				template <typename T>
 				static void lock(T&& tp) {
 					std::get<current>(tp).lock();
@@ -99,7 +99,7 @@ namespace sn_Thread {
 				Impl<0, std::tuple_size<decltype(m_locks)>::value - 1>::lock(m_locks);
 			}
 
-			~MultipleLockGuard(Args&... locks) noexcept : m_locks{ locks... } {
+			~MultipleLockGuard() noexcept {
 				Impl<std::tuple_size<decltype(m_locks)>::value - 1, 0>::unlock(m_locks);
 			}
 

@@ -14,6 +14,8 @@ namespace sn_Stream {
 	namespace stream {
 		using sn_Builtin::reference_counter::IR_ptr;
 		using sn_Builtin::reference_counter::IWR_ptr;
+		using std::min;
+		using std::max;
 		enum class seek_t {
 			begin, current, end,
 		};
@@ -39,9 +41,9 @@ namespace sn_Stream {
 			virtual bool can_seek() const = 0;
 			virtual bool is_end_of_stream() const = 0;
 			virtual len_t get_size() const = 0;
-			virtual void set_size(len_t) const = 0;
+			virtual void set_size(len_t) = 0;
 			virtual len_t get_position() const = 0;
-			virtual void set_position(seek_t origin, len_t offset) const = 0;
+			virtual void set_position(seek_t origin, len_t offset) = 0;
 			virtual void flush() = 0;
 
 			virtual len_t read_bytes(byteptr_t data, len_t length) = 0;
@@ -85,7 +87,7 @@ namespace sn_Stream {
 				} while (total_bytes_len < length);
 			}
 
-			virtual std::future<len_t> write_bytes_async(byteptr_t data, len_t length) {
+			virtual std::future<len_t> write_bytes_async(const byteptr_t data, len_t length) {
 				return std::async(std::launch::async, [=] {
 					return write_bytes(data, length);
 				});
@@ -109,7 +111,7 @@ namespace sn_Stream {
 		
 		class StreamSpan : public sn_Builtin::reference_counter::ReferenceCounter<IStream> {
 		public:
-			StreamSpan(IR_ptr<IStream> stream, len_t start_pos, len_t end_pos) : m_interalStream{ stream }, m_startPos{ start_pos }, m_endPos{ end_pos }, m_currentPos{ start_pos } {
+			StreamSpan(IR_ptr<IStream> stream, len_t start_pos, len_t end_pos) : m_internalStream{ stream }, m_startPos{ start_pos }, m_endPos{ end_pos }, m_currentPos{ start_pos } {
 				if (!m_internalStream->can_seek())
 					SN_LOG_ERROR_WTL(sn_Error::InvalidArgs, "Should be seekable stream.");
 				if (start_pos > end_pos)
@@ -265,7 +267,7 @@ namespace sn_Stream {
 				reserve(length);
 				m_size = length;
 				if (data)
-					std::memmove(m_data, data, length);
+					std::memmove(m_data, data, static_cast<std::size_t>(length));
 			}
 			MemoryStream(len_t length, bool readable, bool writable, bool autoresize) noexcept : MemoryStream(nullptr, length, readable, writable, autoresize) {}
 			
@@ -279,13 +281,13 @@ namespace sn_Stream {
 				std::lock_guard<std::recursive_mutex> rhs_lock{ rhs.m_mutex };
 
 				if (rhs.m_size >= m_capacity) {
-					auto storage = new byte_t[rhs.m_size];
+					auto storage = new byte_t[static_cast<std::size_t>(rhs.m_size)];
 					std::swap(m_data, storage);
 					delete[] storage;
 				}
 
 				if (rhs.m_data)
-					memmove(m_data, rhs.m_data, rhs.m_size);
+					std::memmove(m_data, rhs.m_data, static_cast<std::size_t>(rhs.m_size));
 
 				m_size = rhs.m_size;
 				m_capacity = rhs.m_capacity;
@@ -412,7 +414,7 @@ namespace sn_Stream {
 				m_size = std::max(m_currentPos, m_size);
 			}
 
-			len_t write_bytes(byteptr_t data, len_t length) {
+			len_t write_bytes(const byteptr_t data, len_t length) {
 				assert(m_data && "Data should not be nullptr.");
 				len_t avail_write_len = 0;
 				if (!m_writable)
@@ -436,7 +438,7 @@ namespace sn_Stream {
 				return avail_write_len;
 			}
 
-			std::future<len_t> write_bytes_async(byteptr_t data, len_t length) {
+			std::future<len_t> write_bytes_async(const byteptr_t data, len_t length) {
 				return std::async(std::launch::async, [=] {
 					return write_bytes(data, length);
 				});
@@ -465,19 +467,17 @@ namespace sn_Stream {
 				if (cap > 0 && cap <= m_capacity)
 					return;
 				m_capacity = cap;
-				auto storage = new byte_t[cap];
+				auto storage = new byte_t[static_cast<std::size_t>(cap)];
 				const auto deleter = sn_Thread::scope_guard::make_scope([&storage] {
 					delete[] storage;
 				});
 
 				if (m_size > 0 && m_data)
-					std::memmove(storage, m_data, m_size);
+					std::memmove(storage, m_data, static_cast<std::size_t>(m_size));
 
 				std::swap(m_data, storage);
 			}
 
-
-		
 		private:
 			mutable std::recursive_mutex m_mutex;
 			using guard_t = std::lock_guard<std::recursive_mutex>;
@@ -489,6 +489,524 @@ namespace sn_Stream {
 			bool m_writable;
 			bool m_autoResize;
 		};
+
+		class FixedMemoryStream : public sn_Builtin::reference_counter::ReferenceCounter<IStream> {
+		public:
+
+			FixedMemoryStream(byteptr_t data, len_t size, bool readable, bool writable) noexcept : m_data{ data }, m_size{ size }, m_currentPos{ 0 }, m_readable{ readable }, m_writable{ writable } {}
+			FixedMemoryStream(const byteptr_t data, len_t size, bool readable) noexcept : m_data{ const_cast<byteptr_t>(data) }, m_size{ size }, m_currentPos{ 0 }, m_readable{ readable }, m_writable{ false } {}
+
+			template <std::size_t N>
+			FixedMemoryStream(byte_t(&arr)[N], bool readable, bool writable) noexcept : MemoryStream(arr, N, readable, writable) {}
+			template <std::size_t N>
+			FixedMemoryStream(byte_t(&arr)[N], bool readable) noexcept : MemoryStream(arr, N, readable) {}
+
+			~FixedMemoryStream() {}
+
+			bool can_read() const {
+				return m_readable;
+			}
+
+			bool can_write() const {
+				return m_writable;
+			}
+
+			bool can_resize() const {
+				return false;
+			}
+
+			bool can_seek() const {
+				return true;
+			}
+
+			bool is_end_of_stream() const {
+				return m_currentPos == m_size;
+			}
+
+			len_t get_size() const {
+				return m_size;
+			}
+
+			void set_size(len_t size) {
+				SN_LOG_ERROR_WTL(sn_Error::NotSupported, "Fixed stream cannot set size.");
+			}
+
+			len_t get_position() const {
+				return m_currentPos;
+			}
+
+			void set_position(seek_t origin, len_t offset) {
+				switch (origin) {
+				case seek_t::begin:
+					if (offset < 0 || m_size < offset)
+						SN_LOG_ERROR_WTL(sn_Error::OutofRange, "Position out of range.");
+					m_currentPos = offset;
+					break;
+				case seek_t::current:
+					if ((offset < 0 && m_currentPos + offset < 0) || m_size < offset + m_currentPos)
+						SN_LOG_ERROR_WTL(sn_Error::OutofRange, "Position out of range.");
+					m_currentPos = m_currentPos + offset;
+					break;
+				case seek_t::end:
+					if (offset > 0 || (m_size + offset < 0))
+						SN_LOG_ERROR_WTL(sn_Error::OutofRange, "Position out of range.");
+					m_currentPos = m_size + offset;
+					break;
+				default:
+					SN_LOG_ERROR_WTL(sn_Error::InvalidArgs, "Invalid seek argument.");
+				}
+			}
+
+			byte_t read_byte() {
+				if (m_currentPos >= m_size)
+					SN_LOG_ERROR_WTL(sn_Error::OutofRange, "Current position out of range.");
+				return m_data[m_currentPos++];
+			}
+
+			len_t read_bytes(byteptr_t data, len_t length) {
+				assert(m_data && "Data should not be nullptr.");
+				len_t avail_read_len = 0;
+				if (!m_readable)
+					SN_LOG_ERROR_WTL(sn_Error::IllegalState, "Stream cannot be read");
+				if (length == 0)
+					return avail_read_len;
+
+				avail_read_len = std::min(length, m_size - m_currentPos);
+				memmove(data + m_currentPos, m_data, static_cast<std::size_t>(avail_read_len));
+				m_currentPos += avail_read_len;
+				return avail_read_len;
+			}
+
+			std::future<len_t> read_bytes_async(byteptr_t data, len_t length) {
+				return std::async(std::launch::async, [=] {
+					return read_bytes(data, length);
+				});
+			}
+
+			void write_byte(byte_t byte) {
+				if (m_currentPos >= m_size)
+					SN_LOG_ERROR_WTL(sn_Error::OutofRange, "Reached the end of stream.");
+				m_data[m_currentPos++] = byte;
+			}
+
+			len_t write_bytes(const byteptr_t data, len_t length) {
+				assert(m_data && "Data should not be nullptr.");
+				len_t avail_write_len = 0;
+				if (!m_writable)
+					SN_LOG_ERROR_WTL(sn_Error::IllegalState, "Stream cannot be written");
+				if (length == 0)
+					return avail_write_len;
+
+				avail_write_len = std::min(length, m_size - m_currentPos);
+				memmove(m_data + m_currentPos, data, static_cast<std::size_t>(avail_write_len));
+				m_currentPos += avail_write_len;
+				return avail_write_len;
+			}
+
+			std::future<len_t> write_bytes_async(const byteptr_t data, len_t length) {
+				return std::async(std::launch::async, [=] {
+					return write_bytes(data, length);
+				});
+			}
+
+			void flush() {}
+
+			byteptr_t get_internal_buffer() noexcept {
+				return m_data;
+			}
+
+		private:
+			const byteptr_t m_data;
+			const len_t m_size;
+			len_t m_currentPos;
+			const bool m_readable;
+			const bool m_writable;
+		};
+
+		class FileStream : public sn_Builtin::reference_counter::ReferenceCounter<IStream> {
+		public:
+#ifdef _WIN32
+			using handle_t = HANDLE;
+#else
+			using handle_t = int;
+#endif
+
+#ifdef _WIN32
+			FileStream(std::string filename, bool readable, bool writable, bool isasync = false, bool truncate = false) :
+				m_mappedFile{ NULL }, m_dispose{ true }, m_isAsync{ isasync }, m_filename{ filename }, m_readable{ readable }, m_writable{ writable } {
+				if (truncate && (readable || !writable))
+					SN_LOG_ERROR_WTL(sn_Error::InvalidArgs, "File should be writable and not readable while truncated.");
+				m_file = CreateFile(filename.c_str(),
+					truncate ? GENERIC_WRITE : ((readable ? GENERIC_READ : 0) | (writable ? GENERIC_WRITE : 0)),
+					FILE_SHARE_READ, NULL,
+					truncate ? TRUNCATE_EXISTING : (writable ? OPEN_ALWAYS : OPEN_EXISTING),
+					FILE_ATTRIBUTE_NORMAL | (isasync ? FILE_FLAG_OVERLAPPED : 0),
+					NULL);
+
+				if (!m_file || m_file == INVALID_HANDLE_VALUE)
+					SN_LOG_ERROR_WTL(sn_Error::CheckFailed, "Open file failed.");
+			}
+
+			FileStream(handle_t handle, bool readable, bool writable, bool transowner, bool isasync) :
+				m_file{ handle }, m_mappedFile { NULL }, m_dispose{ transowner }, m_isAsync{ isasync }, m_readable{ readable }, m_writable{ writable } {
+				
+				if (!m_file || m_file == INVALID_HANDLE_VALUE)
+					SN_LOG_ERROR_WTL(sn_Error::CheckFailed, "Open file failed.");
+			}
+
+			len_t get_size() const {
+				LARGE_INTEGER tmpSize{};
+				if (!GetFileSizeEx(m_file, &tmpSize))
+					SN_LOG_ERROR_WTL(sn_Error::CheckFailed, "GetFileSizeEx failed.");
+				return static_cast<len_t>(tmpSize.QuadPart);
+			}
+
+			void set_size(len_t size) {
+				if (!m_writable)
+					SN_LOG_ERROR_WTL(sn_Error::IllegalState, "Stream cannot be written.");
+				LARGE_INTEGER tVal;
+				tVal.QuadPart = size;
+
+				if (SetFilePointer(m_file, tVal.LowPart, &tVal.HighPart, FILE_BEGIN) == INVALID_SET_FILE_POINTER)
+					SN_LOG_ERROR_WTL(sn_Error::CheckFailed, "SetFilePointer failed.");
+				if (SetEndOfFile(m_file) == FALSE)
+					SN_LOG_ERROR_WTL(sn_Error::CheckFailed, "SetEndOfFile failed.");
+				
+				set_position(seek_t::begin, 0);
+			}
+
+			len_t get_position() const {
+				LARGE_INTEGER tVal;
+				tVal.QuadPart = 0;
+
+				tVal.LowPart = SetFilePointer(m_file, tVal.LowPart, &tVal.HighPart, FILE_CURRENT);
+				return tVal.QuadPart;
+			}
+
+			void set_position(seek_t origin, len_t offset) {
+				std::size_t tOrigin;
+				switch (origin) {
+				case seek_t::begin:
+					tOrigin = FILE_BEGIN;
+					break;
+				case seek_t::current:
+					tOrigin = FILE_CURRENT;
+					break;
+				case seek_t::end:
+					tOrigin = FILE_END;
+					break;
+				default:
+					SN_LOG_ERROR_WTL(sn_Error::InvalidArgs, "Invalid origin.");
+				}
+
+				LARGE_INTEGER tVal;
+				tVal.QuadPart = offset;
+
+				if (SetFilePointer(m_file, tVal.LowPart, &tVal.HighPart, tOrigin) == INVALID_SET_FILE_POINTER)
+					SN_LOG_ERROR_WTL(sn_Error::CheckFailed, "SetFilePointer failed.");
+			}
+
+			bool is_end_of_stream() const {
+				return get_size() == get_position();
+			}
+
+
+			// data should be pre-allocated, byteptr_t data = new byte_t[size];
+			len_t read_bytes(byteptr_t data, len_t length) {
+				if (m_isAsync)
+					return read_bytes_async(data, length).get();
+
+				DWORD avail_read_len = 0;
+				if (!m_readable)
+					SN_LOG_ERROR_WTL(sn_Error::IllegalState, "Stream cannot be read");
+				if (length == 0)
+					return avail_read_len;
+				if (data == nullptr)
+					SN_LOG_ERROR_WTL(sn_Error::InvalidArgs, "Data cannot be nullptr.");
+
+				if (FALSE == ReadFile(m_file, data, static_cast<DWORD>(length), &avail_read_len, NULL))
+					SN_LOG_ERROR_WTL(sn_Error::APIFailed, "ReadFile failed.");
+				return avail_read_len;
+			}
+
+			len_t write_bytes(const byteptr_t data, len_t length) {
+				if (m_isAsync)
+					return write_bytes_async(data, length).get();
+
+				DWORD avail_write_len = 0;
+				if (!m_writable)
+					SN_LOG_ERROR_WTL(sn_Error::IllegalState, "Stream cannot be written");
+				if (length == 0)
+					return avail_write_len;
+				if (data == nullptr)
+					SN_LOG_ERROR_WTL(sn_Error::InvalidArgs, "Data cannot be nullptr.");
+				
+				if (FALSE == WriteFile(m_file, data, static_cast<DWORD>(length), &avail_write_len, NULL))
+					SN_LOG_ERROR_WTL(sn_Error::APIFailed, "WriteFile failed.");
+				return avail_write_len;
+			}
+
+			std::future<len_t> read_bytes_async(byteptr_t data, len_t length) {
+				if (m_isAsync) {
+					if (!m_readable)
+						SN_LOG_ERROR_WTL(sn_Error::IllegalState, "Stream cannot be read");
+					if (length == 0) {
+						std::promise<len_t> dummy;
+						dummy.set_value(0);
+						return dummy.get_future();
+					}
+					if (data == nullptr)
+						SN_LOG_ERROR_WTL(sn_Error::InvalidArgs, "Data cannot be nullptr.");
+
+					auto olp = std::make_unique<OVERLAPPED>();
+
+					if (FALSE == ReadFile(m_file, data, static_cast<DWORD>(length), NULL, olp.get())) {
+						auto lastError = GetLastError();
+						if (lastError != ERROR_IO_PENDING) {
+							SN_LOG_ERROR_WTL(sn_Error::APIFailed, "ReadFile failed.");
+						}
+					}
+
+					return std::async(std::launch::deferred, [olp = move(olp), this]()->len_t {
+						DWORD avail_read_len;
+						if (!GetOverlappedResult(m_file, olp.get(), &avail_read_len, TRUE))
+							SN_LOG_ERROR_WTL(sn_Error::APIFailed, "GetOverlappedResult failed.");
+						return avail_read_len;
+					});
+				}
+
+				return std::async(std::launch::async, [=] {
+					return read_bytes(data, length);
+				});
+
+			}
+
+			std::future<len_t> write_bytes_async(const byteptr_t data, len_t length) {
+				if (m_isAsync) {
+					if (!m_writable)
+						SN_LOG_ERROR_WTL(sn_Error::IllegalState, "Stream cannot be written");
+					if (length == 0) {
+						std::promise<len_t> dummy;
+						dummy.set_value(0);
+						return dummy.get_future();
+					}
+					if (data == nullptr)
+						SN_LOG_ERROR_WTL(sn_Error::InvalidArgs, "Data cannot be nullptr.");
+
+					auto olp = std::make_unique<OVERLAPPED>();
+
+					if (FALSE == WriteFile(m_file, data, static_cast<DWORD>(length), NULL, olp.get())) {
+						auto lastError = GetLastError();
+						if (lastError != ERROR_IO_PENDING) {
+							SN_LOG_ERROR_WTL(sn_Error::APIFailed, "ReadFile failed.");
+						}
+					}
+
+					return std::async(std::launch::deferred, [olp = move(olp), this]()->len_t {
+						DWORD avail_write_len;
+						if (!GetOverlappedResult(m_file, olp.get(), &avail_write_len, TRUE))
+							SN_LOG_ERROR_WTL(sn_Error::APIFailed, "GetOverlappedResult failed.");
+						return avail_write_len;
+					});
+				}
+
+				return std::async(std::launch::async, [=] {
+					return write_bytes(data, length);
+				});
+
+			}
+
+			void flush() {
+				if (m_mappedStream)
+					FlushViewOfFile(m_mappedStream->get_internal_buffer(), static_cast<SIZE_T>(get_size()));
+				FlushFileBuffers(m_file);
+			}
+
+			IR_ptr<FixedMemoryStream> map_to_memory_stream() {
+				if (m_mappedStream)
+					return m_mappedStream;
+				m_mappedFile = CreateFileMapping(m_file, NULL,
+					m_writable ? PAGE_READWRITE : PAGE_READONLY,
+					NULL, NULL, NULL);
+				if (!m_mappedFile || m_mappedFile == INVALID_HANDLE_VALUE)
+					SN_LOG_ERROR_WTL(sn_Error::APIFailed, "CreateFileMapping failed.");
+
+				auto pFile = MapViewOfFile(m_mappedFile,
+					(m_readable ? FILE_MAP_READ : 0) | (m_writable ? FILE_MAP_WRITE : 0),
+					NULL, NULL, NULL);
+				if (!pFile)
+					SN_LOG_ERROR_WTL(sn_Error::APIFailed, "MapViewOfFile failed.");
+
+				m_mappedStream = sn_Builtin::reference_counter::make_ref_ptr<FixedMemoryStream>(static_cast<byteptr_t>(pFile), get_size(), m_readable, m_writable);
+
+				return m_mappedStream;
+			}
+
+			~FileStream() {
+				CloseHandle(m_mappedFile);
+				if (m_dispose)
+					CloseHandle(m_file);
+			}
+#else
+			FileStream(std::string filename, bool readable, bool writable, bool truncate) :
+				m_file{}, m_dispose{ true }, m_isEndOfFile{}, m_filename{ filename }, m_readable{ readable }, m_writable{ writable } {
+				int mode = 0;
+				if (readable && writable)
+					mode = O_RDWR;
+				else if (readable)
+					mode = O_RDONLY;
+				else
+					mode = O_WRONLY | O_CREAT;
+
+				if (truncate)
+					mode |= O_TRUNC;
+
+				m_file = open(filename.c_str(), mode, S_IRWXU | S_IRWXG | S_IRWXO);
+				if (!m_file)
+					SN_LOG_ERROR_WTL(sn_Error::InternalError, "Cannot open file.");
+			}
+
+			FileStream(handle_t file, bool readable, bool writable, bool transferowner) :
+				m_file{ file }, m_dispose{ transferowner }, m_isEndOfFile{}, m_filename{ filename }, m_readable{ readable }, m_writable{ writable } {
+				if (m_file < 0)
+					SN_LOG_ERROR_WTL(sn_Error::InvalidArgs, "File descriptor should be positive");
+			}
+
+			bool is_end_of_stream() const {
+				return m_isEndOfFile;
+			}
+
+			len_t get_size() const {
+				const auto currentPos = lseek(m_file, 0, SEEK_CUR);
+				lseek(m_file, 0, SEEK_SET);
+				const auto beginPos = lseek(m_file, 0, SEEK_CUR);
+				lseek(m_file, 0, SEEK_END);
+				const auto totalSize = lseek(m_file, 0, SEEK_CUR) - beginPos;
+				lseek(m_file, currentPos, SEEK_SET);
+				return static_cast<len_t>(totalSize);
+			}
+
+			void set_size(len_t size) {
+				if (!m_writable)
+					SN_LOG_ERROR_WTL(sn_Error::IllegalState, "Stream cannot be writtern.");
+				if (ftruncate(m_file, static_cast<off_t>(size)))
+					SN_LOG_ERROR_WTL(sn_Error::APIFailed, sn_Log::logstream::Fmt("ftruncate failed (errno = %d).", errno));
+			}
+
+			len_t get_position() const {
+				return static_cast<len_t>(lseek(m_file, 0, SEEK_CUR));
+			}
+
+			len_t set_position(seek_t origin, len_t offset) {
+				int tOrigin;
+				switch (origin) {
+				case seek_t::begin:
+					tOrigin = SEEK_SET;
+					break;
+				case seek_t::current:
+					tOrigin = SEEK_CUR;
+					break;
+				case seek_t::end:
+					tOrigin = SEEK_END;
+					break;
+				default:
+					SN_LOG_ERROR_WTL(sn_Error::InvalidArgs, "Invalid origin.");
+				}
+				lseek(m_file, static_cast<off_t>(offset), tOrigin);
+			}
+
+			len_t read_bytes(byteptr_t data, len_t length) {
+				if (!m_readable)
+					SN_LOG_ERROR_WTL(sn_Error::IllegalState, "Stream cannot be read");
+				if (length == 0)
+					return 0;
+				if (data == nullptr)
+					SN_LOG_ERROR_WTL(sn_Error::InvalidArgs, "Data cannot be nullptr.");
+				const auto ret = read(m_file, data, static_cast<std::size_t>(length));
+				if (ret < 0)
+					SN_LOG_ERROR_WTL(sn_Error::APIFailed, "read file failed.");
+
+				m_isEndOfFile = !ret;
+				return static_cast<len_t>(ret);
+			}
+
+			len_t write_bytes(const byteptr_t data, len_t length) {
+				if (!m_writable)
+					SN_LOG_ERROR_WTL(sn_Error::IllegalState, "Stream cannot be written");
+				if (length == 0)
+					return 0;
+				if (data == nullptr)
+					SN_LOG_ERROR_WTL(sn_Error::InvalidArgs, "Data cannot be nullptr.");
+				const auto ret = write(m_file, data, static_cast<std::size_t>(length));
+				if (ret < 0)
+					SN_LOG_ERROR_WTL(sn_Error::APIFailed, "write file failed.");
+
+				return static_cast<len_t>(ret);
+			}
+		
+			void flush() {}
+
+			~FileStream() {
+				if (m_dispose)
+					close(m_file);
+			}
+
+#endif
+			bool can_write() const {
+				return m_writable;
+			}
+
+			bool can_read() const {
+				return m_readable;
+			}
+
+			bool can_resize() const {
+				return m_writable;
+			}
+
+			bool can_seek() const {
+				return true;
+			}
+
+			
+			virtual byte_t read_byte() {
+				byte_t byte;
+				if (read_bytes(&byte, 1) == 1)
+					return byte;
+				SN_LOG_ERROR_WTL(sn_Error::InternalError, "Unable to read byte.");
+			}
+
+			virtual void write_byte(byte_t byte) {
+				if (write_bytes(&byte, 1) != 1)
+					SN_LOG_ERROR_WTL(sn_Error::InternalError, "Unable to write byte.");
+			}
+
+			std::string get_filename() const noexcept {
+				return m_filename;
+			}
+
+			handle_t get_handle() const noexcept {
+				return m_file;
+			}
+
+
+		private:
+			handle_t m_file;
+			const bool m_dispose;
+			std::string m_filename;
+			bool m_readable;
+			bool m_writable;
+
+#ifdef _WIN32
+			handle_t m_mappedFile;
+			IR_ptr<FixedMemoryStream> m_mappedStream;
+			const bool m_isAsync;
+#else
+			bool m_isEndofFile;
+#endif
+
+		};
+
 	}
 }
 
