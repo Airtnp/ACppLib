@@ -47,6 +47,8 @@ for detail: https://gcc.gnu.org/onlinedocs/libstdc++/ext/pb_ds/
 #include <numeric>
 #include <functional>
 #include <type_traits>
+#include <typeindex>
+#include <typeinfo>
 #include <utility>
 
 // For STL memory/thread operation
@@ -66,6 +68,11 @@ for detail: https://gcc.gnu.org/onlinedocs/libstdc++/ext/pb_ds/
 #include <queue>
 #include <initializer_list>
 #include <iterator>
+
+// For exception
+#include <stdexcept>
+#include <exception>
+
 
 // For platform-related
 #ifdef _WIN32

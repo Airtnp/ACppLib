@@ -341,6 +341,17 @@ namespace sn_Alg {
 			return loop_length;
 		}
 
+		//Max subarray
+		int kadane(int arr[], int n) {
+			int max_so_far = 0;
+			int max_ending_here = 0;
+			for (int i = 0; i < n; ++i) {
+				max_ending_here = max_ending_here + arr[i];
+				max_ending_here = std::max(max_ending_here, 0);
+				max_so_far = std::max(max_so_far, max_ending_here);
+			}
+			return max_so_far;
+		}
 	}
 
 	namespace sort {

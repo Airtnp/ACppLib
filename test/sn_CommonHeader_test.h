@@ -22,6 +22,7 @@
 #include "../src/sn_Builtin.hpp"
 #include "../src/sn_Thread.hpp"
 #include "../src/sn_Stream.hpp"
+#include "../src/sn_Type.hpp"
 
 
 #endif

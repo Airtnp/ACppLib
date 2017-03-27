@@ -114,7 +114,6 @@ int main() {
 	sn_Log_test::sn_log_test();
 	sn_Thread_test::sn_thread_test();
 #endif
-	sn_String_test::sn_string_test();
 	getchar();
 	return 0;
 }
