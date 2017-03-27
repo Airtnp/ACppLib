@@ -10,14 +10,14 @@
 namespace sn_String {
 	namespace formatter {
 		
-		std::tuple<int, int, int> find_string_token(const std::string& base_string, std::string::size_type& pos, std::string::size_type& prev_len, const std::string& arg) {
+		std::array<int, 4> find_string_token(const std::string& base_string, std::string::size_type& pos, std::string::size_type& prev_len, const std::string& arg) {
 			int pprev_len = prev_len;
 			int first = base_string.find('{', pos);
 			int second = base_string.find('}', first);
 			std::string numeric = base_string.substr(first + 1, second - first - 1);
 			if (numeric.find_first_not_of("0123456789") == numeric.npos) {
 				pos = second;
-				auto res = std::make_tuple(first, second, pprev_len);
+				std::array<int, 4> res{ first, second, pprev_len, atoi(numeric.c_str()) };
 				prev_len = arg.length();
 				return res;
 			}
@@ -27,20 +27,35 @@ namespace sn_String {
 			}
 		}
 
-		template <typename ...Args, std::size_t ...I>
-		void string_formatter_impl(std::string& base_string, const std::vector<std::tuple<int, int, int>>& v, std::index_sequence<I...>, Args... args) {
-			std::initializer_list<int>{ (base_string.replace(get<0>(v[I]) + get<2>(v[I]) - 3 - static_cast<int>(floor(I == 0 ? 0 : log10(I))), get<1>(v[I]) - get<0>(v[I]) + 1, args), 0)...};
+		template <typename T, std::size_t N, std::size_t ...I>
+		void string_formatter_impl(std::string& base_string, const std::vector<std::array<int, 4>>& v, std::index_sequence<I...>, std::array<T, N> arr) {
+			std::initializer_list<int>{ (base_string.replace(get<0>(v[I]) + get<2>(v[I]) - 3 - static_cast<int>(floor(I == 0 ? 0 : log10(I))), get<1>(v[I]) - get<0>(v[I]) + 1, arr[I]), 0)...};
 		}
 
 		template <typename ...Args>
 		std::string string_formatter(std::string base_string, Args... args) {
 			auto format_list = std::make_index_sequence<sizeof...(args)>();
-			std::vector<std::tuple<int, int, int>> token_pos{};
+			std::vector<std::array<int, 4>> token_pos{};
 			std::string::size_type current_pos = 0;
 			std::string::size_type previous_length = 3;
+			std::array<std::string, sizeof...(args)> params{ args... };
 			std::initializer_list<int>{(token_pos.push_back(find_string_token(base_string, current_pos, previous_length, args)), 0)...};
-			
-			string_formatter_impl(base_string, token_pos, format_list, args...);
+			std::array<std::size_t, sizeof...(args)> idx;
+			for (std::size_t i = 0; i < idx.size(); ++i) {
+				idx[i] = i;
+			}
+			std::sort(idx.begin(), idx.end(), [&token_pos](std::size_t a, std::size_t b) {
+				return std::get<3>(token_pos[a]) < std::get<3>(token_pos[b]);
+			});
+			std::array<std::string, sizeof...(args)> params_copy;
+			for (std::size_t i = 0; i < idx.size(); ++i) {
+				params_copy[i] = params[idx[i]];
+				if (i == 0)
+					get<2>(token_pos[i]) = 3;
+				else
+					get<2>(token_pos[i]) = params_copy[i - 1].length();
+			}
+			string_formatter_impl(base_string, token_pos, format_list, params_copy);
 			return base_string;
 		}
 	}

@@ -112,8 +112,9 @@ int main() {
 	sn_Reflection_test::sn_reflection_test();
 	sn_String_test::sn_string_test();
 	sn_Log_test::sn_log_test();
-#endif
 	sn_Thread_test::sn_thread_test();
+#endif
+	sn_String_test::sn_string_test();
 	getchar();
 	return 0;
 }
