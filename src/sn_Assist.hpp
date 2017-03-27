@@ -41,7 +41,7 @@ namespace sn_Assist {
 		using sn_is_detected = typename sn_detector<sn_nonesuch, void, Op, Args...>::value_t;
 
 		template <template<class...> class Op, class... Args>
-		using sn_is_detected_v = typename sn_detector<sn_nonesuch, void, Op, Args...>::value_t::value_type;
+		constexpr bool sn_is_detected_v = typename sn_detector<sn_nonesuch, void, Op, Args...>::value_t::value;
 
 		template <template<class...> class Op, class... Args>
 		using sn_detected_v = typename sn_detector<sn_nonesuch, void, Op, Args...>::type;
@@ -56,8 +56,31 @@ namespace sn_Assist {
 			int r;
 		}
 
-		sn_is_detected<has_member_r, Type>::value_t == std::true_type::value_t == true
+		sn_is_detected_v<has_member_r, Type>
 		*/
+
+		template <bool>
+		struct statement_if_impl {
+			template <typename F, typename P, typename ...Args>
+			static decltype(auto) run(F&& f, P&& p, Args&&... args) {
+				return std::forward<F>(f)(std::forward<Args>(args)...);
+			}
+		};
+
+		template <>
+		struct statement_if_impl<false> {
+			template <typename F, typename P, typename ...Args>
+			static decltype(auto) run(F&& f, P&& p, Args&&... args) {
+				return std::forward<P>(p)(std::forward<Args>(args)...);
+			}
+		};
+
+		template <bool s, typename F, typename P, typename ...Args>
+		decltype(auto) statement_if(F&& f, P&& p, Args&&... args) {
+			return statement_if_impl<s>::run(
+				std::forward<F>(f), std::forward<P>(p), std::forward<Args>(args)...
+			);
+		}
 
 	}
 
