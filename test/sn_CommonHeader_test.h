@@ -24,6 +24,7 @@
 #include "../src/sn_Stream.hpp"
 #include "../src/sn_Type.hpp"
 #include "../src/sn_FileSystem.hpp"
+#include "../src/sn_Function.hpp"
 
 
 #endif
