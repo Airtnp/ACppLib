@@ -15,6 +15,8 @@ No common namespace, because it's loosely connected
 * sn_DBP: a MySQL connection pool
 * sn_Decimal: a big integer library
 * sn_DS: some data structures
+* sn_Filesystem: support filesystem-related
+* sn_Function: support curry/combine/lazy evaluation of functions
 * sn_Log: a log class
 * sn_Macro: some macros
 * sn_Reflection: two realizations of reflection (magic_get/pod_reflect && register_reflect/typeless)

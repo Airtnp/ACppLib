@@ -107,12 +107,12 @@ namespace sn_Lazy {
 
 	}
 
-	namespace Binding {
+	namespace Currying {
 		template <typename T>
-		struct Binding {};
+		struct Currying {};
 
 		template <typename R, typename Arg0, typename ...Args>
-		struct Binding<R(Arg0, Args...)> {
+		struct Currying<R(Arg0, Args...)> {
 			typedef R function_type(Arg0, Args...);
 			typedef R curried_type(Args...);
 			using first_parameter_type = Arg0;
@@ -143,13 +143,13 @@ namespace sn_Lazy {
 		};
 
 		template <typename T>
-		Function::Func<Function::Func<typename Binding<T>::curried_type>(typename Binding<T>::first_parameter_type)> make_curry(T* function) {
-			return typename Binding<T>::Currier(function);
+		Function::Func<Function::Func<typename Currying<T>::curried_type>(typename Binding<T>::first_parameter_type)> make_curry(T* function) {
+			return typename Currying<T>::Currier(function);
 		}
 
 		template <typename T>
-		Function::Func<Function::Func<typename Binding<T>::curried_type>(typename Binding<T>::first_parameter_type)> make_curry(const T& function) {
-			return typename Binding<T>::Currier(function);
+		Function::Func<Function::Func<typename Currying<T>::curried_type>(typename Binding<T>::first_parameter_type)> make_curry(const T& function) {
+			return typename Currying<T>::Currier(function);
 		}
 
 	}
@@ -188,7 +188,7 @@ namespace sn_Lazy {
 		};
 
 		using Function::Func;
-		using Binding::make_curry;
+		using Currying::make_curry;
 
 		template <typename F1, typename F2, typename C>
 		Func<typename Combining<F1, F2, C>::function_type> make_combine(Func<C> converter, Func<F1> func1, Func<F2> func2) {
@@ -296,7 +296,7 @@ namespace sn_Lazy {
 
 	}
 
-	using Binding::make_curry;
+	using Currying::make_curry;
 	using Combining::make_combine;
 	using Combining::make_homomorphy_combine;
 	using Lazy::make_lazy;
