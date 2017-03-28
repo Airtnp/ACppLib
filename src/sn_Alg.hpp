@@ -254,19 +254,42 @@ namespace sn_Alg {
 			using sn_DS::basic::graph_node;
 			using sn_DS::basic::bitvec;
 			
+			template <typename E>
+			vector<int> dijkstra(const graph<int, E>& gh, const int& start_index) {
+				vector<int> v_dis(gh.size, INT_MAX);
+				priority_queue<int, vector<int>, [&v_dis](int a, int b) { return v_dis[a] < v_dis[b]; }> p;
+				bitvec visit(gh.size);
+				p.push(start_index);
+				v_dis[start_index] = 0;
+				while (!p.empty()) {
+					auto u = p.top();
+					p.pop();
+					visit[u] = 0;
+					auto u_adj = gh.get_adj(u);
+					for (const auto& v : u_adj) {
+						auto weight = v.second;
+						auto index = v.first;
+						if (v_dis[index] > v_dis[u] + weight) {
+							v_dis[index] = v_dis[u] + weight;
+							if (!visit[index]) {
+								visit[v] = 1;
+								p.push(v);
+							}
+						}
+					}
+				}
+				return v_dis;
+			}
+
 			//Bellman-Ford in queue-optim, high in sparse graph better return optional
-			template <typename T, typename E>
-			vector<int> bf_min_distance(const graph<T, E>& gh, const int& start_index) {
+			template <typename E>
+			vector<int> bf_min_distance(const graph<int, E>& gh, const int& start_index) {
 				vector<int> v_dis(gh.size, INT_MAX);
 				v_dis[start_index] = 0;
 				queue<int> q_dis;
-				unordered_map<int, int> in_queue;
-				unordered_map<int, int> in_queue_sum;
+				bitvec in_queue(gh.size);
+				vector<int> in_queue_sum(0);
 
-				for (int i = 0; i < gh.size; ++i) {
-					in_queue.insert(make_pair(i, 0));
-					in_queue_sum.insert(make_pair(i, 0));
-				}
 				q_dis.push(start_index);
 				in_queue[start_index] = 1;
 				in_queue_sum[start_index] += 1;
@@ -295,6 +318,19 @@ namespace sn_Alg {
 				return v_dis;
 
 			}
+
+			template <typename T, typename E>
+			vector<vector<T>> floyd(const graph<T, E>& gh, T INF = 65536) {
+				std::size_t n = gh.size;
+				std::vector<std::vector<T>> dis(n, std::vector<T>(n, INF));
+				for (int i = 0; i < n; ++i)
+					for (int j = 0; j < n; ++j)
+						for (int k = 0; k < n; ++k)
+							dis[i][j] = std::min(dis[i][j], dis[i][k] + dis[k][j]);
+				return dis;
+			}
+
+
 		}
 
 	}

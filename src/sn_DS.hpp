@@ -739,6 +739,7 @@ namespace sn_DS {
 			}
 		};
 
+		//T type, E edge_type
 		template <typename T, typename E>
 		class graph {
 		public:

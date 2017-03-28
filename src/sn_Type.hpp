@@ -482,7 +482,7 @@ namespace sn_Type {
 
 		template <typename Overloader, typename ...Args>
 		constexpr auto visit(Overloader&& vis, variant::Variant<Args...> var) {
-			sn_Assist::sn_invoke(std::forward<Overloader>(vis), var.get<sn_Assist::sn_type_assist::visit_at<var.index(), Args...>>());
+			return sn_Assist::sn_invoke(std::forward<Overloader>(vis), var.get<sn_Assist::sn_type_assist::visit_at<var.index(), Args...>>());
 		}
 
 		/* Usage:
