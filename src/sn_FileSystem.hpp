@@ -8,6 +8,7 @@
 #include "sn_CommonHeader.h"
 
 //ref: Boost.filesystem
+//TODO: add directory based
 namespace sn_FileSystem{
 
 	namespace path_traits {

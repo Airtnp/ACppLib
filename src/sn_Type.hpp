@@ -7,9 +7,20 @@
 
 //TODO: add concepts required by C++1z
 namespace sn_Type {
+
+	namespace nil {
+		class Nil {
+			template <typename T>
+			operator T() const noexcept {
+				return T{};
+			}
+		};
+	}
+
+	//ref: cosmos/
 	namespace any {
-		struct Any {
-			
+		class Any {
+		public:
 			Any(void) : m_typeIndex(std::type_index(typeid(void))) {}
 			Any(const Any& rhs) : m_typeIndex(rhs.m_typeIndex), m_ptr(rhs.clone()) {}
 			Any(Any&& rhs) : m_ptr(std::move(rhs.m_ptr)), m_typeIndex(std::move(rhs.m_typeIndex)) {}

@@ -11,6 +11,7 @@
 #include "sn_Thread.hpp"
 
 namespace sn_Stream {
+
 	namespace stream {
 		using sn_Builtin::reference_counter::IR_ptr;
 		using sn_Builtin::reference_counter::IWR_ptr;

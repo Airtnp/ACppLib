@@ -5,7 +5,7 @@
 #include "sn_Assist.hpp"
 
 namespace sn_Lazy {
-	//ref: Vlpp/Lazy Vlpp/Function
+	//ref: Vlpp/Lazy Vlpp/Function cosmos/Lazy
 	namespace Function {
 		template <typename T>
 		class Func {};
