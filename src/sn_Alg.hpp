@@ -377,7 +377,7 @@ namespace sn_Alg {
 			return loop_length;
 		}
 
-		//Max subarray
+		//Max subarray sum
 		int kadane(int arr[], int n) {
 			int max_so_far = 0;
 			int max_ending_here = 0;
@@ -388,6 +388,22 @@ namespace sn_Alg {
 			}
 			return max_so_far;
 		}
+
+		//Max subarray product
+		int kadane_product(int arr[], int n) {
+			int max_so_far = 0;
+			int max_ending_here = 0;
+			int min_ending_here = 0;
+			for (int i = 0; i < n; ++i) {
+				int temp = max_ending_here;
+				max_ending_here = std::max(arr[i], arr[i] * max_ending_here, arr[i]*min_ending_here);
+				min_ending_here = std::min(arr[i], arr[i] * temp, arr[i] * min_ending_here);
+				max_so_far = std::max(max_so_far, max_ending_here);
+			}
+			return max_so_far;
+		}
+
+
 	}
 
 	namespace sort {
