@@ -182,19 +182,19 @@ namespace sn_Type {
 			}
 
 			constexpr T& value() & {
-				return &operator*();
+				return operator*();
 			}
 
 			constexpr const T& value() const & {
-				return &operator*();
+				return operator*();
 			}
 
 			constexpr T&& value() && {
-				return std::move(&operator*());
+				return std::move(operator*());
 			}
 
 			constexpr const T&& value() const && {
-				return std::move(&operator*());
+				return std::move(operator*());
 			}
 
 			template <typename U>

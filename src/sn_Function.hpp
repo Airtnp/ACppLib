@@ -1,12 +1,13 @@
-#ifndef SN_LAZY_H
-#define SN_LAZY_H
+#ifndef SN_FUNCTION_H
+#define SN_FUNCTION_H
 
 #include "sn_CommonHeader.h"
 #include "sn_Assist.hpp"
+#include "sn_Type.hpp"
 
 namespace sn_Lazy {
 	//ref: Vlpp/Lazy Vlpp/Function cosmos/Lazy
-	namespace Function {
+	namespace function {
 		template <typename T>
 		class Func {};
 
@@ -107,7 +108,7 @@ namespace sn_Lazy {
 
 	}
 
-	namespace Currying {
+	namespace currying {
 		template <typename T>
 		struct Currying {};
 
@@ -119,10 +120,10 @@ namespace sn_Lazy {
 
 			class Binder {
 			protected:
-				Function::Func<function_type> m_target;
+				function::Func<function_type> m_target;
 				Arg0 m_firstParam;
 			public:
-				Binder(const Function::Func<function_type>& target, Arg0 param) : m_target(target), m_firstParam(param) {}
+				Binder(const function::Func<function_type>& target, Arg0 param) : m_target(target), m_firstParam(param) {}
 
 				R operator()(Args&&... args) const {
 					return m_target(std::forward<Arg0>(m_firstParam), std::forward<Args>(args)...);
@@ -131,11 +132,11 @@ namespace sn_Lazy {
 
 			class Currier {
 			protected:
-				Function::Func<function_type> m_target;
+				function::Func<function_type> m_target;
 			public:
-				Currier(const Function::Func<function_type>& target) : m_target(target) {}
+				Currier(const function::Func<function_type>& target) : m_target(target) {}
 
-				Function::Func<curried_type> operator()(Arg0&& param) const {
+				function::Func<curried_type> operator()(Arg0&& param) const {
 					return Binder(m_target, param);
 				}
 
@@ -143,27 +144,27 @@ namespace sn_Lazy {
 		};
 
 		template <typename T>
-		Function::Func<Function::Func<typename Currying<T>::curried_type>(typename Binding<T>::first_parameter_type)> make_curry(T* function) {
+		function::Func<function::Func<typename Currying<T>::curried_type>(typename Currying<T>::first_parameter_type)> make_curry(T* function) {
 			return typename Currying<T>::Currier(function);
 		}
 
 		template <typename T>
-		Function::Func<Function::Func<typename Currying<T>::curried_type>(typename Binding<T>::first_parameter_type)> make_curry(const T& function) {
+		function::Func<function::Func<typename Currying<T>::curried_type>(typename Currying<T>::first_parameter_type)> make_curry(const T& function) {
 			return typename Currying<T>::Currier(function);
 		}
 
 	}
 
-	namespace Combining {
+	namespace combining {
 		template <typename A, typename B, typename C>
 		class Combining {};
 
 		template <typename R1, typename R2, typename R, typename ...Args>
 		class Combining<R1(Args...), R2(Args...), R(R1, R2)> {
 		protected:
-			Function::Func<R1(Args...)> m_func1;
-			Function::Func<R2(Args...)> m_func2;
-			Function::Func<R(R1, R2)> m_converter;
+			function::Func<R1(Args...)> m_func1;
+			function::Func<R2(Args...)> m_func2;
+			function::Func<R(R1, R2)> m_converter;
 		public:
 			typedef R1 first_function_type(Args...);
 			typedef R2 second_function_type(Args...);
@@ -187,8 +188,8 @@ namespace sn_Lazy {
 
 		};
 
-		using Function::Func;
-		using Currying::make_curry;
+		using function::Func;
+		using currying::make_curry;
 
 		template <typename F1, typename F2, typename C>
 		Func<typename Combining<F1, F2, C>::function_type> make_combine(Func<C> converter, Func<F1> func1, Func<F2> func2) {
@@ -199,14 +200,14 @@ namespace sn_Lazy {
 		Func<Func<T>(Func<T>, Func<T>)> make_homomorphy_combine(const Func<typename Func<T>::result_type(typename Func<T>::result_type, typename Func<T>::result_type)> converter) {
 			using R = typename Func<T>::result_type;
 			// Or use bind to make converter the 3rd argument
-			return make_curry<Func<T>(Func<R(R, R)>, Func<T>, Func<T>)>(combine)(converter);
+			return make_curry<Func<T>(Func<R(R, R)>, Func<T>, Func<T>)>(make_combine)(converter);
 		}
 
 
 	}
 
-	namespace Lazy {
-		using Function::Func;
+	namespace lazy {
+		using function::Func;
 		template <typename T, typename ...Args>
 		class Lazy {
 		protected:
@@ -296,10 +297,224 @@ namespace sn_Lazy {
 
 	}
 
-	using Currying::make_curry;
-	using Combining::make_combine;
-	using Combining::make_homomorphy_combine;
-	using Lazy::make_lazy;
+	//Note: functor wrapper is just like AOP
+	namespace functor_wrapper {
+
+#define SN_MAKE_FUNCTOR(func_name) \
+	class sn_fn_##func_name { \
+	public : \
+		template <typename ...Args> \
+		auto operator()(Args&&... args) const { \
+			return func_name(std::forward<Args>(args)...); \
+		} \
+	} \
+
+
+		template <typename F, typename Before = std::tuple<>, typename After = std::tuple<>>
+		class FunctorWrapper {
+		private:
+			F m_func;
+			Before m_before;
+			After m_after;
+		public:
+			FunctorWrapper(F&& f) : m_func(std::forward<F>(f)), m_before(std::tuple<>()), m_after(std::tuple<>()) {}
+			FunctorWrapper(const F& f, const Before& b, const After& a) : m_func(f), m_before(b), m_after(a) {}
+
+			template <typename ...Args>
+			auto operator()(Args&&... args) const
+				-> decltype(sn_Assist::sn_tuple_assist::invoke_tuple(
+					m_func, std::tuple_cat(
+						m_before,
+						std::make_tuple(std::forward<Args>(args)...),
+						m_after))) {
+				return sn_Assist::sn_tuple_assist::invoke_tuple(m_func, std::tuple_cat(m_before, std::make_tuple(std::forward<Args>(args)...), m_after));
+			}
+
+			template <typename T>
+			auto add_aspect_head(T&& param) const {
+				using Before_t = decltype(std::tuple_cat(std::make_tuple(std::forward<T>(param)), m_before));
+				return FunctorWrapper<F, Before_t, After>(m_func, std::tuple_cat(std::make_tuple(std::forward<T>(param)), m_before), m_after);
+			}
+
+			template <typename T>
+			auto add_aspect_inplace(T&& param) const {
+				using Before_t = decltype(std::tuple_cat(m_before, std::make_tuple(std::forward<T>(param))));
+				return FunctorWrapper<F, Before_t, After>(m_func, std::tuple_cat(m_before, std::make_tuple(std::forward<T>(param))), m_after);
+			}
+
+			template <typename T>
+			auto add_aspect_tail(T&& param) const {
+				using After_t = decltype(std::tuple_cat(std::make_tuple(std::forward<T>(param)), m_after));
+				return FunctorWrapper<F, Before, After_t>(m_func, m_before, std::tuple_cat(std::make_tuple(std::forward<T>(param)), m_after));
+			}
+		};
+
+		template <typename F>
+		auto make_functor_wrapper(F&& f) {
+			return FunctorWrapper<F>(std::forward<F>(f));
+		}
+
+		// 120 >> 3 >> wrapper_map << 2 << 3 << 20
+		// (wrapper_map + 2 + 3) << 4
+		// 1 | (add << 4 << 6) | print = 11
+		template <typename F, typename Arg>
+		auto operator+(const FunctorWrapper<F>& pa, Arg&& arg) {
+			return pa.template add_aspect_inplace<Arg>(std::forward<Arg>(arg));
+		}
+
+		template <typename F, typename Arg>
+		auto operator<<(const FunctorWrapper<F>& pa, Arg&& arg) {
+			return pa.template add_aspect_tail<Arg>(std::forward<Arg>(arg));
+		}
+
+		template <typename Arg, typename F>
+		auto operator>>(Arg&& arg, const FunctorWrapper<F>& pa) {
+			return pa.template add_aspect_head<Arg>(std::forward<Arg>(arg));
+		}
+
+#define SN_MAKE_FUNCTOR_WRAPPER(wrapper_name, func_name) \
+	SN_MAKE_FUNCTOR(func_name) \
+	const auto wrapper_name = make_functor_wrapper(sn_fn_##func_name());
+
+
+	}
+
+	namespace maybe {
+		template <typename T>
+		class maybe {
+		private:
+			sn_Type::optional::Optional<T> m_optional;
+		public:
+			maybe() : m_optional() {}
+			maybe(T&& value) : m_optional(std::forward<T>(value)) {}
+			maybe(const T& value) : m_optional(value) {}
+
+			template <typename F>
+			auto operator()(F&& f) const -> maybe<decltype(f(std::declval<T>()))> {
+				using result_type = decltype(f(std::declval<T>()));
+				if (!m_optional.is_init())
+					return maybe<result_type>();
+				return maybe<result_type>(f(m_optional.value()));
+			}
+
+			template <typename U>
+			T value_or(U&& another_value) {
+				return m_optional.value_or(std::forward<U>(another_value));
+			}
+		};
+
+		// maybe<int>() | print || 2 -> 2
+		// just(2) | print || 4 -> print(4)
+		template <typename T, typename F>
+		inline auto operator|(maybe<T>&& m, F&& f) -> decltype(m(f)) {
+			return m(std::forward<F>(f));
+		}
+
+		template <typename T, typename U>
+		inline auto operator||(maybe<T>&& m, U&& v) -> decltype(m.value_or(std::forward<U>(v))) {
+			return m.value_or(std::forward<U>(v));
+		}
+
+		template <typename T>
+		maybe<T> just(T&& t) {
+			return maybe<T>(std::forward<T>(t));
+		}
+
+	}
+
+	namespace pipeline {
+		// 2 | add
+		template <typename T, typename F>
+		auto operator|(T&& param, const F& f) -> decltype(f(std::forward<T>(param))) {
+			return f(std::forward<T>(param));
+		}
+
+		template <typename ...Fns>
+		class Chain {
+		private:
+			const std::tuple<Fns...> m_funcs;
+			const static size_t m_tpSize = sizeof...(Fns);
+
+			template <typename Arg, std::size_t I>
+			auto call_impl(Arg&& arg, const std::index_sequence<I>&) const
+				-> decltype(std::get<I>(m_funcs)(std::forward<Arg>(arg))) {
+				return std::get<I>(m_funcs)(std::forward<Arg>(arg));
+			}
+
+			template <typename Arg, std::size_t I, std::size_t ...Is>
+			auto call_impl(Arg&& arg, const std::index_sequence<I, Is...>&) const
+				-> decltype(call_impl(std::get<I>(m_funcs)(std::forward<Arg>(arg)), std::index_sequence<Is...>{})) {
+				return call_impl(std::get<I>(m_funcs)(std::forward<Arg>(arg)), std::index_sequence<Is...>{});
+			}
+
+			template <typename Arg>
+			auto call(Arg&& arg) const -> decltype(call_impl(std::forward<Arg>(arg), std::make_index_sequence<m_tpSize>{})) {
+				return call_impl(std::forward<Arg>(arg), std::make_index_sequence<m_tpSize>{});
+			}
+
+		public:
+
+			Chain() : m_funcs(std::tuple<>{}) {}
+			Chain(std::tuple<Fns...> funcs) : m_funcs(funcs) {}
+			
+			template <typename F>
+			inline auto add(const F& f) const {
+				return Chain<Fns..., F>(std::tuple_cat(m_funcs, std::make_tuple(f)));
+			}
+
+			template <typename Arg>
+			inline auto operator()(Arg&& arg) const -> decltype(call(std::forward<Arg>(arg))) {
+				return call(std::forward<Arg>(arg));
+			}
+
+		};
+
+		const auto ChainHead = Chain<>();
+
+		// f = ChainHead | [](auto s){} | wrapper_map | ...
+		// {2, 3} | f
+		template <typename ...Fns, typename F>
+		inline auto operator|(Chain<Fns...>&& chain, F&& f) {
+			return Chain.add(std::forward<F>(f));
+		}
+
+	}
+
+	namespace operation {
+
+		template <typename T, typename ...Args, template <typename...> typename C, typename F>
+		auto map(const C<T, Args...>& container, const F& f) -> C<decltype(f(std::declval<T>()))> {
+			using result_type = decltype(f(std::declval<T>()));
+			C<result_type> res;
+			for (const auto& item : container)
+				res.push_back(f(item));
+			return res;
+		}
+
+		template <typename T, typename ...Args, template <typename...> typename C, typename F, typename R>
+		auto reduce(const C<T, Args...>& container, const R& start, const F& f) {
+			R res = start;
+			for (const auto& item : container)
+				res = f(res, item);
+			return res;
+		}
+
+		template <typename T, typename ...Args, template <typename...> typename C, typename F>
+		auto filter(const C<T, Args...>& container, const F& f) {
+			C<T, Args...> res;
+			for (const auto& item : container)
+				if (f(item))
+					res.push_back(item);
+			return res;
+		}
+
+	}
+
+	using currying::make_curry;
+	using combining::make_combine;
+	using combining::make_homomorphy_combine;
+	using lazy::make_lazy;
+	using functor_wrapper::make_functor_wrapper;
 
 }
 

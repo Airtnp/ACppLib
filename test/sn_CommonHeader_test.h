@@ -25,6 +25,6 @@
 #include "../src/sn_Type.hpp"
 #include "../src/sn_FileSystem.hpp"
 #include "../src/sn_Function.hpp"
-
+#include "../src/sn_AOP.hpp"
 
 #endif

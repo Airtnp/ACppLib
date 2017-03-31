@@ -455,6 +455,8 @@ namespace sn_Assist {
 			constexpr auto size = std::tuple_size<typename std::decay<T>::type>::value;
 			return invoke_impl(std::forward<F>(func), std::forward<T>(t), std::make_index_sequence<size>{});
 		}
+
+
 	}
 
 	namespace sn_functional_base {
