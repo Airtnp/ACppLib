@@ -58,6 +58,8 @@ for detail: https://gcc.gnu.org/onlinedocs/libstdc++/ext/pb_ds/
 #include <future>
 
 // For STL ds
+#include <array>
+#include <valarray>
 #include <tuple>
 #include <string>
 #include <vector>

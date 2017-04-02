@@ -670,7 +670,19 @@ namespace sn_Assist {
 
 	}
 
+	namespace sn_varadic {
+		template<std::size_t N, std::size_t ...I>
+		struct  append_index
+		{
+			using result = typename append_index<N - 1, N - 1, I...>::result;
+		};
 
+		template<std::size_t ...I>
+		struct  append_index<I...>
+		{
+			using result = std::integer_sequence<std::size_t, I...>;
+		};
+	}
 }
 
 
