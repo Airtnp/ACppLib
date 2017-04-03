@@ -6,7 +6,6 @@
 // Type Calculus
 namespace sn_TC {
 	namespace basic_types {
-		template <typename T>
 		class One {
 
 		};
@@ -16,9 +15,14 @@ namespace sn_TC {
 		};
 
 		template <typename T>
-		using Unit = One;
+		class Unit {
 
+		};
+
+		
 		using Void = Zero;
+		template <typename T>
+		using X = Unit<T>;
 
 		template <typename T, typename U>
 		class Union {
