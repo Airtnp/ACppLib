@@ -1,5 +1,5 @@
-#ifndef SN_LOG_TEST_H
-#define SN_LOG_TEST_H
+#ifndef SN_TEST_LOG_H
+#define SN_TEST_LOG_H
 
 #include "sn_CommonHeader_test.h"
 

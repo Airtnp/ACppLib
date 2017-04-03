@@ -4,6 +4,9 @@
 #include "sn_CommonHeader.h"
 
 namespace sn_LINQ {
+	// Simple implement: just use pipeline in sn_Function
+	// R = ChainHead (beginning of chain) | where<a, b> (template function restrict)... | ....
+	// from(v) (vector or some container) | R (functor) 
 	namespace linq {
 		template <typename T>
 		class LINQ {
