@@ -3,7 +3,7 @@
 
 #include "sn_CommonHeader.h"
 #include "sn_Assist.hpp"
-
+//TODO: add wrapper of win/pthread
 namespace sn_Thread {
 	namespace scope_guard {
 		template <typename F, typename ...Args>

@@ -201,11 +201,16 @@ namespace sn_TC {
 		using Void = Zero;
 		using Unit = One;
 
+		template <typename V, typename U>
+		struct Add;
+
 		// T * U / (T, U)
 		template <typename V, typename U>
 		struct Multiply {
 			using T = Multiply<V, U>;
-			using D = typename Add<typename Multiply<typename V::D, U>::T, typename Multiply<V, typename U::D>::T>::T;
+			using D1 = typename Multiply<typename V::D, U>::T;
+			using D2 = typename Multiply<V, typename U::D>::T;
+			using D = typename Add<D1, D2>::T;
 			static constexpr const std::size_t N = V::N + U::N;
 			static constexpr const auto A = ArrayMul<V, U>();
 		};
