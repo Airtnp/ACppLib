@@ -114,11 +114,6 @@ int main() {
 	sn_Log_test::sn_log_test();
 	sn_Thread_test::sn_thread_test();
 #endif
-	constexpr std::array<std::size_t, 2> a1 = { 0, 1 };
-	constexpr std::array<std::size_t, 3> a2 = { 0, 1, 2 };
-	constexpr auto a3 = sn_TC::basic_traits::array_add(a1, a2);
-	
-	static_assert(a3[1] == 2, "Error");
 	getchar();
 	return 0;
 }

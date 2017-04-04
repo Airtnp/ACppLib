@@ -682,6 +682,12 @@ namespace sn_Assist {
 		{
 			using result = std::integer_sequence<std::size_t, I...>;
 		};
+
+		template <std::size_t ...I>
+		constexpr void print_index(std::index_sequence<I...>) {
+			int a[sizeof...(I)] = { (std::cout << I, 0)... };
+		}
+
 	}
 }
 

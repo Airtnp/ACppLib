@@ -29,7 +29,7 @@ No common namespace, because it's loosely connected
 * sn_Stream: support basic/memory/file stream
 * sn_String: a class dealing with string
 * sn_Thread: support thread-related
-* sn_TC*: support type-calculus
+* sn_TC: support type-calculus (+compile-time polynomial addition/multiplication)
 * sn_Type: support type-erasing types.
 
 
