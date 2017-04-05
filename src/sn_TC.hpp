@@ -3,9 +3,9 @@
 
 #include "sn_CommonHeader.h"
 
-// Type Calculus
+// Type Calculus (Algebraic Data Type)
 // TODO: support recursive(?), add more Derivative
-// Note: This only compiles in gcc (tested in 6.3.0) (MSVC failed in ArrayMulOuter unpack Args)
+// Note: This only compiles in gcc/clang (tested in 6.3.0/3.9.0) (MSVC failed in ArrayMulOuter unpack Is)
 // Note: LimitTree<N> will generate many coefficients, but only first N+1 is valid
 namespace sn_TC {
 	namespace basic_traits {

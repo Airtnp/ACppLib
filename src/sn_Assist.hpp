@@ -171,26 +171,32 @@ namespace sn_Assist {
 
 		// function pointer
 		template <typename R, typename... Args>
-		struct function_traits<R(*)(Args...)> : function_traits<R(Args...)> {
+		struct function_traits<R(*)(Args...)> : public function_traits<R(Args...)> {
 			using type = R(*)(Args...);
 		};
 
 		//const, volatile specialization member function
 		template <typename R, typename C, typename... Args>
-		struct function_traits<R(C::*)(Args...)> : function_traits<R(Args...)> {
+		struct function_traits<R(C::*)(Args...)> : public function_traits<R(Args...)> {
+			using class_type = C;
+			using type = R(C::*)(Args...);
+		};
+
+		template <typename R, typename C, typename... Args>
+		struct function_traits<R(C::*)(Args...) const> : public function_traits<R(Args...)> {
 			using class_type = C;
 			using type = R(C::*)(Args...);
 		};
 
 		//std::function
 		template <typename R, typename... Args>
-		struct function_traits<std::function<R(Args...)>> : function_traits<R(Args...)> {
+		struct function_traits<std::function<R(Args...)>> : public function_traits<R(Args...)> {
 			using type = std::function<R(Args...)>;
 		};
 
 		//function object / functor / lambda
 		template <typename F>
-		struct function_traits : function_traits<decltype(&F::operator())> {
+		struct function_traits : public function_traits<decltype(&F::operator())> {
 			using type = decltype(&F::operator());
 		};
 

@@ -263,6 +263,24 @@ namespace sn_Type {
 		};
 	}
 
+	namespace singleton {
+		//CRTP singleton (or just inherit)
+		template <typename T>
+		class Singleton {
+		public:
+			static T& get_instance() {
+				static T instance;
+				return instance;
+			}
+		protected:
+			Singleton() {}
+			~Singleton() {}
+		public:
+			Singleton(const Singleton&) = delete;
+			Singleton& operator=(const Singleton&) = delete;
+		};
+	}
+
 	namespace variant {
 		template <typename ...Args>
 		class Variant {
