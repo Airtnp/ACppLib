@@ -30,7 +30,7 @@ namespace sn_String {
 
 		template <typename T, std::size_t N, std::size_t ...I>
 		void string_formatter_impl(std::string& base_string, const std::vector<std::array<int, 4>>& v, std::index_sequence<I...>, std::array<T, N> arr) {
-			std::initializer_list<int>{ (base_string.replace(get<0>(v[I]) + get<2>(v[I]) - 3 - static_cast<int>(floor(I == 0 ? 0 : log10(I))), get<1>(v[I]) - get<0>(v[I]) + 1, arr[I]), 0)...};
+			std::initializer_list<int>{ (base_string.replace(std::get<0>(v[I]) + std::get<2>(v[I]) - 3 - static_cast<int>(floor(I == 0 ? 0 : log10(I))), std::get<1>(v[I]) - std::get<0>(v[I]) + 1, arr[I]), 0)...};
 		}
 
 		template <typename ...Args>
@@ -52,9 +52,9 @@ namespace sn_String {
 			for (std::size_t i = 0; i < idx.size(); ++i) {
 				params_copy[i] = params[idx[i]];
 				if (i == 0)
-					get<2>(token_pos[i]) = 3;
+					std::get<2>(token_pos[i]) = 3;
 				else
-					get<2>(token_pos[i]) = params_copy[i - 1].length();
+					std::get<2>(token_pos[i]) = params_copy[i - 1].length();
 			}
 			string_formatter_impl(base_string, token_pos, format_list, params_copy);
 			return base_string;

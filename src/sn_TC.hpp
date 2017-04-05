@@ -5,6 +5,8 @@
 
 // Type Calculus
 // TODO: support recursive(?), add more Derivative
+// Note: This only compiles in gcc (tested in 6.3.0) (MSVC failed in ArrayMulOuter unpack Args)
+// Note: LimitTree<N> will generate many coefficients, but only first N+1 is valid
 namespace sn_TC {
 	namespace basic_traits {
 
@@ -119,8 +121,6 @@ namespace sn_TC {
 			return make_convolution_tuple_helper_impl<N1>(std::make_index_sequence<N1 + N2 - 1>{});
 		}
 		
-		
-
 		template <std::size_t ...I>
 		struct ArrayMulImplInner {};
 
@@ -150,11 +150,11 @@ namespace sn_TC {
 		}
 
 		template <typename T, typename U, std::size_t ...I>
-		constexpr auto ArrayMulImpl(std::index_sequence<I...> idx_seq) {
+		constexpr auto ArrayMulImpl(std::index_sequence<I...>) {
 			return std::array<
 				std::size_t,
 				TwoArray<T, U>::N1 + TwoArray<T, U>::N2 - 1>
-				{(
+			{(
 				ArrayMulImplOuter<I, T, U>(
 					std::make_index_sequence<MinTraits<TwoArray<T, U>::N1, I + 1>::N>{})
 				)...};
@@ -227,7 +227,8 @@ namespace sn_TC {
 		template <typename V>
 		struct Derivative {
 			using T = typename V::D;
-			static constexpr const std::size_t N = V::N - 1;
+			using D = typename T::D;
+			static constexpr const std::size_t N = MaxTraits<V::N, 1>::N - 1;  //avoid overflow
 			static constexpr const std::array<std::size_t, N + 1> A = V::D::A;
 		};
 		// U^T / T -> U
@@ -342,10 +343,7 @@ namespace sn_TC {
 		template <typename V, typename U>
 		using Map = Power<V, U>;
 
-		template <typename V, typename U>
-		struct Derivative<Either<V, U>> {
-			
-		};
+		
 
 		/*
 		template <typename V, typename U>
@@ -372,10 +370,9 @@ namespace sn_TC {
 	namespace ADT {
 		using namespace basic_types;
 		struct List {
-			using Node = One;
-			using T = Either<Void, Union<Node, List>>;
+			using Node = TypeX;
+			using T = Either<Unit, Union<Node, List>>;
 			using D = Derivative<T>;
-			
 		};
 
 		struct Pair {
@@ -393,6 +390,40 @@ namespace sn_TC {
 			using D = Derivative<T>;
 		};
 
+		template <std::size_t N1>
+		struct LimitList {
+			using Node = TypeX;
+			using T = typename Either<Unit, typename Union<TypeX, LimitList<N1-1>>::T>::T;
+			using D = typename Derivative<T>::T;
+			static constexpr const std::size_t N = T::N;
+			static constexpr const std::array<std::size_t, N + 1> A = T::A;
+		};
+
+		template <>
+		struct LimitList<0> {
+			using T = One;
+			using D = typename Derivative<T>::T;
+			static constexpr const std::size_t N = T::N;
+			static constexpr const std::array<std::size_t, N + 1> A = T::A;
+		};
+
+		template <std::size_t N1>
+		struct LimitTree {
+			using Node = TypeX;
+			using Leaf = typename LimitTree<N1 - 1>::T;
+			using T = typename Either<Unit, typename Union<typename Union<TypeX, Leaf>::T, Leaf>::T>::T;
+			using D = typename Derivative<T>::T;
+			static constexpr const std::size_t N = T::N;
+			static constexpr const std::array<std::size_t, N + 1> A = T::A;
+		};
+
+		template <>
+		struct LimitTree<0> {
+			using T = One;
+			using D = typename Derivative<T>::T;
+			static constexpr const std::size_t N = T::N;
+			static constexpr const std::array<std::size_t, N + 1> A = T::A;
+		};
 
 	}
 

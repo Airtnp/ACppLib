@@ -373,7 +373,7 @@ namespace sn_Assist {
 				return "array of " + type_descriptor<T>::descript();
 			}
 		};
-
+		using std::to_string;
 		template<class T, size_t N>
 		struct type_descriptor<T[N]> {
 			static string descript() {

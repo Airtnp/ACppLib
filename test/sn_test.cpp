@@ -98,9 +98,6 @@ namespace sn_DB_test {
 #endif
 
 
-
-using namespace std;
-
 int main() {
 #ifdef SN_TEST_DB
 	sn_DB_test();
@@ -114,7 +111,6 @@ int main() {
 	sn_Log_test::sn_log_test();
 	sn_Thread_test::sn_thread_test();
 #endif
-
 	getchar();
 	return 0;
 }
