@@ -146,6 +146,7 @@ namespace sn_Assist {
 
 	}
 
+	// This cannot support template function | generic lambda
 	namespace sn_function_traits {
 		template <typename T>
 		struct function_traits;

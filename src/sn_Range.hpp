@@ -10,7 +10,7 @@ namespace sn_Range {
 
 	namespace for_range{
 		template <std::size_t N>
-		struct ForRange {};
+		struct StaticForRange {};
 
 		struct FakeIt {
 			std::size_t n;
@@ -31,17 +31,33 @@ namespace sn_Range {
 
 
 		template <std::size_t N>
-		FakeIt begin(ForRange<N>& fr) {
+		FakeIt begin(StaticForRange<N>& fr) {
 			return { 0 };
 		}
 
 		template <std::size_t N>
-		FakeIt end(ForRange<N>& fr) {
+		FakeIt end(StaticForRange<N>& fr) {
 			return { N };
 		}
 
 		template <std::size_t N>
-		using FR = ForRange<N>;
+		using SFR = StaticForRange<N>;
+
+		struct ForRange {
+			const std::size_t m_n;
+			ForRange(std::size_t n) : m_n(n) {}
+			std::size_t end() const noexcept {
+				return m_n;
+			}
+		};
+
+		FakeIt begin(ForRange& fr) {
+			return{ 0 };
+		}
+
+		FakeIt end(ForRange& fr) {
+			return{ fr.end() };
+		}
 
 	}
 

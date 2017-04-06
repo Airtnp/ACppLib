@@ -1,11 +1,12 @@
 # SuperNaiveCppLib
 
-This is a Cpp library full of super naive wheels and **collected** wheels (see ref).
+This is a Cpp library full of super naive wheels and **collected** wheels (see ref) based on C++1y.
 
 Because it's so naive, no comments and documentation supported. And its code-style is much messy.
 
 No common namespace, because it's loosely connected
 
+I strongly recommend Herb Sutter's C++ Coding Standard, my code is full of junk.
 
 ## Wheel List (super naive, all incomplete) (* even having no function)
 * sn_Alg: some algorithms
