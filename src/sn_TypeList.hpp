@@ -3,6 +3,7 @@
 
 #include "sn_CommonHeader.h"
 
+// ref: Modern Cpp Design/Loki
 namespace sn_TypeList {
 
 	template <typename T1, typename T2>
@@ -306,24 +307,82 @@ namespace sn_TypeList {
 	using TypeMostDerived_t = typename TypeMostDerived<T>::type;
 
 	template <typename T>
-	struct TypePartialOrder;
+	struct TypeDerivedOrder;
 
 	template <>
-	struct TypePartialOrder<TypeList<>> {
+	struct TypeDerivedOrder<TypeList<>> {
 		using type = NullType;
 	};
 
 	template <typename H, typename ...T>
-	struct TypePartialOrder<TypeList<H, T...>> {
+	struct TypeDerivedOrder<TypeList<H, T...>> {
 	private:
 		using TheMostDerived = TypeMostDerived_t<TypeList<H, T...>>;
 		using RemainType = TypeEraseAll<TypeList<H, T...>, TheMostDerived>;
 	public:
-		using type = TypeAppend<TypeList<TheMostDerived>, typename TypePartialOrder<RemainType>::type>;
+		using type = TypeAppend<TypeList<TheMostDerived>, typename TypeDerivedOrder<RemainType>::type>;
 	};
 
 	template <typename T>
-	using TypePartialOrder_t = typename TypePartialOrder<T>::type;
+	using TypeDerivedOrder_t = typename TypeDerivedOrder<T>::type;
+
+
+	template <typename T1, typename T2>
+	using TypeCons = TypeAppend<T1, T2>;
+
+	template <typename T1, typename T2>
+	using TypeCons_t = typename TypeAppend_t<T1, T2>;
+
+	template <typename T>
+	struct Quote {
+		using type = T;
+	};
+
+	template <typename T>
+	using Quote_t = typename Quote<T>::type;
+
+	template <typename T>
+	struct Atom {
+		using type = NullType;
+	};
+
+	template <typename H, typename ...T>
+	struct Atom<TypeList<H, T...>> {
+		using type = TypeList<>;
+	};
+
+	template <>
+	struct Atom<TypeList<>> {
+		using type = NullType;
+	};
+
+	template <typename T>
+	using Atom_t = typename Atom<T>::type;
+
+	template <typename T1, typename T2>
+	struct Eq {
+		using type = TypeList<>;
+	};
+
+	template <typename T>
+	struct Eq<T, T> {
+		using type = NullType;
+	};
+
+	template <typename T1, typename T2>
+	using Eq_t = typename Eq<T1, T2>::type;
+
+	template <typename T, typename ...Args>
+	struct Cond {
+		using type = IsTypeSame<T::type, NullType>::value ? T ? Cond<Args...>::type;
+	};
+
+	template <>
+	struct Cond {
+		using type = TypeList<>;
+	};
+
+	// Lisp: quote/atom/eq/car/cdr/cons/cond
 }
 
 
