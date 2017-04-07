@@ -29,6 +29,7 @@
 #include "../src/sn_LC.hpp"
 #include "../src/sn_TC.hpp"
 #include "../src/sn_Range.hpp"
+#include "../src/sn_TypeList.hpp"
 
 
 #endif

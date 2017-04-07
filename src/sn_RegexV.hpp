@@ -1,5 +1,5 @@
-#ifndef SN_REGEXV_H
-#define SN_REGEXV_H
+#ifndef SN_REGEX_V_H
+#define SN_REGEX_V_H
 
 #include "sn_CommonHeader.h"
 

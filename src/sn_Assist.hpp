@@ -628,6 +628,7 @@ namespace sn_Assist {
 	}
 
 	namespace sn_type_assist {
+
 		template <typename T, typename ...Args>
 		struct is_contain;
 
