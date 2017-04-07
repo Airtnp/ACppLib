@@ -282,6 +282,9 @@ namespace sn_RegexV {
 			NFAState TargetState() {
 				return m_state;
 			}
+			int Symbol() {
+				return m_symbol;
+			}
 			bool IsEmpty() {
 				return m_symbol == -1;
 			}
@@ -595,7 +598,7 @@ namespace sn_RegexV {
 				m_lexerStates.push_back(newState);
 				return newState;
 			}
-			// Temporarily non-compact
+			// Temporarily non-compact (so DFA will scan 1,2,....,n
 			CharTable CreateCompactCharSetManager() {
 				std::vector<unsigned short> v;
 				for (std::size_t i = 1; i <= 255; ++i)
@@ -701,6 +704,37 @@ namespace sn_RegexV {
 				int NFAStartIndex = m_NFA.m_entryEdge.TargetState().m_index;
 				preState1.NFAStateSet().insert(NFAStartIndex);
 				DFAState state1 = GetClosure(preState1);
+				AddDFAState(state1);
+
+				int p = 1, j = 0;
+				std::vector<DFAState> newStates(m_charTable.MaxIndex() + 1);
+				while (j <= p) {
+					auto sourceState = m_DFAStates[j];
+					for (int symbol = m_charTable.MinIndex(); symbol < m_charTable.MaxIndex() + 1; ++symbol) {
+						DFAState e = GetDFAState(sourceState, symbol);
+						newStates[symbol] = e;
+					}
+					for (int symbol = m_charTable.MinIndex(); symbol < m_charTable.MaxIndex() + 1; ++symbol) {
+						DFAState e = newStates[symbol];
+						bool isSetExist = false;
+						for (int i = 0; i < p + 1; ++i) {
+							if (e.NFAStateSet() == m_DFAStates[i].NFAStateSet()) {
+								DFAEdge newEdge = DFAEdge(symbol, m_DFAStates[i]);
+								sourceState.AddEdge(newEdge);
+								isSetExist = true;
+							}
+						}
+						if (!isSetExist) {
+							p += 1;
+							AddDFAState(e);
+							DFAEdge newEdge = DFAEdge(symbol, e);
+							sourceState.AddEdge(newEdge);
+						}
+					}
+					++j;
+				}
+
+
 			}
 
 		private:
@@ -757,8 +791,52 @@ namespace sn_RegexV {
 				}
 			}
 
-			DFAState GetClosure(DFAState state) {
+			DFAState GetDFAState(DFAState start, int symbol) {
+				DFAState target = DFAState();
+				auto NFAStates = m_NFA.States();
+				for (auto s : start.NFAStateSet()) {
+					NFAState nfaState = NFAStates[s];
+					auto outEdges = nfaState.OutEdges();
+					int edgeCount = outEdges.size();
+					for (int i = 0; i < edgeCount; ++i) {
+						auto edge = outEdges[i];
+						if (!edge.IsEmpty() && symbol == edge.Symbol()) {
+							int targetIndex = edge.TargetState().m_index;
+							target.NFAStateSet().insert(targetIndex);
+						}
+					}
+				}
+				return GetClosure(target);
+			}
 
+			DFAState GetClosure(DFAState state) {
+				DFAState closure = DFAState();
+				auto nfaStates = m_NFA.States();
+				for (auto&& s : state.NFAStateSet()) {  // merge in c++17
+					closure.NFAStateSet().insert(s);
+				}
+				bool changed = true;
+				while (changed) {
+					changed = false;
+					std::vector<int> lastStateSet(closure.NFAStateSet().size());
+					for (auto&& s : closure.NFAStateSet()) {  // extract in c++17
+						lastStateSet.push_back(s);
+					}
+					for (const auto& stateIndex : lastStateSet) {
+						NFAState nfaState = nfaStates[stateIndex];
+						auto outEdges = nfaState.OutEdges();
+						int edgeCount = outEdges.size();
+						for (int i = 0; i < edgeCount; ++i) {
+							auto edge = outEdges[i];
+							if (!edge.IsEmpty()) {
+								NFAState target = edge.TargetState();
+								int targetIndex = target.m_index;
+								changed = closure.NFAStateSet().insert(targetIndex).second || changed;
+							}
+						}
+					}
+				}
+				return closure;
 			}
 
 			std::vector<std::vector<int>> m_acceptTables;
@@ -768,6 +846,35 @@ namespace sn_RegexV {
 			CharTable m_charTable;
 		};
 
+
+	}
+
+	// Parser Incomplete... C# is so different with C++
+	namespace SCAN {
+		using LEX::Lexicon;
+		using DFA::DFAModel;
+
+		class Lexeme {
+
+		};
+
+		class FiniteAutomationEngin {
+
+		};
+
+		class CompressedTransitionTable {
+
+		};
+
+		class Scanner {
+
+		};
+
+		/*
+		Scanner make_scanner(Lexicon lexicon) {
+			DFAModel dfa = DFAModel::Create(lexicon);
+			
+		}*/
 
 	}
 
