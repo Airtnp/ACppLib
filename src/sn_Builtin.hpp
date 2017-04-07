@@ -8,11 +8,6 @@ namespace sn_Builtin {
 	namespace pointer_wrapper {
 		template <typename T>
 		class pointer_wrapper {
-			
-		};
-
-		template <typename T>
-		class pointer_wrapper<T*> {
 		public:
 			using type = T;
 			using pointer_type = observer_ptr<T>;
@@ -24,6 +19,8 @@ namespace sn_Builtin {
 
 			operator pointer_type& () const noexcept { return ptr_; }
 			pointer_type& get() const noexcept { return ptr_; }
+			pointer_type& operator->() { return ptr_; }
+			type& operator*() { return *ptr_; }
 
 			template <typename ...Args>
 			typename std::result_of<T&(Args...)>::type operator() (Args&... args) const {
@@ -33,6 +30,12 @@ namespace sn_Builtin {
 		private:
 			observer_ptr<T> ptr_;
 		};
+
+		template <typename T>
+		pointer_wrapper<T> make_ptr_wrapper(T&& t) {
+			return pointer_wrapper{ std::forward<T>(t) };
+		}
+
 	}
 	
 	//ref: natsulib/natrefobj boost/intrusive_ptr
@@ -439,6 +442,7 @@ namespace sn_Builtin {
 			friend inline IR_ptr<U> make_ref_ptr(Args&& ...args);
 
 		protected:
+			// Add in-place/nothrow version
 			void* operator new(std::size_t size) {
 				return ::operator new(size);
 			}
@@ -558,7 +562,56 @@ namespace sn_Builtin {
 
 	}
 
-	
+	//ref: Effective Cpp
+	namespace shared_ptr {
+		template <typename T>
+		struct CtrlBlkBase {
+			explicit CtrlBlkBase(observer_ptr<T> t) : m_t(t) {}
+
+			// /* type-erased deleter */ deleter;
+			// size_t shared_ref_count_;
+			// size_t weak_ref_count_;
+			T *m_t;
+		};
+
+		template <typename T, bool MakeShared>
+		struct CtrlBlk;
+
+		template <typename T>
+		struct CtrlBlk<T, /* MakeShared = */ true> : CtrlBlkBase<T> {
+			template <typename... Args>
+			explicit CtrlBlk(Args &&... args)
+				: CtrlBlkBase<T>(nullptr), m_in_place(std::forward<Args>(args)...) {
+				this->m_t = &m_in_place;
+			}
+			T m_in_place;
+		};
+
+		template <typename T>
+		struct CtrlBlk<T, /* MakeShared = */ false> : CtrlBlkBase<T> {
+			using CtrlBlkBase<T>::CtrlBlkBase;
+		};
+
+		template <typename T>
+		struct shared_ptr {
+			shared_ptr(observer_ptr<T> t) : shared_ptr(new CtrlBlk<T, false>(t)) {}
+			observer_ptr<T> get() const { 
+				return m_t; 
+			}
+		private:
+			shared_ptr(CtrlBlk<T, true> *cb) : m_ctrl_blk(cb), m_t(m_ctrl_blk->m_t) {}
+			CtrlBlkBase<T>* m_ctrl_blk;
+			observer_ptr<T> m_t;
+
+			template <typename U, typename ...Args>
+			friend shared_ptr<U> make_shared(Args&&... args);
+		};
+
+		template <typename T, typename ...Args>
+		shared_ptr<T> make_shared(Args&&... args) {
+			return shared_ptr<T>(new CtrlBlk<T, true>(std::forward<Args>(args)...));
+		}
+	}
 
 }
 

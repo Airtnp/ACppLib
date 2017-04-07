@@ -66,10 +66,13 @@ for detail: https://gcc.gnu.org/onlinedocs/libstdc++/ext/pb_ds/
 #include <list>
 #include <bitset>
 #include <complex>
+#include <map>
 #include <unordered_map>
 #include <queue>
 #include <initializer_list>
 #include <iterator>
+#include <set>
+#include <unordered_set>
 
 // For exception
 #include <stdexcept>

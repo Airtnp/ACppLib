@@ -514,7 +514,7 @@ namespace sn_Assist {
 
 	}
 
-	//ref: https://github.com/akemimadoka/NatsuLib/blob/master/NatsuLib/natConcepts.h
+	// ref: https://github.com/akemimadoka/NatsuLib/blob/master/NatsuLib/natConcepts.h
 	namespace sn_require {
 
 		template <typename C, typename = void>
@@ -589,6 +589,7 @@ namespace sn_Assist {
 		SN_INVOKE_GEN(const volatile &&)
 	}
 
+	// TODO: ref: YSLib/YBase/include/ystdex/cast.hpp
 	namespace sn_cast {
 		template <typename T, typename U, typename = U>
 		struct static_dynamic_cast_impl{
