@@ -13,25 +13,27 @@ I strongly recommend Herb Sutter's C++ Coding Standard, my code is full of junk.
 * sn_AOP: a simple AOP frame
 * sn_Assist: some general assist template/functions
 * sn_Binary*: support binary operation
-* sn_Builtin: a class support pointer (pointer_reference/ref-pointer) and reference
+* sn_Builtin: a class support pointer (pointer_reference/intrusive_pointer/shared_ptr) and reference (reference_counter)
 * sn_DB: a wrapper of MySQL C API
 * sn_DBP: a MySQL connection pool
 * sn_Decimal: a big integer library
 * sn_DS: some data structures
 * sn_Filesystem: support filesystem-related
 * sn_Function: support curry/combine/lazy evaluation of functions | support chain/pipeline operation
+* sn_LC: support lambda-calculus / combinators
 * sn_LINQ*: support LINQ
-* sn_LC: support lambda-calculus (SICP)
 * sn_Log: a log class
 * sn_Macro: some macros
 * sn_Range*: support range
 * sn_Reflection: two realizations of reflection (magic_get/pod_reflect && register_reflect/typeless)
+* sn_Regex: RegexD: derivative+NFA | RegexT: parsec(derivative) no parser | RegexV: NFA+DFA no parser
 * sn_StdStream: add more function with std::iostream
 * sn_Stream: support basic/memory/file stream
 * sn_String: a class dealing with string
 * sn_Thread: support thread-related
 * sn_TC: support type-calculus (+compile-time polynomial addition/multiplication)
 * sn_Type: support type-erasing types.
+* sn_TypeLisp: support TypeList operation | Lisp 7 axioms (cons/car/cdr/cond/quote/atom/eq)
 
 
 ## TODO

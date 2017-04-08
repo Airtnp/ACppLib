@@ -5,6 +5,7 @@
 
 // ref : Cheukyin/CodeSnippet/blob/master/PL/Regex
 // Brzozowski's derivative
+// TODO: add DFA
 namespace sn_RegexD {
 	namespace AST {
 		// Instance ---- this ----> Exp ---- *Exp ---> Instance
@@ -554,7 +555,7 @@ namespace sn_RegexD {
 		};
 	}
 
-	namespace Engine {
+	namespace DERIVEngine {
 		using namespace AST;
 		using DERIV::Derivative;
 		using DERIV::NullCheck;
@@ -603,8 +604,244 @@ namespace sn_RegexD {
 	}
 
 	namespace NFA {
+		using namespace AST;
+		using namespace Parse;
+		using namespace Cache;
+		struct NFA;
+		using NFAPtr = std::shared_ptr<NFA>;
+
+		class NFAConstructor;
+		using NFAConstructorPtr = std::shared_ptr<NFAConstructor>;
+
+		struct NFANode : public CachedObject<NFANode> {
+			std::map<char, std::vector<NFANode*>> m_edges;
+			std::size_t m_group;
+
+			NFANode() : m_group(-1) {}
+			NFANode(std::size_t g) : m_group(g) {}
+
+			void addEdge(char c, NFANode* n) {
+				auto iter = m_edges.find(c);
+				if (iter != m_edges.end())
+					iter->second.push_back(n);
+				else
+					m_edges[c] = std::vector<NFANode*>(1, n);
+			}
+		};
+
+		struct NFA {
+			NFANode* m_start;
+			NFANode* m_end;
+			std::size_t m_maxGroup;  // () () ()
+			std::vector<NFANode*> m_nodes;
+
+			~NFA() {
+				for (NFANode* node : m_nodes)
+					delete node;
+			}
+		};
+
+		class NFAConstructor : public Visitor, public std::enable_shared_from_this<NFAConstructor> {
+		private:
+			NFAPtr m_nfa;
+		public:
+			NFAPtr construct(const RegexPtr& re) {
+				m_nfa.reset(new NFA);
+				visit(GroupPtr(new Group(re, 0)));
+				m_nfa->m_maxGroup = re->m_maxGroup;
+				return m_nfa;
+			}
+
+			void buildSimpleNFA(char ch) {
+				m_nfa->m_start = new NFANode;
+				m_nfa->m_end = new NFANode;
+				m_nfa->m_start->addEdge(ch, m_nfa->m_end);
+
+				m_nfa->m_nodes.push_back(m_nfa->m_start);
+				m_nfa->m_nodes.push_back(m_nfa->m_end);
+			}
+
+			void visit(const RegexPtr& re) override {
+				re->accept(shared_from_this());
+			}
+
+			void visit(const EmptyPtr& re) override {
+				return;
+			}
+
+			void visit(const NullPtr& re) override {
+				m_nfa->m_start = new NFANode;
+				m_nfa->m_end = m_nfa->m_start;
+				m_nfa->m_nodes.push_back(m_nfa->m_start);
+			}
+
+			void visit(const CharPtr& re) override {
+				buildSimpleNFA(re->m_ch);
+			}
+
+			void visit(const AltPtr& re) override {
+				re->m_expl->accept(shared_from_this());
+				NFANode* lstart = m_nfa->m_start;
+				NFANode* lend = m_nfa->m_end;
+				re->m_expr->accept(shared_from_this());
+				NFANode* rstart = m_nfa->m_start;
+				NFANode* rend = m_nfa->m_end;
+
+				m_nfa->m_start = new NFANode;
+				m_nfa->m_end = new NFANode;
+				m_nfa->m_nodes.push_back(m_nfa->m_start);
+				m_nfa->m_nodes.push_back(m_nfa->m_end);
+
+				m_nfa->m_start->addEdge(0, lstart);
+				m_nfa->m_start->addEdge(0, rstart);
+
+				lend->addEdge(0, m_nfa->m_end);
+				rend->addEdge(0, m_nfa->m_end);
+			}
+
+			void visit(const SeqPtr& re) override {
+				re->m_expl->accept(shared_from_this());
+				NFANode* lstart = m_nfa->m_start;
+				NFANode* lend = m_nfa->m_end;
+				re->m_expr->accept(shared_from_this());
+				NFANode* rstart = m_nfa->m_start;
+				NFANode* rend = m_nfa->m_end;
+
+				lend->addEdge(0, rstart);
+
+				m_nfa->m_start = lstart;
+				m_nfa->m_end = rend;
+			}
+
+			// (s, e)* -> (ns - s, e - ns)
+			void visit(const RepPtr& re) override {
+				re->m_exp->accept(shared_from_this());
+				NFANode* start = m_nfa->m_start;
+				NFANode* end = m_nfa->m_end;
+
+				m_nfa->m_start = new NFANode;
+				m_nfa->m_end = m_nfa->m_start;
+				m_nfa->m_nodes.push_back(m_nfa->m_start);
+				m_nfa->m_start->addEdge(0, start);
+
+				end->addEdge(0, m_nfa->m_end);
+
+			}
+
+			void visit(const GroupPtr& re) override {
+				re->m_exp->accept(shared_from_this());
+				m_nfa->m_start->m_group = re->m_group * 2;
+				m_nfa->m_end->m_group = re->m_group * 2 + 1;
+			}
+		};
+	}
+
+	namespace NFAEngine {
+		using namespace Parse;
+		using namespace NFA;
+		using namespace AST;
+
+		// It's actually a NFA + eps-closure
+		class NFAEngine {
+		public:
+			using str_size_t = std::string::size_type;
+
+			NFAEngine(const std::string& str)
+				: m_nfaCons(new NFAConstructor), m_nfa(m_nfaCons->construct(m_parse(str))) {}
+
+			// Bad!
+			// TODO: fix search
+			std::string search(const std::string& str) {
+				for (str_size_t i = 0; i < str.size(); ++i) {
+					for (str_size_t j = 0; j < str.size() - i; ++j) {
+						std::string tmpstr = str.substr(i, j);
+						if (match(tmpstr))
+							return tmpstr;
+					}
+				}
+			}
+
+			bool match(const std::string& str) {
+				m_str = str;
+				std::unordered_map<NFANode*, std::vector<int>>omap;
+				std::unordered_map<NFANode*, std::vector<int>>nmap;
+
+				std::vector<int> group = std::vector<int>(2 * m_nfa->m_maxGroup);
+				omap[m_nfa->m_start] = group;
+				addEpsilon(omap, m_nfa->m_start, group);
+
+				// BFS DFA
+				str_size_t i = 0;
+				while (i < str.size() && !omap.empty()) {
+					for (auto& s : omap) {
+						NFANode* st = s.first;
+						std::vector<int>& g = s.second;
+						if (st->m_group != -1)
+							g[st->m_group] = i;
+						auto iter = st->m_edges.find('.');
+						if (iter != st->m_edges.end()) {
+							for (NFANode* e : iter->second) {
+								nmap[e] = g;
+								addEpsilon(nmap, e, g);
+							}
+						}
+						iter = st->m_edges.find(str[i]);
+						if (iter != st->m_edges.end()) {
+							for (NFANode* e : iter->second) {
+								nmap[e] = g;
+								addEpsilon(nmap, e, g);
+							}
+						}
+					}
+					++i;
+					omap.clear();
+					std::swap(omap, nmap);
+				}
+
+				if (i < str.size())
+					return false;
+				auto iter = omap.find(m_nfa->m_end);
+				if (iter != omap.end()) {
+					m_group = iter->second;
+					return true;
+				}
+				return false;
+			}
+
+		private:
+			Parser m_parse;
+			NFAConstructorPtr m_nfaCons;
+			NFAPtr m_nfa;
+			std::string m_str;
+			std::vector<int> m_group;
+
+			// eps-closure
+			void addEpsilon(std::unordered_map<NFANode*, std::vector<int>>& nmap,
+				NFANode* start, std::vector<int>& group, char v = 0) {
+				std::queue<NFANode*> q;
+				std::unordered_set<NFANode*> isVisited;
+				q.push(start);
+				isVisited.insert(start);
+
+				while (!q.empty()) {
+					NFANode* n = q.front();
+					q.pop();
+					auto iter = n->m_edges.find(v);
+					if (iter == n->m_edges.end())
+						continue;
+					for (const auto& e : iter->second) {
+						if (isVisited.find(e) != isVisited.end())
+							continue;
+						nmap[e] = group;
+						q.push(e);
+						isVisited.insert(e);
+					}
+				}
+			}
+		};
 
 	}
+
 }
 
 

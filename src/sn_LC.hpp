@@ -121,6 +121,7 @@ namespace sn_LC {
 		using result = typename Eval<Body, Binding<Name, Value, Env>>::result;
 	};
 
+#ifndef _MSC_VER
 	template <std::size_t N, typename NN>
 	struct MatchNumberT {
 		using T = Literal<False>;
@@ -133,7 +134,7 @@ namespace sn_LC {
 	
 	template <std::size_t N, typename NN>
 	using MatchNumber = typename MatchNumberT<N, NN>::T;
-
+#endif
 	/* Laji MSVC, failed in this deduction
  	using T = MatchNumber<0, Zero>;
 	static_assert(std::is_same<T, Literal<True>>::value, "MatchNumber Failed");
