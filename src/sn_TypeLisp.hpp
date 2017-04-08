@@ -4,7 +4,7 @@
 #include "sn_CommonHeader.h"
 
 // ref: Modern Cpp Design/Loki
-namespace sn_TypeList {
+namespace sn_TypeLisp {
 
 	template <typename T1, typename T2>
 	struct IsTypeSame {

@@ -11,8 +11,8 @@ namespace sn_LC_test {
 		int v = v_env::value;
 
 		// ((lambda .x x) 0)
-		enum { X };
-		using x_eval = Eval<Application<Lambda<X, Reference<X>>, Literal<Zero>>, EmptyEnv>::result;
+		enum { P };
+		using x_eval = Eval<Application<Lambda<P, Reference<P>>, Literal<Zero>>, EmptyEnv>::result;
 		int x = x_eval::value;
 
 		/* (((lambda .f 
@@ -30,13 +30,24 @@ namespace sn_LC_test {
 							>;
 		using t_func = Application<t_wrapper, x_func>;
 		using t_eval = Eval<Application<t_func, Literal<Succ<Zero>>>, EmptyEnv>::result;
-		int x = t_eval::value;
+		int x1 = t_eval::value;
 
 		// (if #f 0 1)
 		int y = Eval<If<Literal<False>, Literal<Zero>, Literal<Succ<Zero>>>, EmptyEnv>::result::value;
 	
 		using z_t = NaturalNumber<10>;
 		int z = z_t::value;
+
+		// (lambda .x .y y)(2, 1)
+		enum { T1, T2 };
+		using v_func = Eval<Application<
+								VarLambda<
+									VarList<T1, T2>, Reference<T2>
+								>, ValList<Literal<Zero>, Literal<Succ<Zero>>>
+							>, EmptyEnv>::result;
+		constexpr int w = v_func::value;
+		
+
 	}
 
 }

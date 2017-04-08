@@ -6,6 +6,7 @@
 #include "sn_String_test.hpp"
 #include "sn_Log_test.hpp"
 #include "sn_Thread_test.hpp"
+#include "sn_LC_test.hpp"
 
 
 #ifdef SN_TEST_DB
@@ -110,6 +111,7 @@ int main() {
 	sn_String_test::sn_string_test();
 	sn_Log_test::sn_log_test();
 	sn_Thread_test::sn_thread_test();
+	sn_LC_test::sn_lc_test();
 #endif
 	getchar();
 	return 0;

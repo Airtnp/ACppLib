@@ -183,7 +183,7 @@ namespace sn_RegexD {
 			}
 
 			static void deletePool() {
-				for (observerptr<T> obj : m_pool)
+				for (observer_ptr<T> obj : m_pool)
 					::operator delete(obj);
 			}
 
