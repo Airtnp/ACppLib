@@ -2,7 +2,6 @@
 #define SN_TEST_LC_H
 
 #include "sn_CommonHeader_test.h"
-#include "../src/sn_LC.hpp"
 
 namespace sn_LC_test {
 	using namespace sn_LC;
@@ -39,6 +38,7 @@ namespace sn_LC_test {
 		using z_t = NaturalNumber<10>;
 		int z = z_t::value;
 	}
+
 }
 
 

@@ -19,50 +19,36 @@ namespace sn_RegexD {
 		using RegexPtr = std::shared_ptr<Regex>;
 
 		struct Empty : public Regex, public std::enable_shared_from_this<Empty> {
-			void accept(const VisitorPtr& vptr) override {
-				vptr->visit(shared_from_this());
-			}
+			void accept(const VisitorPtr& vptr) override;
 		};
 		struct Null : public Regex, public std::enable_shared_from_this<Null> {
-			void accept(const VisitorPtr& vptr) override {
-				vptr->visit(shared_from_this());
-			}
+			void accept(const VisitorPtr& vptr) override;
 		};
 		struct Char : public Regex, public std::enable_shared_from_this<Char> {
 			char m_ch;
 			Char(char ch) : m_ch(ch) {}
-			void accept(const VisitorPtr& vptr) override {
-				vptr->visit(shared_from_this());
-			}
+			void accept(const VisitorPtr& vptr) override;
 		};
 		struct Alt : public Regex, public std::enable_shared_from_this<Alt> {
 			RegexPtr m_expl, m_expr;
 			Alt(const RegexPtr& l, const RegexPtr& r) : m_expl(l), m_expr(r) {}
-			void accept(const VisitorPtr& vptr) override {
-				vptr->visit(shared_from_this());
-			}
+			void accept(const VisitorPtr& vptr) override;
 		};
 		struct Seq : public Regex, public std::enable_shared_from_this<Seq> {
 			RegexPtr m_expl, m_expr;
 			Seq(const RegexPtr& l, const RegexPtr& r) : m_expl(l), m_expr(r) {}
-			void accept(const VisitorPtr& vptr) override {
-				vptr->visit(shared_from_this());
-			}
+			void accept(const VisitorPtr& vptr) override;
 		};
 		struct Rep : public Regex, public std::enable_shared_from_this<Rep> {
 			RegexPtr m_exp;
 			Rep(const RegexPtr& re) : m_exp(re) {}
-			void accept(const VisitorPtr& vptr) override {
-				vptr->visit(shared_from_this());
-			}
+			void accept(const VisitorPtr& vptr) override;
 		};
 		struct Group : public Regex, public std::enable_shared_from_this<Group> {
 			RegexPtr m_exp;
 			std::size_t m_group;
 			Group(const RegexPtr& re, std::size_t g) : m_exp(re), m_group(g) {}
-			void accept(const VisitorPtr& vptr) override {
-				vptr->visit(shared_from_this());
-			}
+			void accept(const VisitorPtr& vptr) override;
 		};
 		using EmptyPtr = std::shared_ptr<Empty>;
 		using NullPtr = std::shared_ptr<Null>;
@@ -71,6 +57,10 @@ namespace sn_RegexD {
 		using SeqPtr = std::shared_ptr<Seq>;
 		using RepPtr = std::shared_ptr<Rep>;
 		using GroupPtr = std::shared_ptr<Group>;
+	}
+
+	namespace AST {
+		using VisitorPtr = std::shared_ptr<Visitor>;
 
 		struct Visitor
 		{
@@ -83,6 +73,36 @@ namespace sn_RegexD {
 			virtual void visit(const RepPtr&   re) = 0;
 			virtual void visit(const GroupPtr& re) = 0;
 		};
+	}
+
+	namespace AST {
+		void Empty::accept(const VisitorPtr& vptr) {
+			vptr->visit(shared_from_this());
+		}
+
+		void Null::accept(const VisitorPtr& vptr) {
+			vptr->visit(shared_from_this());
+		}
+
+		void Char::accept(const VisitorPtr& vptr) {
+			vptr->visit(shared_from_this());
+		}
+
+		void Alt::accept(const VisitorPtr& vptr) {
+			vptr->visit(shared_from_this());
+		}
+
+		void Seq::accept(const VisitorPtr& vptr) {
+			vptr->visit(shared_from_this());
+		}
+
+		void Rep::accept(const VisitorPtr& vptr) {
+			vptr->visit(shared_from_this());
+		}
+
+		void Group::accept(const VisitorPtr& vptr) {
+			vptr->visit(shared_from_this());
+		}
 	}
 
 	namespace ASTDump {
@@ -407,7 +427,7 @@ namespace sn_RegexD {
 						int r1 = r.first < r.second ? r.first : r.second;
 						int r2 = r.first < r.second ? r.second : r.first;
 
-						auto helper = [](int cnt, RegexPtr& re) -> RegexPtr {
+						auto helper = [](std::size_t cnt, RegexPtr& re) -> RegexPtr {
 							RegexPtr tmp(NullPtr(new Null));
 							for (std::size_t i = 0; i < cnt; ++i)
 								tmp = SeqPtr(new Seq(re, tmp));
@@ -579,6 +599,10 @@ namespace sn_RegexD {
 				return matchHelper(m_deriv->drv(re, str[id]), str, id + 1);
 			}
 		};
+
+	}
+
+	namespace NFA {
 
 	}
 }
