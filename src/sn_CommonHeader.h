@@ -73,6 +73,7 @@ for detail: https://gcc.gnu.org/onlinedocs/libstdc++/ext/pb_ds/
 #include <iterator>
 #include <set>
 #include <unordered_set>
+#include <stack>
 
 // For exception
 #include <stdexcept>

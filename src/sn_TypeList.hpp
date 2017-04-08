@@ -38,7 +38,9 @@ namespace sn_TypeList {
 		constexpr static const bool value = IsTypeConvertible<const C*, const P*>::value && !IsTypeSame<const P*, const void*>::value;
 	};
 
-	struct NullType;
+	struct NullType {
+		using type = NullType;
+	};
 	struct EmptyType;
 
 	template <typename ...Ts>
@@ -372,13 +374,21 @@ namespace sn_TypeList {
 	template <typename T1, typename T2>
 	using Eq_t = typename Eq<T1, T2>::type;
 
-	template <typename T, typename ...Args>
-	struct Cond {
-		using type = IsTypeSame<T::type, NullType>::value ? T ? Cond<Args...>::type;
+	template <typename L, typename V = void>
+	struct Cond {};
+
+	template <typename H, typename ...T>
+	struct Cond<TypeList<H, T...>, std::void_t<std::enable_if_t<std::is_same<typename H::type, NullType>::value>>> {
+		using type = H;
+	};
+
+	template <typename H, typename ...T>
+	struct Cond<TypeList<H, T...>> {
+		using type = typename Cond<TypeList<T...>>::type;
 	};
 
 	template <>
-	struct Cond {
+	struct Cond<TypeList<>> {
 		using type = TypeList<>;
 	};
 

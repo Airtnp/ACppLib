@@ -162,6 +162,34 @@ namespace sn_LC {
 	template <std::size_t F, std::size_t U, std::size_t X, typename L>
 	using YFunc = Application<YCombinator<F, U, X>, L>;
 
+	template <std::size_t X, std::size_t Y>
+	using TCombinator = Application<
+							Lambda<X,
+								Lambda<Y, 
+									Application<Reference<Y>, 
+										Application<Reference<X>, 
+											Application<Reference<X>, 
+												Reference<Y>
+											>
+										>
+									>
+								>
+							>, 
+							Lambda<X,
+								Lambda<Y, 
+									Application<Reference<Y>, 
+										Application<Reference<X>, 
+											Application<Reference<X>, 
+												Reference<Y>
+											>
+										>
+									>
+								>
+							>
+						>;
+
+	template <std::size_t X, std::size_t Y, typename L>
+	using TFunc = Application<TCombinator<X, Y>, L>;
 
 }
 

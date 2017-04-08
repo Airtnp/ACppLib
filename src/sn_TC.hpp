@@ -186,7 +186,7 @@ namespace sn_TC {
 
 		template <typename T, typename U>
 		constexpr auto ArrayPower() {
-			return ArrayPowerImpl<std::get<0>(U::A), T>::A;
+			return ArrayPowerImpl<sp_get<0>(U::A), T>::A;
 		}
 		
 	}
@@ -258,13 +258,17 @@ namespace sn_TC {
 			static constexpr const std::size_t N = MaxTraits<V::N, 1>::N - 1;  //avoid overflow
 			static constexpr const std::array<std::size_t, N + 1> A = V::D::A;
 		};
+
 		// U^T / T -> U
+		// Laji MSVC, constexpr U::N failed
 		template <typename V, typename U>
 		struct Power {
+			/*
 			using T = Power<V, U>;
-			using D = typename Multiply<typename Number<std::get<0>(U::A)>::T, typename Power<V, Number<std::get<0>(U::A) - 1>>::T>::T;
-			static constexpr const std::size_t N = std::get<0>(U::A) * V::N;
+			using D = typename Multiply<typename Number<sp_get<0>(U::A)>::T, typename Power<V, Number<sp_get<0>(U::A) - 1>>::T>::T;
+			static constexpr const std::size_t N = sp_get<0>(U::A) * V::N;
 			static constexpr const std::array<std::size_t, N + 1> A = ArrayPower<V, U>();
+			*/
 		};
 		
 
