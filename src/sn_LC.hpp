@@ -6,6 +6,9 @@
 // Lambda-calculus
 // ref: http://matt.might.net/articles/c++-template-meta-programming-with-lambda-calculus/
 // TODO: look at MK/lambda-calculus
+// TODO: add more combinators
+// TODO: add compatitble operator (+, -, * /)
+// TODO: support tuple/list (lambda var1, var, ....)
 namespace sn_LC {
 	struct Zero {
 		enum { value = 0, };
@@ -27,6 +30,7 @@ namespace sn_LC {
 		using type = Zero;
 		enum { value = Zero::value };
 	};
+
 
 	template <std::size_t FormalName, typename Body>
 	struct Lambda {};
@@ -116,6 +120,47 @@ namespace sn_LC {
 	struct Apply<Closure<Lambda<Name, Body>, Env>, Value> {
 		using result = typename Eval<Body, Binding<Name, Value, Env>>::result;
 	};
+
+	template <std::size_t N, typename NN>
+	struct MatchNumberT {
+		using T = Literal<False>;
+	};
+
+	template <typename NN>
+	struct MatchNumberT<Eval<Literal<NN>, EmptyEnv>::result::value, NN> {
+		using T = Literal<True>;
+	};
+	
+	template <std::size_t N, typename NN>
+	using MatchNumber = typename MatchNumberT<N, NN>::T;
+
+	/* Laji MSVC, failed in this deduction
+ 	using T = MatchNumber<0, Zero>;
+	static_assert(std::is_same<T, Literal<True>>::value, "MatchNumber Failed");
+	*/
+
+	// Y :   lambda .f ( lambda .x (f(x)(x)) lambda .x f(x)(x) ) or lambda .f (lambda .u u(u))(lambda.x f(x)(x))
+	// ref: http://picasso250.github.io/2015/03/31/reinvent-y.html
+	template <std::size_t F, std::size_t U, std::size_t X>
+	using YCombinator = Lambda<F, 
+							Application<
+								Lambda<U, 
+									Application<Reference<U>,
+										Reference<U>
+									>
+								>, 
+								Lambda<X,
+									Application<
+										Application<Reference<F>, 
+											Reference<X>
+										>, Reference<X>
+									>
+								>
+							>
+						>;
+
+	template <std::size_t F, std::size_t U, std::size_t X, typename L>
+	using YFunc = Application<YCombinator<F, U, X>, L>;
 
 
 }

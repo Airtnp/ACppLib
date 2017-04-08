@@ -165,9 +165,28 @@ namespace sn_TC {
 			return ArrayMulImpl<T, U>(std::make_index_sequence<TwoArray<T, U>::N1 + TwoArray<T, U>::N2 - 1>{});
 		}
 
+		template <std::size_t N1, typename T>
+		struct ArrayPowerImpl {
+			constexpr static const std::size_t N = T::N;
+			constexpr static const std::array<std::size_t, N1 * N + 1> A = ArrayMul<T, ArrayPowerImpl<N - 1, T>>();
+		};
+
+		template <typename T>
+		struct ArrayPowerImpl<1, T> {
+			constexpr static const std::size_t N = T::N;
+			constexpr static const std::array<std::size_t, N + 1> A = T::A;
+		};
+
+		template <typename T>
+		struct ArrayPowerImpl<0, T> {
+			constexpr static const std::size_t N = 0;
+			constexpr static const std::array<std::size_t, N + 1> A = { 1 };
+		};
+
+
 		template <typename T, typename U>
 		constexpr auto ArrayPower() {
-
+			return ArrayPowerImpl<std::get<0>(U::A), T>::A;
 		}
 		
 	}
@@ -188,6 +207,14 @@ namespace sn_TC {
 			using D = Zero;
 			static constexpr const std::size_t N = 0;
 			static constexpr const std::array<std::size_t, N + 1> A = { 1 };
+		};
+
+		template <std::size_t N1>
+		struct Number {
+			using T = Number<N1>;
+			using D = Zero;
+			static constexpr const std::size_t N = 0;
+			static constexpr const std::array<std::size_t, N + 1> A = { N1 };
 		};
 
 		struct TypeX {
@@ -233,7 +260,12 @@ namespace sn_TC {
 		};
 		// U^T / T -> U
 		template <typename V, typename U>
-		struct Power {};
+		struct Power {
+			using T = Power<V, U>;
+			using D = typename Multiply<typename Number<std::get<0>(U::A)>::T, typename Power<V, Number<std::get<0>(U::A) - 1>>::T>::T;
+			static constexpr const std::size_t N = std::get<0>(U::A) * V::N;
+			static constexpr const std::array<std::size_t, N + 1> A = ArrayPower<V, U>();
+		};
 		
 
 
