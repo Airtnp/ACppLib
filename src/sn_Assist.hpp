@@ -160,7 +160,7 @@ namespace sn_Assist {
 			typedef R type(Args...);
 			using result_type = R;
 			using pointer = R(*)(Args...);
-			typedef R function_type(Args...);
+			using function_type = R(Args...);
 			using stl_function_type = std::function<function_type>;
 
 			template <size_t I>

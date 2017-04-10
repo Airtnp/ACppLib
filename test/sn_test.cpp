@@ -98,8 +98,8 @@ namespace sn_DB_test {
 
 #endif
 
-
 int main() {
+
 #ifdef SN_TEST_DB
 	sn_DB_test();
 #endif
@@ -115,4 +115,5 @@ int main() {
 #endif
 	getchar();
 	return 0;
+
 }

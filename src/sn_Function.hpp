@@ -5,8 +5,9 @@
 #include "sn_Assist.hpp"
 #include "sn_Type.hpp"
 
-namespace sn_Lazy {
-	//ref: Vlpp/Lazy Vlpp/Function cosmos/Lazy
+namespace sn_Function {
+	// ref: Vlpp/Lazy Vlpp/Function 
+	// ref: qicsomos/cosmos/Lazy qicosmos/cosmos/modern_functor
 	namespace function {
 		template <typename T>
 		class Func {};
@@ -125,7 +126,7 @@ namespace sn_Lazy {
 			public:
 				Binder(const function::Func<function_type>& target, Arg0 param) : m_target(target), m_firstParam(param) {}
 
-				R operator()(Args&&... args) const {
+				R operator()(Args&&... args) {
 					return m_target(std::forward<Arg0>(m_firstParam), std::forward<Args>(args)...);
 				}
 			};
@@ -135,23 +136,66 @@ namespace sn_Lazy {
 				function::Func<function_type> m_target;
 			public:
 				Currier(const function::Func<function_type>& target) : m_target(target) {}
+				template <typename RT, typename ...TArgs>
+				Currier(const typename Currying<RT(Args...)>::Binder& binder) : m_target(binder) {}
 
-				function::Func<curried_type> operator()(Arg0&& param) const {
+				typename Currying<R(Args...)>::Currier operator()(Arg0&& param) const {
+					return Currying<R(Args...)>::Currier(Binder(m_target, param));
+				}
+
+			};
+		};
+
+		template <typename R, typename Arg0>
+		struct Currying<R(Arg0)> {
+			typedef R function_type(Arg0);
+			typedef R curried_type(Arg0);
+			using first_parameter_type = Arg0;
+
+			class Binder {
+			protected:
+				function::Func<function_type> m_target;
+				Arg0 m_firstParam;
+			public:
+				Binder(const function::Func<function_type>& target, Arg0 param) : m_target(target), m_firstParam(param) {}
+
+				R operator()() {
+					return m_target(std::forward<Arg0>(m_firstParam));
+				}
+			};
+
+			class Currier {
+			protected:
+				function::Func<function_type> m_target;
+			public:
+				Currier(const function::Func<function_type>& target) : m_target(target) {}
+				
+				Binder operator()(Arg0&& param) const {
 					return Binder(m_target, param);
 				}
 
 			};
 		};
 
-		template <typename T>
-		function::Func<function::Func<typename Currying<T>::curried_type>(typename Currying<T>::first_parameter_type)> make_curry(T* function) {
-			return typename Currying<T>::Currier(function);
+
+
+		template <typename R, typename ...Args>
+		typename Currying<R(Args...)>::Currier make_curry(R(*function)(Args...)) {
+			return typename Currying<R(Args...)>::Currier(function);
 		}
 
-		template <typename T>
-		function::Func<function::Func<typename Currying<T>::curried_type>(typename Currying<T>::first_parameter_type)> make_curry(const T& function) {
-			return typename Currying<T>::Currier(function);
+		template <typename R, typename ...Args>
+		typename Currying<R(Args...)>::Currier make_curry(const R(&function)(Args...)) {
+			return typename Currying<R(Args...)>::Currier(function);
 		}
+
+		template <typename C>
+		auto make_curry(const C& function) {
+			using T = sn_Assist::sn_function_traits::function_traits<C>;
+			using FT = T::function_type;
+			return typename Currying<FT>::Currier(function);
+		}
+
 
 	}
 
