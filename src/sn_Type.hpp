@@ -17,7 +17,9 @@ namespace sn_Type {
 		};
 	}
 
-	//ref: cosmos/
+	// ref: qicosmos/cosmos
+	// there should be a move-only any (unique_any/shared_any)
+	// TODO: YSlib/base/ystdex/any ref: https://github.com/FrankHB/YSLib/blob/master/YBase/include/ystdex/any.h
 	namespace any {
 		class Any {
 		public:

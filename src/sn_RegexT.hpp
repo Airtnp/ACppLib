@@ -85,6 +85,8 @@ namespace sn_RegexT {
 		}) || (*target && RegexSearch<RegExpr>(target + 1));
 	}
 
+	//assert((RegexMatch<ConcatExpr<MatchExpr<'a'>, MatchExpr<'b'>>>("ab")));
+
 }
 
 

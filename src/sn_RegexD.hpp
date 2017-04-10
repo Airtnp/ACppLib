@@ -5,7 +5,7 @@
 
 // ref : Cheukyin/CodeSnippet/blob/master/PL/Regex
 // Brzozowski's derivative
-// TODO: add DFA
+// TODO: add DFA (ref : https://people.mpi-sws.org/~turon/re-deriv.pdf, derivative can => DFA)
 namespace sn_RegexD {
 	namespace AST {
 		// Instance ---- this ----> Exp ---- *Exp ---> Instance

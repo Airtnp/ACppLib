@@ -7,7 +7,7 @@
 // ref: http://matt.might.net/articles/c++-template-meta-programming-with-lambda-calculus/
 // ref: https://github.com/Cheukyin/TemplatedPL
 // TODO: look at MK/lambda-calculus
-// TODO: add more combinators
+// TODO: add more fix combinators f(fix(f)) = fix(f)
 // TODO: add call/cc (implement eval/apply/if/... in CPS style with continuation)
 namespace sn_LC {
 	struct Zero {
