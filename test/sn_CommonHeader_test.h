@@ -32,6 +32,7 @@
 #include "../src/sn_TypeLisp.hpp"
 #include "../src/sn_RegexD.hpp"
 #include "../src/sn_RegexT.hpp"
+#include "../src/sn_LINQ.hpp"
 
 
 #endif
