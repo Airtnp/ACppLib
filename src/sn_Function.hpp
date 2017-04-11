@@ -109,6 +109,7 @@ namespace sn_Function {
 
 	}
 
+	// Is it CPS?
 	namespace currying {
 		template <typename T>
 		struct Currying {};
@@ -557,6 +558,8 @@ namespace sn_Function {
 	using currying::make_curry;
 	using combining::make_combine;
 	using combining::make_homomorphy_combine;
+	using maybe::maybe;
+	using maybe::just;
 	using lazy::make_lazy;
 	using functor_wrapper::make_functor_wrapper;
 

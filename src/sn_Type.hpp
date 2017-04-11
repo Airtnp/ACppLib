@@ -8,6 +8,8 @@
 //TODO: add concepts required by C++1z
 namespace sn_Type {
 
+	enum class byte : unsigned char {};
+
 	namespace nil {
 		class Nil {
 			template <typename T>

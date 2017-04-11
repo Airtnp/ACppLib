@@ -8,7 +8,7 @@ namespace sn_Reflection {
 	//ref: http://purecpp.org/?p=1074
 	//VS2015 (no update?) gave little support on constexpr function (defined in C++1y)
 #if defined(__GNUC__) || defined(__clang__)
-	namespace pod_reflect {
+	namespace unamed_pod_reflect {
 
 		//-----------pod<->array-----------
 		template <typename T>
@@ -210,7 +210,7 @@ namespace sn_Reflection {
 #endif
 
 	//ref: https://github.com/qicosmos/iguana/blob/master/reflection.hpp
-	namespace register_reflect {
+	namespace named_pod_reflect {
 #define SN_REGISTER_ARG_LIST_1(op, arg, ...) op(arg)
 #define SN_REGISTER_ARG_LIST_2(op, arg, ...) op(arg), MACRO_EXPAND(SN_REGISTER_ARG_LIST_1(op, __VA_ARGS__))
 #define SN_REGISTER_ARG_LIST_3(op, arg, ...) op(arg), MACRO_EXPAND(SN_REGISTER_ARG_LIST_2(op, __VA_ARGS__))
