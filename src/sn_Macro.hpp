@@ -13,6 +13,9 @@ namespace sn_Macro { //useless namespace
 #define MACRO_CONCAT(A, B) MACRO_CONCAT_IMPL(A, B)
 #define MACRO_CONCAT_IMPL(A, B) A##_##B
 
+#define MACRO_RAW_CONCAT(A, B) MACRO_RAW_CONCAT_IMPL(A, B)
+#define MACRO_RAW_CONCAT_IMPL(A, B) A##B
+
 	// static char THIS_FILE[] = __FILE__
 #define DEBUG_NEW(THIS_FILE, __FILE__)
 

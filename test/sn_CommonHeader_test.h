@@ -33,6 +33,8 @@
 #include "../src/sn_RegexD.hpp"
 #include "../src/sn_RegexT.hpp"
 #include "../src/sn_LINQ.hpp"
+#include "../src/sn_StdStream.hpp"
+#include "../src/sn_PC.hpp"
 
 
 #endif

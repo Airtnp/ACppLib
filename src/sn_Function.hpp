@@ -109,6 +109,27 @@ namespace sn_Function {
 
 	}
 
+	namespace bind {
+		template <typename T, typename R, typename ...Args>
+		auto member_lambda_bind(R(T::* const m_fun)(Args...), const T* obj) {
+			return [=](auto&& ...args) {
+				(obj->*m_fun)(std::forward<decltype(args)>(args)...);
+			};
+		}
+
+#ifdef _MSC_VER
+		template <typename T, typename R, typename ...Args, std::size_t Is>
+		auto member_stl_bind_impl(R(T::* const m_fun)(Args...), const T* obj, std::index_sequence<Is...>) {
+			return std::bind(m_fun, obj, std::_Ph<Is + 1>{}...);
+		}
+
+		template <std::size_t I, typename T, typename R, typename ...Args>
+		auto member_stl_bind(R(T::* const m_fun)(Args...), const T* obj) {
+			return member_stl_bind_impl(m_fun, obj, std::make_index_sequence<I>{});
+		}
+#endif
+	}
+
 	// Is it CPS?
 	namespace currying {
 		template <typename T>
@@ -558,7 +579,6 @@ namespace sn_Function {
 	using currying::make_curry;
 	using combining::make_combine;
 	using combining::make_homomorphy_combine;
-	using maybe::maybe;
 	using maybe::just;
 	using lazy::make_lazy;
 	using functor_wrapper::make_functor_wrapper;
