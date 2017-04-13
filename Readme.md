@@ -24,6 +24,7 @@ I strongly recommend Herb Sutter's C++ Coding Standard, my code is full of junk.
 * sn_LINQ*: support LINQ
 * sn_Log: a log class
 * sn_Macro: some macros
+* sn_PC: a realization of parser combinator
 * sn_Range*: support range
 * sn_Reflection: two realizations of reflection (magic_get/pod_reflect && register_reflect/typeless)
 * sn_Regex: RegexD: derivative+NFA | RegexT: parsec(derivative) no parser | RegexV: NFA+DFA no parser
