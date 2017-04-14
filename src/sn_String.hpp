@@ -180,6 +180,13 @@ namespace sn_String {
 			const unsigned int len_;
 		};
 
+		template <typename CharT>
+		using basic_zstring = CharT*;
+		using zstring = basic_zstring<char>;
+		using czstring = basic_zstring<const char>;
+		using wzstring = basic_zstring<wchar_t>;
+		using cwzstring = basic_zstring<const wchar_t>;
+
 	}
 
 	namespace constexpr_string {

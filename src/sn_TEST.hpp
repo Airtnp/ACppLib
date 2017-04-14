@@ -19,6 +19,16 @@ namespace sn_TEST {
 #define SN_TEST(Name) \
 	sn_test_case_instance_##Name();
 
+	// for clang/gcc use __builtin_expect
+#define SN_LIKELY(cond) \
+	(!!(cond))
+
+#define SN_EXPECT(cond) \
+	(SN_LIKELY(cond) ? static_cast<void>(0) : static_cast<void>(0);  SN_BASIC_LOG(std::cout, "Expect Failed."); std::terminate();)
+
+#define SN_ENSURE(cond) \
+	(SN_LIKELY(cond) ? static_cast<void>(0) : static_cast<void>(0);  SN_BASIC_LOG(std::cout, "Ensure Failed."); std::terminate();)
+
 	namespace profile {
 		template <typename T>
 		struct profile {
