@@ -56,6 +56,7 @@ for detail: https://gcc.gnu.org/onlinedocs/libstdc++/ext/pb_ds/
 #include <memory>
 #include <atomic>
 #include <future>
+#include <condition_variable>
 
 // For STL ds
 #include <array>

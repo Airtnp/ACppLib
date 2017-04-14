@@ -509,8 +509,9 @@ namespace sn_Alg {
 				return b ? gcd(b, a % b) : a;
 			}
 
-			//ref: https://code.woboq.org/linux/linux/lib/gcd.c.html
-			unsigned long linux_gcd(unsigned long a, unsigned long b) {
+			// ref: https://code.woboq.org/linux/linux/lib/gcd.c.html
+			// ref: https://en.wikipedia.org/wiki/Binary_GCD_algorithm
+			unsigned long binary_gcd(unsigned long a, unsigned long b) {
 #if defined(AVAILABLE_FFS)
 				unsigned long r = a | b;
 				if (!a || !b)
