@@ -5,6 +5,8 @@
 #include "sn_Assist.hpp"
 
 namespace sn_Builtin {
+	// TODO: add unwrap things
+	// ref: http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0318r0.pdf
 	namespace pointer_wrapper {
 		template <typename T>
 		class pointer_wrapper {

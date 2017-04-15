@@ -1,12 +1,12 @@
 # SuperNaiveCppLib
 
-This is a Cpp library full of super naive wheels and **collected** wheels (see ref) based on C++1y.
+This is a Cpp library full of super naive wheels and **collected(copied)** wheels (see ref) based on C++1y.
 
 Because it's so naive, no comments and documentation supported. And its code-style is much messy.
 
-No common namespace, because it's loosely connected
+No common namespace, because loosely connected.
 
-I strongly recommend Herb Sutter's C++ Coding Standard, my code is full of junk.
+I strongly recommend Herb Sutter's C++ Coding Standard, my code is full of junk (however, I strongly appreciate the reference code I copied).
 
 ## Wheel List (super naive, all incomplete) (* even having no function)
 * sn_Alg: some algorithms
@@ -24,15 +24,17 @@ I strongly recommend Herb Sutter's C++ Coding Standard, my code is full of junk.
 * sn_LINQ*: support LINQ
 * sn_Log: a log class
 * sn_Macro: some macros
+* sn_PIC: pi-calculus
 * sn_PC: a realization of parser combinator
 * sn_Range*: support range
-* sn_Reflection: two realizations of reflection (magic_get/pod_reflect && register_reflect/typeless)
-* sn_Regex: RegexD: derivative+NFA | RegexT: parsec(derivative) no parser | RegexV: NFA+DFA no parser
+* sn_Reflection: two realizations of reflection (magic_get/unnamed_pod_reflect && named_reflect/typeless)
+* sn_Regex: RegexD: derivative + NFA(recusive-down) | RegexT: parsec no parser | RegexV: NFA + DFA no parser
 * sn_StdStream: add more function with std::iostream
 * sn_Stream: support basic/memory/file stream
 * sn_String: a class dealing with string
 * sn_Thread: support thread-related
 * sn_TC: support type-calculus (+compile-time polynomial addition/multiplication)
+* sn_TEST: support testing and contract
 * sn_Type: support type-erasing types.
 * sn_TypeLisp: support TypeList operation | Lisp 7 axioms (cons/car/cdr/cond/quote/atom/eq)
 
