@@ -10,6 +10,7 @@
 // from(v) (vector or some container) | R (functor) 
 // ref: https://github.com/vczh/vczh_toys/blob/master/CppLinq/CppLinq/linq.h
 // TODO: for Cpp1z, result_of_t -> invoke_result_t
+// more version: https://github.com/MichaelSuen-thePointer/mqLinq/blob/master/mqLinq/linq.h
 namespace sn_LINQ {
 	namespace linq {
 		using sn_Assist::sn_function_traits::function_traits;

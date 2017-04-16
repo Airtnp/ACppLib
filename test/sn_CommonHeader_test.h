@@ -36,6 +36,7 @@
 #include "../src/sn_StdStream.hpp"
 #include "../src/sn_PC.hpp"
 #include "../src/sn_PIC.hpp"
+#include "../src/sn_PD.hpp"
 
 
 #endif

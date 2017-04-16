@@ -213,7 +213,10 @@ namespace sn_Assist {
 		template <class ...Args>
 		struct type_descriptor {
 			static string descript() {
-				return "[unknown type, maybe \"" + typeid(T).name() + "\"]";
+				std::string tmp = "[unknown type, maybe \"";
+				std::initializer_list<int>{(tmp += typeid(Args).name(), 0)...};
+				tmp += "\"]";
+				return tmp;
 			}
 		};
 
@@ -321,7 +324,14 @@ namespace sn_Assist {
 		template<class T>
 		struct type_descriptor<T&> {
 			static string descript() {
-				return "reference to " + type_descriptor<T>::descript();
+				return "lvalue reference to " + type_descriptor<T>::descript();
+			}
+		};
+
+		template<class T>
+		struct type_descriptor<T&&> {
+			static string descript() {
+				return "rvalue reference to " + type_descriptor<T>::descript();
 			}
 		};
 
@@ -335,14 +345,14 @@ namespace sn_Assist {
 		template<class R>
 		struct type_descriptor<R(*)(void)> {
 			static string descript() {
-				return "function pointer to function () ->" + type_descriptor<T>::descript();
+				return "function pointer to function () ->" + type_descriptor<R>::descript();
 			}
 		};
 
 		template<class R, class ...Args>
 		struct type_descriptor<R(*)(Args...)> {
 			static string descript() {
-				return "function pointer to " + "function (" + type_descriptor<Args...>::descript() + ") -> " + type_descriptor<F>::descript(); 
+				return "function pointer to " + "function (" + type_descriptor<Args...>::descript() + ") -> " + type_descriptor<R>::descript(); 
 			}
 		};
 
