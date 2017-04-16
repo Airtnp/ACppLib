@@ -8,7 +8,7 @@
 // ref: https://github.com/dented42/derp/blob/master/lazy-structs.rkt
 // ref: https://github.com/dented42/derp/blob/master/derp-core.rkt
 // ref: https://github.com/tmmcguire/Java-Parser-Derivatives
-// TODO: add hash parser -> add compact
+// TODO: add hash parser -> add compact ref: https://maniagnosis.crsr.net/2012/05/parsing-with-derivatives-compaction.html
 namespace sn_PD {
 	// Since std::hash<string> is not exists, use set<string>
 

@@ -8,6 +8,26 @@ namespace sn_Builtin {
 	// TODO: add unwrap things
 	// ref: http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0318r0.pdf
 	namespace pointer_wrapper {
+		// Support incomplete type (result_of_t cannot)
+		// ref: http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0357r0.html
+		template<typename T>
+		class reference_wrapper
+		{
+			observer_ptr<T> ptr
+		public:
+			using type = T;
+			reference_wrapper(T& val) noexcept
+				: ptr(std::addressof(val)) {}
+			reference_wrapper(T&&) = delete;
+			T& get() const noexcept { return *ptr; }
+			operator T&() const noexcept { return *ptr; }
+			template<typename... Args>
+			auto operator()(Args&&... args)
+				-> std::result_of_t<T&(Args...)> {
+				return std::invoke(*ptr, std::forward<Args>(args)...);
+			}
+		};
+
 		template <typename T>
 		class pointer_wrapper {
 		public:
