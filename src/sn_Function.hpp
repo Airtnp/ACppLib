@@ -135,6 +135,7 @@ namespace sn_Function {
 		template <typename T>
 		struct Currying {};
 
+
 		template <typename R, typename Arg0, typename ...Args>
 		struct Currying<R(Arg0, Args...)> {
 			typedef R function_type(Arg0, Args...);
@@ -151,6 +152,10 @@ namespace sn_Function {
 				R operator()(Args&&... args) {
 					return m_target(std::forward<Arg0>(m_firstParam), std::forward<Args>(args)...);
 				}
+
+				function::Func<function_type> temp_func() {
+					return m_target;
+				}
 			};
 
 			class Currier {
@@ -162,7 +167,7 @@ namespace sn_Function {
 				Currier(const typename Currying<RT(Args...)>::Binder& binder) : m_target(binder) {}
 
 				typename Currying<R(Args...)>::Currier operator()(Arg0&& param) const {
-					return Currying<R(Args...)>::Currier(Binder(m_target, param));
+					return typename Currying<R(Args...)>::Currier(Binder(m_target, param));
 				}
 
 			};
@@ -172,11 +177,37 @@ namespace sn_Function {
 				function::Func<function_type> m_target;
 			public:
 				SingleCurrier(const function::Func<function_type>& target) : m_target(target) {}
-				
+
 				Binder operator()(Arg0&& param) const {
 					return Binder(m_target, param);
 				}
 
+			};
+
+			template <std::size_t N, typename V = void>
+			class MultiCurrier {
+			protected:
+				function::Func<function_type> m_target;
+			public:
+				MultiCurrier(const function::Func<function_type>& target) : m_target(target) {}
+				template <typename RT, typename ...TArgs>
+				MultiCurrier(const typename Currying<RT(Args...)>::Binder& binder) : m_target(binder) {}
+
+				typename Currying<R(Args...)>::template MultiCurrier<N - 1> operator()(Arg0&& param) const {
+					return typename Currying<R(Args...)>::template MultiCurrier<N - 1>(Binder(m_target, param));
+				}
+			};
+
+			template <typename V>
+			class MultiCurrier<1, V> {
+			protected:
+				function::Func<function_type> m_target;
+			public:
+				MultiCurrier(const function::Func<function_type>& target) : m_target(target) {}
+
+				Binder operator()(Arg0&& param) const {
+					return Binder(m_target, param);
+				}
 			};
 		};
 
@@ -196,6 +227,10 @@ namespace sn_Function {
 				R operator()() {
 					return m_target(std::forward<Arg0>(m_firstParam));
 				}
+
+				function::Func<function_type> temp_func() {
+					return m_target;
+				}
 			};
 
 			class Currier {
@@ -203,7 +238,7 @@ namespace sn_Function {
 				function::Func<function_type> m_target;
 			public:
 				Currier(const function::Func<function_type>& target) : m_target(target) {}
-				
+
 				Binder operator()(Arg0&& param) const {
 					return Binder(m_target, param);
 				}
@@ -215,11 +250,35 @@ namespace sn_Function {
 				function::Func<function_type> m_target;
 			public:
 				SingleCurrier(const function::Func<function_type>& target) : m_target(target) {}
-				
+
 				Binder operator()(Arg0&& param) const {
 					return Binder(m_target, param);
 				}
 
+			};
+
+			template <std::size_t N, typename = void>
+			class MultiCurrier {
+			protected:
+				function::Func<function_type> m_target;
+			public:
+				MultiCurrier(const function::Func<function_type>& target) : m_target(target) {}
+
+				Binder operator()(Arg0&& param) const {
+					return Binder(m_target, param);
+				}
+			};
+
+			template <typename V>
+			class MultiCurrier<1, V> {
+			protected:
+				function::Func<function_type> m_target;
+			public:
+				MultiCurrier(const function::Func<function_type>& target) : m_target(target) {}
+
+				Binder operator()(Arg0&& param) const {
+					return Binder(m_target, param);
+				}
 			};
 		};
 
@@ -255,6 +314,21 @@ namespace sn_Function {
 			return typename Currying<R(Args...)>::SingleCurrier(function);
 		}
 
+		template <std::size_t N, typename R, typename ...Args>
+		typename Currying<R(Args...)>::Currier make_multi_curry(R(*function)(Args...)) {
+			return typename Currying<R(Args...)>::template MultiCurrier<N>(function);
+		}
+
+		template <std::size_t N, typename C, typename R, typename ...Args>
+		typename Currying<R(Args...)>::Currier make_multi_curry(C* obj, R(C::*function)(Args...)) {
+			return typename Currying<R(Args...)>::template MultiCurrier<N>(function::Func<R(Args...)>(obj, function));
+		}
+
+		template <std::size_t N, typename R, typename ...Args>
+		typename Currying<R(Args...)>::Currier make_multi_curry(const R(&function)(Args...)) {
+			return typename Currying<R(Args...)>::template MultiCurrier<N>(function);
+		}
+
 		template <typename C>
 		auto make_curry(const C& function) {
 			using T = sn_Assist::sn_function_traits::function_traits<C>;
@@ -267,6 +341,13 @@ namespace sn_Function {
 			using T = sn_Assist::sn_function_traits::function_traits<C>;
 			using FT = T::function_type;
 			return typename Currying<FT>::SingleCurrier(function);
+		}
+
+		template <std::size_t N, typename C>
+		auto make_multi_curry(const C& function) {
+			using T = sn_Assist::sn_function_traits::function_traits<C>;
+			using FT = T::function_type;
+			return typename Currying<FT>::template MultiCurrier<N>(function);
 		}
 
 	}
@@ -626,6 +707,7 @@ namespace sn_Function {
 
 	using currying::make_curry;
 	using currying::make_single_curry;
+	using currying::make_multi_curry;
 	using combining::make_combine;
 	using combining::make_homomorphy_combine;
 	using maybe_just::maybe;

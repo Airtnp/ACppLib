@@ -16,6 +16,7 @@ namespace sn_PM {
 	using sn_Function::function::Func;
 	using sn_Function::make_curry;
 	using sn_Function::make_single_curry;
+	using sn_Function::make_multi_curry;
 
 	namespace pattern {
 		template <typename ...Args>
