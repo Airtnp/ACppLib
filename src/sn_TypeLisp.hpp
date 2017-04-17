@@ -44,7 +44,7 @@ namespace sn_TypeLisp {
 	struct EmptyType;
 
 	template <typename ...Ts>
-	struct TypeList;
+	struct TypeList {};
 
 	template <typename T>
 	struct TypeCar;
@@ -150,6 +150,22 @@ namespace sn_TypeLisp {
 
 	template <typename L1, typename L2>
 	using TypeAppend_t = typename TypeAppend<L1, L2>::type;
+
+	template <typename L>
+	struct TypeDropOne;
+
+	template <typename T1, typename ...T>
+	struct TypeDropOne<TypeList<T1, T...>> {
+		using type = TypeAppend_t<TypeList<T1>, typename TypeDropOne<TypeList<T...>>::type>;
+	};
+
+	template <typename T1>
+	struct TypeDropOne<TypeList<T1>> {
+		using type = TypeList<>;
+	};
+
+	template <typename T>
+	using TypeDropOne_t = typename TypeDropOne<T>::type;
 
 	template <typename T>
 	struct TypeReverse;
@@ -333,7 +349,7 @@ namespace sn_TypeLisp {
 	using TypeCons = TypeAppend<T1, T2>;
 
 	template <typename T1, typename T2>
-	using TypeCons_t = typename TypeAppend_t<T1, T2>;
+	using TypeCons_t = TypeAppend_t<T1, T2>;
 
 	template <typename T>
 	struct Quote {

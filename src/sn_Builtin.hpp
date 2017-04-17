@@ -13,7 +13,7 @@ namespace sn_Builtin {
 		template<typename T>
 		class reference_wrapper
 		{
-			observer_ptr<T> ptr
+			observer_ptr<T> ptr;
 		public:
 			using type = T;
 			reference_wrapper(T& val) noexcept

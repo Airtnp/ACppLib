@@ -345,14 +345,14 @@ namespace sn_Assist {
 		template<class R>
 		struct type_descriptor<R(*)(void)> {
 			static string descript() {
-				return "function pointer to function () ->" + type_descriptor<R>::descript();
+				return "function pointer to (function () ->" + type_descriptor<R>::descript() + ")";
 			}
 		};
 
 		template<class R, class ...Args>
 		struct type_descriptor<R(*)(Args...)> {
 			static string descript() {
-				return "function pointer to " + "function (" + type_descriptor<Args...>::descript() + ") -> " + type_descriptor<R>::descript(); 
+				return std::string("function pointer to ") + "(function (" + type_descriptor<Args...>::descript() + ") -> " + type_descriptor<R>::descript() + ")";
 			}
 		};
 
@@ -634,21 +634,21 @@ namespace sn_Assist {
 		template <typename T, typename H, typename ...Args>
 		struct contain_index<T, H, Args...> {
 			enum {
-				value = contain_index<T, Args...>::value + 1;
+				value = contain_index<T, Args...>::value + 1,
 			};
 		};
 
 		template <typename T, typename ...Args>
 		struct contain_index<T, T, Args...> {
 			enum {
-				value = 0;
+				value = 0,
 			};
 		};
 
 		template <typename T>
 		struct contain_index<T> {
 			enum {
-				value = -1;
+				value = -1,
 			};
 		};
 
