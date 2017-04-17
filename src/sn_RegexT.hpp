@@ -5,6 +5,7 @@
 
 // ref: https://gist.github.com/timshen91/f6a3f040e5b5b0685b2a
 // Compare to parserc/type-calculus
+// TODO: ref boost.Xpressive
 namespace sn_RegexT {
 	template <typename L, typename R>
 	struct ConcatExpr;

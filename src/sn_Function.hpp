@@ -130,7 +130,6 @@ namespace sn_Function {
 #endif
 	}
 
-	// Is it CPS?
 	namespace currying {
 		template <typename T>
 		struct Currying {};
@@ -445,7 +444,7 @@ namespace sn_Function {
 
 	}
 
-	namespace maybe {
+	namespace maybe_just {
 		template <typename T>
 		class maybe {
 		private:
@@ -535,8 +534,6 @@ namespace sn_Function {
 
 		};
 
-		const auto ChainHead = Chain<>();
-
 		// f = ChainHead | [](auto s){} | wrapper_map | ...
 		// {2, 3} | f
 		template <typename ...Fns, typename F>
@@ -579,10 +576,12 @@ namespace sn_Function {
 	using currying::make_curry;
 	using combining::make_combine;
 	using combining::make_homomorphy_combine;
-	using maybe::just;
+	using maybe_just::maybe;
+	using maybe_just::just;
 	using lazy::make_lazy;
 	using functor_wrapper::make_functor_wrapper;
 
+	const auto ChainHead = pipeline::Chain<>();
 }
 
 
