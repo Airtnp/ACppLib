@@ -5,9 +5,10 @@
 #include "sn_Assist.hpp"
 #include "sn_Type.hpp"
 
+// ref: Vlpp/Lazy Vlpp/Function 
+// ref: qicsomos/cosmos/Lazy qicosmos/cosmos/modern_functor
 namespace sn_Function {
-	// ref: Vlpp/Lazy Vlpp/Function 
-	// ref: qicsomos/cosmos/Lazy qicosmos/cosmos/modern_functor
+	// TODO: add make_func
 	namespace function {
 		template <typename T>
 		class Func {};
@@ -165,6 +166,18 @@ namespace sn_Function {
 				}
 
 			};
+
+			class SingleCurrier {
+			protected:
+				function::Func<function_type> m_target;
+			public:
+				SingleCurrier(const function::Func<function_type>& target) : m_target(target) {}
+				
+				Binder operator()(Arg0&& param) const {
+					return Binder(m_target, param);
+				}
+
+			};
 		};
 
 		template <typename R, typename Arg0>
@@ -196,6 +209,18 @@ namespace sn_Function {
 				}
 
 			};
+
+			class SingleCurrier {
+			protected:
+				function::Func<function_type> m_target;
+			public:
+				SingleCurrier(const function::Func<function_type>& target) : m_target(target) {}
+				
+				Binder operator()(Arg0&& param) const {
+					return Binder(m_target, param);
+				}
+
+			};
 		};
 
 
@@ -205,9 +230,29 @@ namespace sn_Function {
 			return typename Currying<R(Args...)>::Currier(function);
 		}
 
+		template <typename C, typename R, typename ...Args>
+		typename Currying<R(Args...)>::Currier make_curry(C* obj, R(C::*function)(Args...)) {
+			return typename Currying<R(Args...)>::Currier(function::Func<R(Args...)>(obj, function));
+		}
+
 		template <typename R, typename ...Args>
 		typename Currying<R(Args...)>::Currier make_curry(const R(&function)(Args...)) {
 			return typename Currying<R(Args...)>::Currier(function);
+		}
+
+		template <typename R, typename ...Args>
+		typename Currying<R(Args...)>::Currier make_single_curry(R(*function)(Args...)) {
+			return typename Currying<R(Args...)>::SingleCurrier(function);
+		}
+
+		template <typename C, typename R, typename ...Args>
+		typename Currying<R(Args...)>::Currier make_single_curry(C* obj, R(C::*function)(Args...)) {
+			return typename Currying<R(Args...)>::SingleCurrier(function::Func<R(Args...)>(obj, function));
+		}
+
+		template <typename R, typename ...Args>
+		typename Currying<R(Args...)>::Currier make_single_curry(const R(&function)(Args...)) {
+			return typename Currying<R(Args...)>::SingleCurrier(function);
 		}
 
 		template <typename C>
@@ -217,6 +262,12 @@ namespace sn_Function {
 			return typename Currying<FT>::Currier(function);
 		}
 
+		template <typename C>
+		auto make_single_curry(const C& function) {
+			using T = sn_Assist::sn_function_traits::function_traits<C>;
+			using FT = T::function_type;
+			return typename Currying<FT>::SingleCurrier(function);
+		}
 
 	}
 
@@ -574,6 +625,7 @@ namespace sn_Function {
 	}
 
 	using currying::make_curry;
+	using currying::make_single_curry;
 	using combining::make_combine;
 	using combining::make_homomorphy_combine;
 	using maybe_just::maybe;

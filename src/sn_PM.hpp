@@ -5,14 +5,26 @@
 #include "sn_Assist.hpp"
 #include "sn_TypeLisp.hpp"
 #include "sn_Type.hpp"
+#include "sn_Function.hpp"
 
+// TODO: ref : https://github.com/solodon4/Mach7/tree/master/code
 namespace sn_PM {
 	using sn_TypeLisp::TypeList;
 	using sn_Assist::sn_require::Require;
 	using sn_Assist::sn_function_traits::function_traits;
 	using sn_Type::variant::Variant;
+	using sn_Function::function::Func;
+	using sn_Function::make_curry;
+	using sn_Function::make_single_curry;
+
+	namespace pattern {
+		template <typename ...Args>
+		struct Switch;
+	}
 
 	namespace def {
+
+		using pattern::Switch;
 
 		// -------- Basic Sugar --------- //
 		// For (Int, Char) => Type<int> >= Type<char>
@@ -269,6 +281,7 @@ namespace sn_PM {
 				>::result_list
 			>;
 			using result_type_list = typename ConstructResultType<result_list>::result_type_list;
+			using func_type_list = typename ConstructFuncType<result_type_list, param_list>::func_type_list;
 			using variant_type = typename ConstructFuncType<result_type_list, param_list>::variant_type;
 		};
 
@@ -296,12 +309,18 @@ namespace sn_PM {
 
 			using type = U;
 			using type_list = typename ExtractType<Type<U>>::type_list;
+			using func_type_list = typename VariantFuncList<type_list, type_list>::func_type_list;
 			using variant_type = typename VariantFuncList<type_list, type_list>::variant_type;
 
 			variant_type var;
 			template <typename T>
 			FuncTypeWrapper& operator=(T func) {
-				var = func;
+				try {
+					var = func;
+				}
+				catch (...) {
+					throw std::runtime_error("Not matched")
+				}
 			}
 			template <typename F, typename ...TArgs>
 			auto operator()(F&& f, TArgs&&... args) {
@@ -320,12 +339,18 @@ namespace sn_PM {
 			
 			using type = U;
 			using type_list = typename ExtractType<Type<U>>::type_list;
+			using func_type_list = typename VariantFuncList<type_list, type_list>::func_type_list;
 			using variant_type = typename VariantFuncList<type_list, type_list>::variant_type;
 
 			variant_type var;
 			template <typename T>
 			FuncTypeWrapper& operator=(T func) {
-				var = func;
+				try {
+					var = func;
+				}
+				catch (...) {
+					throw std::runtime_error("Not matched")
+				}
 			}
 			template <typename F, typename ...TArgs>
 			auto operator()(F&& f, TArgs&&... args) {
@@ -354,6 +379,11 @@ namespace sn_PM {
 
 	}
 
+	namespace pattern {
+		template <typename ...Args>
+		struct Switch {};
+	}
+
 	// Finally wrapper all above into namespace and rename this
 
 	using namespace def::lib;
@@ -372,7 +402,11 @@ namespace sn_PM {
 	/* 
 	Usage:
 		For default function, int foo(char, int) ======> q = &foo; q(&foo, params...);
-		For lambda function, [](char a) -> int   ======> q = &lambda::operator(); q(&lambda::operator(), params...);
+			int foo2(char) int foo(int) -> &foo2 ======> q = &foo2; q(&foo2, params...)(params2...);  (can only communiate in global/namespace variable...)
+		For lambda function/class function... failed! Variant type has nothing to do with C::*func_type
+			maybe, write wrap_func instead. 
+			or, write everything in duplicated C, Args... form
+			or, for total evaluation, just return value
 	*/
 }
 
