@@ -1,6 +1,8 @@
 #ifndef SN_COMMON_HEADER_H
 #define SN_COMMON_HEADER_H
 
+#pragma warning(disable: 4814)
+
 /*
 	For C-style library
 */

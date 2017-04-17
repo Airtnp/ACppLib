@@ -421,9 +421,8 @@ namespace sn_Type {
 
 			std::size_t index() const {
 				get_type();
-				return index;
+				return m_index;
 			}
-
 
 			template <typename ...Ts>
 			friend class Variant;
@@ -507,7 +506,7 @@ namespace sn_Type {
 			void get_type() {
 				if (m_index != -1)
 					return;
-				[](Args&&...) {} ((get_typeT<Args>(), 0)...);
+				std::initializer_list<int>{(get_typeT<Args>(), 0)...};
 			}
 
 			template <typename T>
@@ -520,7 +519,7 @@ namespace sn_Type {
 
 
 			void destroy(const std::type_index& index, void* data) {
-				[](Args&&...) {}((destroyT<Args>(index, data), 0)...);
+				std::initializer_list<int>{(destroyT<Args>(index, data), 0)...};
 			}
 
 			template <typename T>
@@ -530,7 +529,7 @@ namespace sn_Type {
 			}
 
 			void move(const std::type_index& index, void* old_data, void* data) {
-				[](Args&&...) {}((moveT<Args>(index, old_data, data), 0)...);
+				std::initializer_list<int>{(moveT<Args>(index, old_data, data), 0)...};
 			}
 
 			template <typename T>
@@ -539,14 +538,14 @@ namespace sn_Type {
 					new (data) T(std::move(*reinterpret_cast<T*>(old_data)));
 			}
 
-			void copy(const std::type_index& index, void* old_data, void* data) {
-				[](Args&&...) {}((copyT<Args>(index, old_data, data), 0)...);
+			void copy(const std::type_index& index, const void* old_data, void* data) {
+				std::initializer_list<int>{(copyT<Args>(index, old_data, data), 0)...};
 			}
 
 			template <typename T>
-			void copyT(const std::type_index& index, void* old_data, void* data) {
+			void copyT(const std::type_index& index, const void* old_data, void* data) {
 				if (index == std::type_index(typeid(T)))
-					new (data) T(*reinterpret_cast<T*>(old_data));
+					new (data) T(*reinterpret_cast<const T*>(old_data));
 			}
 		
 			std::type_index m_typeIndex;

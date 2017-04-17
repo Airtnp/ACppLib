@@ -345,7 +345,7 @@ namespace sn_Assist {
 		template<class R>
 		struct type_descriptor<R(*)(void)> {
 			static string descript() {
-				return "function pointer to (function () ->" + type_descriptor<R>::descript() + ")";
+				return "function pointer to (function () -> " + type_descriptor<R>::descript() + ")";
 			}
 		};
 
