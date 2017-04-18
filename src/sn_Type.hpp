@@ -83,7 +83,7 @@ namespace sn_Type {
 	namespace any {
 		class Any {
 		public:
-			Any(void) : m_typeIndex(std::type_index(typeid(void))) {}
+			Any() : m_typeIndex(std::type_index(typeid(void))) {}
 			Any(const Any& rhs) : m_typeIndex(rhs.m_typeIndex), m_ptr(rhs.clone()) {}
 			Any(Any&& rhs) : m_ptr(std::move(rhs.m_ptr)), m_typeIndex(std::move(rhs.m_typeIndex)) {}
 

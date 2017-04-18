@@ -7,12 +7,16 @@
 #include "sn_Type.hpp"
 #include "sn_Function.hpp"
 
-// TODO: ref : https://github.com/solodon4/Mach7/tree/master/code
+// Yes, it failed in VS2015! Simply ICE!
+// Yes, it failed in Clang3.9! Illegal Instruction!
+// Yes, it succeeded in gcc6.3!
+// TODO: runtime match ref : https://github.com/solodon4/Mach7/tree/master/code
 namespace sn_PM {
 	using sn_TypeLisp::TypeList;
 	using sn_Assist::sn_require::Require;
 	using sn_Assist::sn_function_traits::function_traits;
 	using sn_Type::variant::Variant;
+	using sn_Type::any::Any;
 	using sn_Function::function::Func;
 	using sn_Function::make_func;
 	using sn_Function::make_curry;
@@ -21,12 +25,12 @@ namespace sn_PM {
 
 	namespace pattern {
 		template <typename ...Args>
-		struct Switch;
+		struct SwitchFunc;
 	}
 
 	namespace def {
 
-		using pattern::Switch;
+		using pattern::SwitchFunc;
 
 		// -------- Basic Sugar --------- //
 		// For (Int, Char) => Type<int> >= Type<char>
@@ -190,13 +194,13 @@ namespace sn_PM {
 
 		template <typename Arg, typename ...Args>
 		struct ConstructResultTypeList<TypeList<Arg, Args...>> {
-			typedef Arg(*func_type)(typename ConstructResultTypeList<TypeList<Args...>>::func_type);
+			using func_type = Func<Arg(typename ConstructResultTypeList<TypeList<Args...>>::func_type)>;
 			// or std::add_pointer_t<typename ConstructResultTypeList<TypeList<Args...>>::func_type>
 		};
 
 		template <typename Arg1, typename Arg2>
 		struct ConstructResultTypeList<TypeList<Arg1, Arg2>> {
-			typedef Arg1(*func_type)(Arg2);
+			using func_type = Func<Arg1(Arg2)>;
 		};
 
 		template <typename Arg>
@@ -206,7 +210,7 @@ namespace sn_PM {
 
 		template <typename R, typename ...Args>
 		struct ConstructResultTypeList<TypeList<R, TypeList<Args...>>> {
-			typedef R func_type(Args...);
+			using func_type = Func<R(Args...)>;
 		};
 
 		template <typename T>
@@ -316,6 +320,7 @@ namespace sn_PM {
 			using variant_type = typename VariantFuncList<type_list, type_list>::variant_type;
 
 			variant_type var;
+			Any any;
 			template <typename T>
 			FuncTypeWrapper& operator=(T&& func) {
 				try {
@@ -324,6 +329,10 @@ namespace sn_PM {
 				catch (...) {
 					throw std::runtime_error("Not matched");
 				}
+			}
+			template <typename ...PArgs>
+			FuncTypeWrapper& operator=(SwitchFunc<PArgs...> s) {
+				any = s;
 			}
 			template <typename C, typename T>
 			void assign(C* obj, T&& func) {
@@ -339,7 +348,14 @@ namespace sn_PM {
 				if (var.empty())
 					throw std::runtime_error("Not initialized.");
 				auto func = var.template get<decltype(make_func(f))>();
-				return func(args...);
+				return func(std::forward<TArgs>(args)...);
+			}
+			template <typename ...PArgs, typename ...TArgs>
+			auto operator()(SwitchFunc<PArgs...>, TArgs&&... args) {
+				if (any.is_null())
+					throw std::runtime_error("Not initialized.");
+				auto func = any.template any_cast<SwitchFunc<PArgs...>>();
+				return func(std::forward<TArgs>(args)...);
 			}
 			template <typename C, typename F, typename ...TArgs>
 			auto operator()(C* obj, F&& f, TArgs&&... args) {
@@ -355,13 +371,14 @@ namespace sn_PM {
 			using rclass = RClass<>;
 			using require_list = typename rclass::concept;
 			constexpr static const bool rvalue = true;
-			
+
 			using type = U;
 			using type_list = typename ExtractType<Type<U>>::type_list;
 			using func_type_list = typename VariantFuncList<type_list, type_list>::func_type_list;
 			using variant_type = typename VariantFuncList<type_list, type_list>::variant_type;
 
 			variant_type var;
+			Any any;
 			template <typename T>
 			FuncTypeWrapper& operator=(T&& func) {
 				try {
@@ -370,6 +387,10 @@ namespace sn_PM {
 				catch (...) {
 					throw std::runtime_error("Not matched");
 				}
+			}
+			template <typename ...PArgs>
+			FuncTypeWrapper& operator=(SwitchFunc<PArgs...> s) {
+				any = s;
 			}
 			template <typename C, typename T>
 			void assign(C* obj, T&& func) {
@@ -385,7 +406,14 @@ namespace sn_PM {
 				if (var.empty())
 					throw std::runtime_error("Not initialized.");
 				auto func = var.template get<decltype(make_func(f))>();
-				return func(args...);
+				return func(std::forward<TArgs>(args)...);
+			}
+			template <typename ...PArgs, typename ...TArgs>
+			auto operator()(SwitchFunc<PArgs...>, TArgs&&... args) {
+				if (any.is_null())
+					throw std::runtime_error("Not initialized.");
+				auto func = any.template any_cast<SwitchFunc<PArgs...>>();
+				return func(std::forward<TArgs>(args)...);
 			}
 			template <typename C, typename F, typename ...TArgs>
 			auto operator()(C* obj, F&& f, TArgs&&... args) {
@@ -415,17 +443,160 @@ namespace sn_PM {
 	}
 
 	namespace pattern {
-		using namespace def;
+		using def::VariantFuncList;
+		using def::Type;
 		
+		template <typename L>
+		struct MatchTypeListToTuple {};
+
 		template <typename ...Args>
-		struct Switch {
+		struct MatchTypeListToTuple<TypeList<Args...>> {
+			using tuple_type = std::tuple<Args...>;
+		};
+
+		template <typename F>
+		struct MatchFunc {};
+
+		template <typename R, typename ...Args>
+		struct MatchFunc<Func<R(Args...)>> {
+			using result_type = R;
+			using argument_type = TypeList<Args...>;
+		};
+
+		template <typename ...Args>
+		struct Switch : public Switch<TypeList<Args...>> {
 			using avail_type_list = TypeList<Args...>;
 		};
-			
+
 		template <typename ...Args>
-		struct Switch<Type<Args>...> {
+		struct Switch<Type<Args>...> : public Switch<TypeList<Args...>> {
 			using avail_type_list = TypeList<Args...>;
 		};
+
+		template <typename ...Args>
+		struct Switch<TypeList<Args...>> {
+			using avail_type_list = TypeList<Args...>;
+		};
+
+		template <typename ...Args>
+		struct Case {
+			Case() {}
+		};
+
+		template <typename ...Args, typename ...PArgs>
+		struct Case<Switch<Args...>, PArgs...> {
+			using v_list = VariantFuncList<TypeList<Args...>, TypeList<Args...>>;
+			constexpr static const std::size_t N = sn_TypeLisp::TypeIndex<typename v_list::param_list, TypeList<PArgs...>>::value;
+			static_assert(N != -1, "Failed to find availible params pattern.");
+			using R = sn_TypeLisp::TypeAt_t<typename v_list::result_type_list, N>;
+			using func_type = Func<R(PArgs...)>;
+			Case() {}
+			Func<R(PArgs...)> m_func;
+			template <typename T, typename V = std::enable_if_t<std::is_same<func_type, decltype(make_func(std::declval<T>()))>::value>>
+			Case& operator=(T&& func) {
+				m_func = make_func(func);
+				return *this;
+			}
+			template <typename T, typename V = std::enable_if_t<std::is_same<func_type, decltype(make_func(std::declval<T>()))>::value>>
+			Case& assign(T&& func) {
+				m_func = make_func(func);
+				return *this;
+			}
+			template <typename C, typename T, typename V = std::enable_if_t<std::is_same<func_type, decltype(make_func(std::declval<C*>(), std::declval<T>()))>::value>>
+			Case& assign(C* obj, T&& func) {
+				m_func = make_func(obj, func);
+				return *this;
+			}
+		};
+
+		template <typename ...Args>
+		struct ConstructTupleType {};
+
+		template <typename S, typename ...CArgs, typename ...Cs>
+		struct ConstructTupleType<S, Case<CArgs...>, Cs...> {
+			using func_type_list = sn_TypeLisp::TypeAppend_t<TypeList<typename Case<S, CArgs...>::func_type>, typename ConstructTupleType<S, Cs...>::func_type_list>;
+			using tuple_type = typename MatchTypeListToTuple<func_type_list>::tuple_type;
+		};
+
+		template <typename S>
+		struct ConstructTupleType<S> {
+			using func_type_list = TypeList<>;
+		};
+
+		template <typename ...Args, std::size_t ...I>
+		auto remove_first_tuple_impl(const std::tuple<Args...>& tp, std::index_sequence<I...>) {
+			return std::make_tuple(std::get<I + 1>(tp)...);
+		}
+
+		template <typename ...Args>
+		auto remove_first_tuple(const std::tuple<Args...>& tp) {
+			return remove_first_tuple_impl(tp, std::make_index_sequence<sizeof...(Args)-1>{});
+		}
+
+		template <typename C>
+		struct InheritFuncObject {};
+
+		template <typename Arg, typename ...Args>
+		struct InheritFuncObject<TypeList<Arg, Args...>> {
+			using tuple_type = std::tuple<Arg, Args...>;
+			using parent_type = InheritFuncObject<TypeList<Args...>>;
+			using R = typename MatchFunc<Arg>::result_type;
+			using Arg_type = typename MatchFunc<Arg>::argument_type;
+			Arg m_func;
+			parent_type m_parent;
+			InheritFuncObject(tuple_type tp) : m_func(std::get<0>(tp)), m_parent(remove_first_tuple(tp)) {}
+			template <typename ...TArgs, typename V = std::enable_if_t<std::is_same<TypeList<TArgs...>, Arg_type>::value>>
+			R operator()(TArgs&&... args) {
+				return m_func(std::forward<TArgs>(args)...);
+			}
+			template <typename ...TArgs, typename V = std::enable_if_t<!std::is_same<TypeList<TArgs...>, Arg_type>::value>>
+			auto operator()(TArgs&&... args) {
+				return m_parent(std::forward<TArgs>(args)...);
+			}
+		};
+
+		template <typename Arg>
+		struct InheritFuncObject<TypeList<Arg>> {
+			using tuple_type = std::tuple<Arg>;
+			using R = typename MatchFunc<Arg>::result_type;
+			using Arg_type = typename MatchFunc<Arg>::argument_type;
+			Arg m_func;
+			InheritFuncObject(tuple_type tp) : m_func(std::get<0>(tp)) {}
+			template <typename ...TArgs, typename V = std::enable_if_t<std::is_same<TypeList<TArgs...>, Arg_type>::value>>
+			R operator()(TArgs&&... args) {
+				return m_func(std::forward<TArgs>(args)...);
+			}
+		};
+
+
+		template <typename ...Args>
+		struct SwitchFunc {};
+
+		template <typename ...Args, typename ...Cs>
+		struct SwitchFunc<Switch<Args...>, Cs...> {
+			using func_type_list = typename ConstructTupleType<Switch<Args...>, Cs...>::func_type_list;
+			using tuple_type = typename ConstructTupleType<Switch<Args...>, Cs...>::tuple_type;
+			tuple_type m_tuple;
+			InheritFuncObject<func_type_list> m_func;
+			SwitchFunc(tuple_type tp) : m_tuple(tp), m_func(tp) {}
+			template <typename ...PArgs>
+			auto operator()(PArgs&&... args) {
+				return m_func(std::forward<PArgs>(args)...);
+			}
+		};
+
+		template <typename ...SArgs, typename ...PArgs>
+		auto operator|(Switch<SArgs...>, Case<Switch<SArgs...>, PArgs...> c) {
+			return SwitchFunc<Switch<SArgs...>, Case<PArgs...>>(c.m_func);
+		}
+
+		template <typename S, typename C, typename ...Cs, typename ...PArgs>
+		auto operator|(SwitchFunc<S, C, Cs...> r, Case<S, PArgs...> c) {
+			using T = SwitchFunc<S, C, Cs..., Case<PArgs...>>;
+			return T(std::tuple_cat(r.m_tuple, std::make_tuple(c.m_func)));
+		}
+
+
 	}
 
 	// Finally wrapper all above into namespace and rename this
@@ -443,6 +614,12 @@ namespace sn_PM {
 
 	auto F = def::FuncTypeWrapperHead{};
 
+	template <typename ...Args>
+	auto Switch = pattern::Switch<Args...>;
+
+	template <typename ...Args>
+	auto S = pattern::Switch<Args...>;
+
 	/* 
 	Usage:
 		For default function, int foo(char, int) ======> q = &foo; q(&foo, params...);
@@ -452,6 +629,7 @@ namespace sn_PM {
 			TODO: directly match function object (&C::operator())
 			WARN: class member function returning member function was failed. (Variant cannot accept this type)
 				  Curry cannot fix this because currying return C::Binder
+		For Switch<Args...> | Case<S<Args...>, PArgs...> =====> q = s;
 	*/
 }
 
