@@ -8,7 +8,7 @@
 // ref: Vlpp/Lazy Vlpp/Function 
 // ref: qicsomos/cosmos/Lazy qicosmos/cosmos/modern_functor
 namespace sn_Function {
-	// TODO: add make_func
+	
 	namespace function {
 		template <typename T>
 		class Func {};
@@ -107,6 +107,28 @@ namespace sn_Function {
 			}
 
 		};
+
+		template <typename R, typename ...Args>
+		Func<R(Args...)> make_func(R(*function)(Args...)) {
+			return Func<R(Args...)>(function);
+		}
+
+		template <typename C, typename R, typename ...Args>
+		Func<R(Args...)> make_func(C* obj, R(C::*function)(Args...)) {
+			return Func<R(Args...)>(obj, function);
+		}
+
+		template <typename R, typename ...Args>
+		Func<R(Args...)> make_func(const R(&function)(Args...)) {
+			return Func<R(Args...)>(function);
+		}
+
+		template <typename C>
+		auto make_func(const C& function) {
+			using T = sn_Assist::sn_function_traits::function_traits<C>;
+			using FT = typename T::function_type;
+			return Func<FT>(function);
+		}
 
 	}
 
@@ -332,7 +354,7 @@ namespace sn_Function {
 		template <typename C>
 		auto make_curry(const C& function) {
 			using T = sn_Assist::sn_function_traits::function_traits<C>;
-			using FT = T::function_type;
+			using FT = typename T::function_type;
 			return typename Currying<FT>::Currier(function);
 		}
 
@@ -705,6 +727,7 @@ namespace sn_Function {
 
 	}
 
+	using function::make_func;
 	using currying::make_curry;
 	using currying::make_single_curry;
 	using currying::make_multi_curry;

@@ -14,6 +14,7 @@ namespace sn_PM {
 	using sn_Assist::sn_function_traits::function_traits;
 	using sn_Type::variant::Variant;
 	using sn_Function::function::Func;
+	using sn_Function::make_func;
 	using sn_Function::make_curry;
 	using sn_Function::make_single_curry;
 	using sn_Function::make_multi_curry;
@@ -235,7 +236,7 @@ namespace sn_PM {
 		template <typename Arg1, typename ...Args1, typename Arg2, typename ...Args2>
 		struct ConstructFuncType<TypeList<Arg1, Args1...>, TypeList<Arg2, Args2...>> {
 			using func_type_list = sn_TypeLisp::TypeAppend_t<
-				TypeList<std::add_pointer_t<typename ConstructResultTypeList<TypeList<Arg1, Arg2>>::func_type>>,
+				TypeList<Func<typename ConstructResultTypeList<TypeList<Arg1, Arg2>>::func_type>>,
 				typename ConstructFuncType<
 				TypeList<Args1...>,
 				TypeList<Args2...>
@@ -300,6 +301,7 @@ namespace sn_PM {
 		template <typename ...Args>
 		struct FuncTypeWrapper {};
 
+		// TODO: add operator() in variant
 		// substitue >>=
 		template <typename ...Args, typename U>
 		struct FuncTypeWrapper <RClass<Args...>, Type<U>> : FuncTypeWrapperHead {
@@ -315,20 +317,36 @@ namespace sn_PM {
 
 			variant_type var;
 			template <typename T>
-			FuncTypeWrapper& operator=(T func) {
+			FuncTypeWrapper& operator=(T&& func) {
 				try {
-					var = func;
+					var = make_func(std::forward<T>(func));
 				}
 				catch (...) {
-					throw std::runtime_error("Not matched")
+					throw std::runtime_error("Not matched");
+				}
+			}
+			template <typename C, typename T>
+			void assign(C* obj, T&& func) {
+				try {
+					var = make_func(obj, std::forward<T>(func));
+				}
+				catch (...) {
+					throw std::runtime_error("Not matched");
 				}
 			}
 			template <typename F, typename ...TArgs>
 			auto operator()(F&& f, TArgs&&... args) {
 				if (var.empty())
 					throw std::runtime_error("Not initialized.");
-				auto func = var.template get<F>();
+				auto func = var.template get<decltype(make_func(f))>();
 				return func(args...);
+			}
+			template <typename C, typename F, typename ...TArgs>
+			auto operator()(C* obj, F&& f, TArgs&&... args) {
+				if (var.empty())
+					throw std::runtime_error("Not initialized.");
+				auto func = var.template get<decltype(make_func(obj, f))>();
+				return func(std::forward<TArgs>(args)...);
 			}
 		};
 
@@ -345,20 +363,36 @@ namespace sn_PM {
 
 			variant_type var;
 			template <typename T>
-			FuncTypeWrapper& operator=(T func) {
+			FuncTypeWrapper& operator=(T&& func) {
 				try {
-					var = func;
+					var = make_func(std::forward<T>(func));
 				}
 				catch (...) {
-					throw std::runtime_error("Not matched")
+					throw std::runtime_error("Not matched");
+				}
+			}
+			template <typename C, typename T>
+			void assign(C* obj, T&& func) {
+				try {
+					var = make_func(obj, std::forward<T>(func));
+				}
+				catch (...) {
+					throw std::runtime_error("Not matched");
 				}
 			}
 			template <typename F, typename ...TArgs>
 			auto operator()(F&& f, TArgs&&... args) {
 				if (var.empty())
 					throw std::runtime_error("Not initialized.");
-				auto func = var.template get<F>();
+				auto func = var.template get<decltype(make_func(f))>();
 				return func(args...);
+			}
+			template <typename C, typename F, typename ...TArgs>
+			auto operator()(C* obj, F&& f, TArgs&&... args) {
+				if (var.empty())
+					throw std::runtime_error("Not initialized.");
+				auto func = var.template get<decltype(make_func(obj, f))>();
+				return func(std::forward<TArgs>(args)...);
 			}
 		};
 
@@ -381,8 +415,17 @@ namespace sn_PM {
 	}
 
 	namespace pattern {
+		using namespace def;
+		
 		template <typename ...Args>
-		struct Switch {};
+		struct Switch {
+			using avail_type_list = TypeList<Args...>;
+		};
+			
+		template <typename ...Args>
+		struct Switch<Type<Args>...> {
+			using avail_type_list = TypeList<Args...>;
+		};
 	}
 
 	// Finally wrapper all above into namespace and rename this
@@ -404,10 +447,11 @@ namespace sn_PM {
 	Usage:
 		For default function, int foo(char, int) ======> q = &foo; q(&foo, params...);
 			int foo2(char) int foo(int) -> &foo2 ======> q = &foo2; q(&foo2, params...)(params2...);  (can only communiate in global/namespace variable...)
-		For lambda function/class function... failed! Variant type has nothing to do with C::*func_type
-			maybe, write wrap_func instead. 
-			or, write everything in duplicated C, Args... form
-			or, for total evaluation, just return value
+		For lambda function/class function A::t  ======> q.assign(&a, &A::t);
+			                               &lambda::operator()
+			TODO: directly match function object (&C::operator())
+			WARN: class member function returning member function was failed. (Variant cannot accept this type)
+				  Curry cannot fix this because currying return C::Binder
 	*/
 }
 
