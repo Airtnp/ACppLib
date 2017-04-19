@@ -45,7 +45,7 @@ namespace sn_StdStream {
 			for (auto i = 0; i < N; ++i) {
 				out << v[i];
 				auto j = i;
-				if (++j != v.end())
+				if (++j != N)
 					out << ',';
 			}
 			return out << ']';

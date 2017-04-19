@@ -629,7 +629,13 @@ namespace sn_PM {
 			TODO: directly match function object (&C::operator())
 			WARN: class member function returning member function was failed. (Variant cannot accept this type)
 				  Curry cannot fix this because currying return C::Binder
-		For Switch<Args...> | Case<S<Args...>, PArgs...> =====> q = s;
+		For Switch<Args...> | Case<S<Args...>, PArgs...> 
+			=====> q_def = ...;
+			       q_func = Switch<Args...>
+							| Case<S<Args...>, PArgs...>.assign(...)
+							| ...;
+				   q_def = q_func;
+				   q_def(q_func, ...);
 	*/
 }
 
