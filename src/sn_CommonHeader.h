@@ -13,6 +13,7 @@
 #include <inttypes.h>
 #include <ctime>
 #include <cassert>
+#include <cstddef>
 #ifndef _STDC_FORMAT_MACROS
 #define _STDC_FORMAT_MACROS
 #endif
@@ -77,6 +78,7 @@ for detail: https://gcc.gnu.org/onlinedocs/libstdc++/ext/pb_ds/
 #include <set>
 #include <unordered_set>
 #include <stack>
+#include <regex>
 
 // For exception
 #include <stdexcept>

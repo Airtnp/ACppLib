@@ -11,6 +11,7 @@
 // Yes, it failed in Clang3.9! Illegal Instruction!
 // Yes, it succeeded in gcc6.3!
 // TODO: runtime match ref : https://github.com/solodon4/Mach7/tree/master/code
+// TODO: runtime match using structure binding. inspect(s) { [..., ...] = s => ... };
 namespace sn_PM {
 	using sn_TypeLisp::TypeList;
 	using sn_Assist::sn_require::Require;
@@ -442,6 +443,7 @@ namespace sn_PM {
 
 	}
 
+	// Separate this into single file
 	namespace pattern {
 		using def::VariantFuncList;
 		using def::Type;
@@ -632,11 +634,19 @@ namespace sn_PM {
 		For Switch<Args...> | Case<S<Args...>, PArgs...> 
 			=====> q_def = ...;
 			       q_func = Switch<Args...>
-							| Case<S<Args...>, PArgs...>.assign(...)
+							| Case<S<Args...>, PArgs...>{}.assign(...)
 							| ...;
 				   q_def = q_func;
 				   q_def(q_func, ...);
 	*/
+
+	// ref: https://github.com/mutouyun/cpp-pattern-matching/blob/master/match.hpp
+	namespace runtime {
+
+	}
+
+
+
 }
 
 
