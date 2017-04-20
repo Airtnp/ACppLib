@@ -233,16 +233,6 @@ namespace sn_Reflection {
 #define SN_CONCAT_INIT_LIST_6(element, ...) #element SN_SEPERATOR MACRO_EXPAND(SN_CONCAT_INIT_LIST_5(__VA_ARGS__))
 #define SN_CONCAT_INIT_LIST_7(element, ...) #element SN_SEPERATOR MACRO_EXPAND(SN_CONCAT_INIT_LIST_6(__VA_ARGS__))
 
-		//tricky get va_list size (n = N - 1)
-#define SN_REVERSE_SEQ_N() \
-	6, 5, 4, 3, 2, 1, 0
-
-#define SN_SEQ_N( \
-	_1, _2, _3, _4, _5, _6, N, ...) N
-
-#define SN_GET_ARG_IMPL(...) MACRO_EXPAND(SN_SEQ_N(__VA_ARGS__))
-#define SN_GET_ARG_N(...) SN_GET_ARG_IMPL(__VA_ARGS__, SN_REVERSE_SEQ_N())
-
 		template <typename T>
 		struct sn_reflection_member {};
 

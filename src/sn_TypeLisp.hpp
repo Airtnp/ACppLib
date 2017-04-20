@@ -344,6 +344,25 @@ namespace sn_TypeLisp {
 	template <typename T>
 	using TypeDerivedOrder_t = typename TypeDerivedOrder<T>::type;
 
+	template <typename T, std::size_t N>
+	struct TypeRemoveN {};
+
+	template <typename H, typename ...T, std::size_t N>
+	struct TypeRemoveN<TypeList<H, T...>, N> {
+		using type = typename TypeRemoveN<TypeList<T...>, N - 1>::type;
+	};
+	template <typename H, typename ...T>
+	struct TypeRemoveN<TypeList<H, T...>, 0> {
+		using type = TypeList<H, T...>;
+	};
+	template <typename L>
+	struct TypeRemoveN<L, 0> {
+		using type = L;
+	};
+
+	template <typename T, std::size_t N>
+	using TypeRemoveN_t = typename TypeRemoveN<T, N>::type;
+
 
 	template <typename T1, typename T2>
 	using TypeCons = TypeAppend<T1, T2>;

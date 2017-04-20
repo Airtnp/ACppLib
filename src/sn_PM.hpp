@@ -6,6 +6,8 @@
 #include "sn_TypeLisp.hpp"
 #include "sn_Type.hpp"
 #include "sn_Function.hpp"
+#include "sn_Macro.hpp"
+#include "sn_TypeTraits.hpp"
 
 // Yes, it failed in VS2015! Simply ICE!
 // Yes, it failed in Clang3.9! Illegal Instruction!
@@ -25,6 +27,7 @@ namespace sn_PM {
 	using sn_Function::make_single_curry;
 	using sn_Function::make_multi_curry;
 
+#ifndef _MSC_VER
 	namespace pattern {
 		template <typename ...Args>
 		struct SwitchFunc;
@@ -623,6 +626,7 @@ namespace sn_PM {
 	template <typename ...Args>
 	auto S = pattern::Switch<Args...>;
 
+#endif
 	/* 
 	Usage:
 		For default function, int foo(char, int) ======> q = &foo; q(&foo, params...);
@@ -644,10 +648,452 @@ namespace sn_PM {
 	// ref: https://github.com/mutouyun/cpp-pattern-matching/blob/master/match.hpp
 	namespace runtime {
 
+		template <typename T>
+		struct is_pattern : std::false_type {};
+
+		template <typename T>
+		struct pattern_checker : is_pattern<std::decay_t<T>> {};
+
+		template <typename T>
+		struct constant {
+			const T& m_t;
+			template <typename U>
+			bool operator()(U&& r) const {
+				return std::forward<U>(r) == m_t;
+			}
+		};
+
+		template <typename T>
+		struct is_pattern<constant<T>> : std::true_type {};
+
+		template <typename T>
+		struct variable {
+			T& m_t;
+			template <typename U>
+			bool operator()(U&& r) const {
+				m_t = std::forward<U>(r);
+				return std::forward<U>(r) == m_t;
+			}
+		};
+
+		template <typename T>
+		struct is_pattern<variable<T>> : std::true_type {};
+
+		struct wildcard {
+			constexpr wildcard(void) {}
+
+			template <typename U>
+			bool operator()(U&&) const {
+				return true;
+			}
+		};
+
+		constexpr wildcard _;
+
+		template <>
+		struct is_pattern<wildcard> : std::true_type {};
+
+		template <typename F>
+		struct predicate {
+			F m_judge;
+			template <typename U>
+			bool operator()(U&& r) const {
+				return !!(this->m_judge(std::forward<U>(r)));
+			}
+		};
+
+		template <typename T>
+		struct is_pattern<predicate<T>> : std::true_type {};
+
+		using sn_TypeTraits::functor::is_closure;
+
+		template <typename T>
+		inline auto predicate_converter(T&& arg) -> std::enable_if_t<is_closure<T>::value, predicate<T&&>> {
+			return { std::forward<T>(arg) };
+		}
+
+		struct regex {
+			std::regex m_reg;
+			template <typename T>
+			regex(T&& r) : m_reg(std::forward<T>(r)) {}
+			template <typename U>
+			bool operator()(U&& r) const {
+				return std::regex_match(std::forward<U>(r), m_reg);
+			}
+		};
+
+		template <>
+		struct is_pattern<regex> : std::true_type {};
+
+#define Regex(...) sn_PM::runtime::regex{ MACRO_EXPAND(__VA_ARGS__) }
+
+		using sn_TypeTraits::address::addressofex;
+
+		// Match Base* b = new Derived<T>
+		// Type(Derived<T>)
+		template <typename T, bool = std::is_polymorphic<std::decay_t<T>>::value>
+		struct type {};
+
+		template <>
+		struct type<wildcard, false> {
+			template <typename U>
+			bool operator()(U&&) const {
+				return true;
+			}
+		};
+
+		template <typename T>
+		struct type<T, true> {
+			template <typename U>
+			bool operator()(U&& r) const {
+				using p_t = observer_ptr<const volatile std::decay_t<T>>;
+				return dynamic_cast<p_t>(addressofex(r)) != nullptr;
+			}
+		};
+
+		template <typename T>
+		struct type<T, false> {
+			template <typename U>
+			bool operator()(const volatile U&) const {
+				return std::is_same<std::decay_t<T>, U>::value;
+			}
+		};
+
+		template <typename T, bool Cond>
+		struct is_pattern<type<T, Cond>> : std::true_type {};
+
+#define Type(...) sn_PM::runtime::type<MACRO_EXPAND(__VA_ARGS__)>{}
+
+		template <typename T>
+		struct layout_model {};
+
+		template <>
+		struct layout_model<TypeList<>> {};
+
+		template <typename T, typename ...Args>
+		struct layout_model<TypeList<T, Args...>> : layout_model<TypeList<Args...>> {
+			T t;
+		};
+
+		template <typename ...Args>
+		struct layout {
+			using model_t = layout_model<TypeList<Args...>>;
+			template <typename U, typename V>
+			struct rep;
+			template <typename U, typename V>
+			struct rep<U&, V> {
+				using type = V&;
+			};
+			template <typename U, typename V>
+			struct rep<U&&, V> {
+				using type = V&&;
+			};
+			template <typename U, typename V>
+			struct rep<const U&, V> {
+				using type = const V&;
+			};
+			template <typename U, typename V>
+			struct rep<const U&&, V> {
+				using type = const V&&;
+			};
+			template <std::size_t N, typename U>
+			static auto& get(U&& r) {
+				decltype(auto) m = reinterpret_cast<typename rep<U&&, model_t>::type>(r);
+				return static_cast<layout_model<sn_TypeLisp::TypeAt_t<model_t, N>>>(m).t;
+			}
+		};
+
+		template <typename T>
+		struct type_capture_variable {
+			T t;
+			type_capture_variable() {}
+			template <typename U>
+			bool operator()(U&& r) const {
+				t = std::forward<U>(r);
+				return true;
+			}
+			operator T() const {
+				return t;
+			}
+		};
+
+		template <typename T>
+		struct type_capture_list {
+			std::vector<T> t;
+			type_capture_list() {}
+			template <typename U>
+			bool operator()(U&& r) const {
+				t.push_back(std::forward<U>(r));
+				return true;
+			}
+			operator T() const {
+				return t;
+			}
+		};
+
+		template <typename T>
+		struct is_pattern<type_capture_variable<T>> : std::true_type {};
+		template <typename T>
+		struct is_pattern<type_capture_list<T>> : std::true_type {};
+
+
+		struct any_capture_variable {
+			Any t;
+			any_capture_variable() {}
+			template <typename U>
+			bool operator()(U&& r) const {
+				t = std::forward<U>(r);
+				return true;
+			}
+			template <typename T>
+			operator T() const {
+				return t.template any_cast<T>();
+			}
+		};
+
+		struct any_capture_list {
+			std::vector<Any> t;
+			any_capture_list() {}
+			template <typename U>
+			bool operator()(U&& r) const {
+				t.push_back(std::forward<U>(r));
+				return true;
+			}
+			template <typename T>
+			T operator [](std::size_t n) const {
+				return t[n].template any_cast<T>();
+			}
+		};
+
+		template <>
+		struct is_pattern<any_capture_variable> : std::true_type {};
+		template <>
+		struct is_pattern<any_capture_list> : std::true_type {};
+
+		
+
+		template <typename T>
+		struct is_keep_capture : std::false_type {};
+
+		template <typename T>
+		struct is_keep_capture<type_capture_list<T>> : std::true_type {};
+		template <>
+		struct is_keep_capture<any_capture_list> : std::true_type {};
+
+
+		template <typename B>
+		struct bindings_base {
+			template <std::size_t N, std::size_t M, typename T, typename U>
+			static auto apply(const T& tp, U&&)
+				-> std::enable_if_t<
+					std::tuple_size<T>::value <= N &&
+					!is_keep_capture<decltype(std::get<N>(tp))>::value
+				, bool> {
+				return true;
+			}
+			template <std::size_t N, std::size_t M, typename T, typename U>
+			static auto apply(const T& tp, U&& r)
+				-> std::enable_if_t<
+				std::tuple_size<T>::value <= N &&
+				is_keep_capture<decltype(std::get<M - 1>(tp))>::value
+				, bool> {
+				using layout_t = typename B::layout_t;
+				if (N == std::tuple_size<U>(r))
+					return true;
+				if (std::get<M>(tp)(layout_t::template get<N>(r))) {
+					return apply<N + 1, M>(tp, std::forward<U>(r));
+				}
+				return false;
+			}
+			template <std::size_t N, std::size_t M, typename T, typename U>
+			static auto apply(const T& tp, U&& r)
+				-> std::enable_if_t<(std::tuple_size<T>::value > N), bool> {
+				using layout_t = typename B::layout_t;
+				if (std::get<N>(tp)(layout_t::template get<N>(r))) {
+					return apply<N + 1, N + 1>(tp, std::forward<U>(r));
+				}
+				return false;
+			}
+			template <typename T, typename U>
+			static auto apply(const T& tp, U&& r)
+				-> std::enable_if_t<std::is_pointer<std::decay_t<T>>::value, bool> {
+				return apply<0, 0>(tp, *std::forward<U>(r));
+			}
+			template <typename T, typename U>
+			static auto apply(const T& tp, U&& r)
+				-> std::enable_if_t<!std::is_pointer<std::decay_t<T>>::value, bool> {
+				return apply<0, 0>(tp, std::forward<U>(r));
+			}
+		};
+
+		template <typename B>
+		struct bindings {};
+
+		// struct (POD)  
+		// TODO: this can directly using sn_Reflection::named_pod_reflection
+		template <typename C, typename ...Args>
+		struct constructor : type<C> {
+			std::tuple<Args...> m_tp;
+			template <typename ...PArgs>
+			constructor(PArgs&&... args)
+				: m_tp(std::forward<PArgs>(args)...) {}
+
+			template <typename U>
+			bool operator()(U&& r) const {
+				if (type<C>::operator()(std::forward<U>(r))) {
+					return bindings<std::decay_t<U>>::apply(m_tp, std::forward<U>(r));
+				}
+				return false;
+			}
+		};
+
+		template <typename C, typename ...Args>
+		struct is_pattern<constructor<C, Args...>> : std::true_type {};
+
+#define SN_INSPECT_REGISTER_TYPE(T, ...) \
+	namespace sn_PM { \
+		namespace runtime { \
+			template <> \
+			struct bindings<T> : bindings_base<bindings<T>> { \
+				using layout_t = sn_PM::runtime::layout<__VA_ARGS__>; \
+			}; \
+			template <> \
+			struct bindings<T*> : bindings<T> {}; \
+		} \
+	} \
+
+
+		// list/tuple/array/...
+		template <typename ...Args>
+		struct sequence {
+			std::tuple<Args...> m_tp;
+			template <typename ...PArgs>
+			sequence(PArgs&&... args)
+				: m_tp(std::forward<PArgs>(args)...) {}
+
+			// 1, _ = {2, 3, 4} is valid
+			template <std::size_t N, std::size_t M, typename U, typename It>
+			auto apply(U&&, It&&) const
+				-> std::enable_if_t<(sizeof...(Args) <= N) && 
+					!is_keep_capture<decltype(std::get<M>(m_tp))>::value
+				, bool> {
+				return true;
+			}
+			template <std::size_t N, std::size_t M, typename U, typename It>
+			auto apply(U&& r, It&& it) const
+				-> std::enable_if_t<(sizeof...(Args) <= N) &&
+					is_keep_capture<decltype(std::get<M - 1>(m_tp))>::value
+				, bool> {
+				if (it == r.end())
+					return false;
+				if (std::get<N>(m_tp)(*it))
+					return apply<N + 1, M>(std::forward<U>(r), ++it);
+				return false;
+			}
+			template <std::size_t N, std::size_t M, typename U, typename It>
+			auto apply(U&& r, It&& it) const
+				-> std::enable_if_t<(sizeof...(Args) > N), bool> {
+				if (it == r.end())
+					return false;
+				if (std::get<N>(m_tp)(*it))
+					return apply<N + 1, N + 1>(std::forward<U>(r), ++it);
+				return false;
+			}
+
+			template <typename U>
+			bool operator()(U&& r) const {
+				return apply<0, 0>(std::forward<U>(r), r.begin());
+			}
+		};
+
+		template <typename ...Args>
+		struct is_pattern<sequence<Args...>> : std::true_type {};
+
+		
+		void predicate_converter(...);
+
+		template <typename T>
+		inline auto filter(T&& arg)
+			-> std::enable_if_t<pattern_checker<T>::value, T&&> {
+			return std::forward<T>(arg);
+		}
+		template <typename T>
+		inline auto filter(const T& arg)
+			-> std::enable_if_t<!pattern_checker<T>::value &&
+				std::is_same<decltype(predicate_converter(std::forward<T>(arg))), void>::value,
+				constant<T>
+			> {
+			return { arg };
+		}
+		template <typename T>
+		inline auto filter(T&& arg)
+			-> std::enable_if_t<!pattern_checker<T>::value &&
+				!std::is_same<decltype(predicate_converter(std::forward<T>(arg))), void>::value,
+					decltype(predicate_converter(std::forward<T>(arg)))
+			> {
+			return predicate_converter(std::forward<T>(arg));
+		}
+
+		template <typename T = wildcard, typename ...Args>
+		inline auto C(Args&&... args)
+			-> constructor<T, decltype(filter(std::forward<Args>(args)))...> {
+			return { filter(std::forward<Args>(args))... };
+		}
+		template <typename ...Args>
+		inline auto S(Args&&... args)
+			-> sequence<decltype(filter(std::forward<Args>(args)))...> {
+			return { filter(std::forward<Args>(args))... };
+		}
+
+#define Inspect(...) \
+	{ \
+		auto tp = std::forward_as_tuple(MACRO_EXPAND(__VA_ARGS__)); \
+		if (false)
+
+#define INSPECT_CASE_N(N, ...) \
+	&& (sn_PM::runtime::filter(SN_POP_ARG_N(N, __VA_ARGS__))(std::get<N - 1>(tp)))
+
+#define INSPECT_PRED(...) \
+	(true SN_APPLY_REPEAT_N(SN_GET_ARG_N(__VA_ARGS__), INSPECT_CASE_N, __VA_ARGS__))
+
+#define INSPECT_WITH(...) \
+	} else if (__VA_ARGS__) { 
+
+#define Case(...) \
+	INSPECT_WITH( INSPECT_PRED(__VA_ARGS__) )
+
+#define Otherwise() \
+	} else {
+
+#define EndInspect \
 	}
 
 
+		/*
+			Usage:
+				Inspect(...) {
+					Case(...)
+						..........
+					Case(...)
+						..........
+					Otherwise()
+				}
+				EndInspect
+			
+		*/
 
+
+	}
+
+	// x, xs = {...}
+	auto x = runtime::any_capture_variable{};
+	auto xs = runtime::any_capture_list{};
+
+	// Tx, Txs = {...}
+	template <typename T>
+	auto Tx = runtime::type_capture_variable<T>{};
+	template <typename T>
+	auto Txs = runtime::type_capture_list<T>{};
 }
 
 
