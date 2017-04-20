@@ -46,7 +46,7 @@ namespace sn_Macro { //useless namespace
 #define SN_POP_ARG_8(...) SN_POP_ARG_1(SN_POP_ARG_7(__VA_ARGS__))
 #define SN_POP_ARG_9(...) SN_POP_ARG_1(SN_POP_ARG_8(__VA_ARGS__))
 
-#define SN_POP_ARG(N, ...) APPLY_VARIADIC_MACRO(MACRO_CONCAT(SN_POP_ARG, N), __VA_ARGS__)
+#define SN_POP_ARG_N(N, ...) APPLY_VARIADIC_MACRO(MACRO_CONCAT(SN_POP_ARG, N), __VA_ARGS__)
 
 #define SN_TOP_ARG_IMPL(a, ...) a
 
@@ -61,7 +61,7 @@ namespace sn_Macro { //useless namespace
 #define SN_TOP_ARG_8(...) SN_TOP_ARG_1(SN_POP_ARG_7(__VA_ARGS__))
 #define SN_TOP_ARG_9(...) SN_TOP_ARG_1(SN_POP_ARG_8(__VA_ARGS__))
 
-#define SN_TOP_ARG(N, ...) APPLY_VARIADIC_MACRO(MACRO_CONCAT(SN_TOP_ARG, N), __VA_ARGS__)
+#define SN_TOP_ARG_N(N, ...) APPLY_VARIADIC_MACRO(MACRO_CONCAT(SN_TOP_ARG, N), __VA_ARGS__)
 
 	// SN_APPLY_NEST_N(first, last, nest, x) -> first(x, first(nest(xx), first(nest(nest(xx)), last(nest(nest(nest(xx)))))))
 #define SN_APPLY_NEST_0(F, L, N, ...)
@@ -122,6 +122,32 @@ namespace sn_Macro { //useless namespace
 
 #define SN_INC(N) SN_GET_ARG_N(SN_CLONE_N(N, -, ,), -)
 #define SN_DEC(N) SN_GET_ARG_N(SN_POP_ARG_1(SN_CLONE_N(N, -, ,)))
+
+#define SN_ADD(N1, N2) SN_GET_ARG_N(SN_CLONE_N(N1, -, ,), SN_CLONE_N(N2, -, ,))
+#define SN_SUB(N1, N2) SN_GET_ARG_N(SN_POP_ARG_N(N2, SN_CLONE_N(N2, -, ,)))
+#define SN_NEG(N) SN_SUB(SN_MAX_ARG_N, N)
+
+// MAX - N1 > MAX - N2 ?
+#define SN_LESS_IMPL(NUM, Y, N) SN_REVERSE(SN_CLONE_N(NUM, N, ,), SN_CLONE_N(SN_NEG(NUM), Y, ,))
+#define SN_MORE_IMPL(NUM, Y, N) SN_REVERSE(SN_CLONE_N(NUM, Y, ,), SN_CLONE_N(SN_NEG(NUM), N, ,))
+
+#define SN_LESS(N1, N2, Y, N) SN_GET_ARG_IMPL(SN_CLONE_N(N2, -, ,), SN_LESS_IMPL(N1, Y, N))
+#define SN_MORE(N1, N2, Y, N) SN_GET_ARG_IMPL(SN_CLONE_N(N2, -, ,), SN_MORE_IMPL(N1, Y, N))
+#define SN_EQN(N1, N2, Y, N) SN_MORE(N1, N2, N, SN_LESS(N1, N2, N, Y))
+
+
+#define SN_RECURSIVE_F(a, ...) SN_TOP_ARG_1(a)(SN_POP_ARG_2(a), __VA_ARGS__)
+#define SN_RECURSIVE_L(a) SN_TOP_ARG_1(a)(SN_POP_ARG_2(a), SN_POP_ARG_2(a))
+
+#define SN_RECURSIVE_N(N, F, NUL, ...) SN_APPLY_NEST_N(N, SN_RECURSIVE_F, SN_RECURSIVE_L, MACRO_EXPAND, F, NUL, __VA_ARGS__)
+
+// f, 1, 2, 3, 4 -> f(1, f(2, f(3, 4)))
+#define SN_APPLY_EXPAND_F(a, ...) SN_TOP_ARG_1(a)(SN_TOP_ARG_2(a), __VA_ARGS__)
+#define SN_APPLY_EXPAND_L(a) SN_TOP_ARG_1(a)(SN_POP_ARG_1(a))
+#define SN_APPLY_EXPAND_NE(...) SN_TOP_ARG_1(MACRO_EXPAND(__VA_ARGS__)), SN_POP_ARG_2(__VA_ARGS__)
+#define SN_APPLY_EXPAND_N(N, F, ...) SN_APPLY_NEST_N(N, SN_APPLY_EXPAND_F, SN_APPLY_EXPAND_L, SN_APPLY_EXPAND_NE, F, __VA_ARGS__)
+#define SN_APPLY_EXPAND(F, ...) SN_APPLY_EXPAND_N(SN_GET_ARG_N(SN_POP_ARG_1(__VA_ARGS__)), F, __VA_ARGS__)
+
 
 
 }

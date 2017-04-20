@@ -5,7 +5,7 @@
 #include "sn_Assist.hpp"
 #include "sn_Type.hpp"
 
-// ref: Vlpp/Lazy Vlpp/Function 
+// ref: https://github.com/vczh-libraries/Release/blob/master/Import/Vlpp.h (Change ref by license)
 // ref: qicsomos/cosmos/Lazy qicosmos/cosmos/modern_functor
 namespace sn_Function {
 	

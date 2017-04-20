@@ -8,7 +8,7 @@
 // Simple implement: just use pipeline in sn_Function
 // R = ChainHead (beginning of chain) | where<a, b> (template function restrict)... | ....
 // from(v) (vector or some container) | R (functor) 
-// ref: https://github.com/vczh/vczh_toys/blob/master/CppLinq/CppLinq/linq.h
+// ref: https://github.com/vczh-libraries/Release/blob/master/Import/Vlpp.h (Change ref by license)
 // TODO: for Cpp1z, result_of_t -> invoke_result_t
 // more version: https://github.com/MichaelSuen-thePointer/mqLinq/blob/master/mqLinq/linq.h
 namespace sn_LINQ {
