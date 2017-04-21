@@ -7,6 +7,14 @@
 // Not common encoding. Mogensen¨CScott/Church/Boehm-Berarducci
 namespace sn_LCEncoding {
 	using namespace sn_LC;
+	// datatype - foldr/accumulate - CPS
+	/*
+	ref: http://stackoverflow.com/questions/13575894/why-do-we-use-folds-to-encode-datatypes-as-functions
+	churchfold :: (a -> b -> b) -> b -> [a] -> b
+	churchfold _ z [] = z
+	churchfold f z (x:xs) = f x (churchfold f z xs)
+	*/
+	// TODO: add real calculation operators
 	namespace Church {
 		using Nonsense = Literal<Zero>;
 		enum { F, T };
@@ -229,12 +237,131 @@ namespace sn_LCEncoding {
 										ChurchFalse
 									>
 							  >;
+		/*
+		cons = pair
+		head = first
+		tail = second
+		nil  = false
+		isnil= lambda .l l(lambda .h .t .d false)(true)
+		--------or--------
+		nil  = pair true true
+		isnil= first
+		cons = lambda .h lambda .t (pair (false pair (h, t)))
+		head = lambda .z (first (second z))
+		tail = lambda .z (second (second z))
+		--------or-------- foldr version
+		nil  = lambda .c lambda .n n
+		isnil= lambda .l l(lambda .h lambda .t false) true
+		cons = lambda .h lambda .t lambda .c lambda.n c h (t c n)
+		head = lambda .l l(lambda .h lambda .t h) false
+		tall = lambda .l lambda .c lambda .n l(lambda ,h lambda .t lambda .g g h (t c)) (lambda .t n) false
+		*/
 								
 	}
 
+	// datatype - case/ADT/parsec - CPS
+	namespace Scott {
+		enum {
+			V1, V2, V3, V4, V5, A, B, C,
+			V6, V7, V8, V9, V10, X, Y, N
+		};
+		using ScottZero = VarLambda<
+								VarList<X, Y>,
+								Reference<X>
+							>;
+		using ScottSucc = VarLambda<
+								VarList<N, X, Y>,
+								Application<
+									Reference<Y>,
+									Reference<N>
+								>
+							>;
+		// case(n)(a)(f) -> a (if n == 0) | f (if n == succ(....(0))
+		using ScottCase = VarLambda<
+								VarList<N, X, Y>,
+								Application<
+									Reference<N>,
+									ValList<
+										Reference<X>,
+										Reference<Y>
+									>
+								>
+							>;
+		// Mogensen-Scott Encoding
+		// Constructor A - a variable (arity 1, not recursive)  [Nil]
+		// Constructor B - function application (arity 2, recursive in both arguments)  [Cons]
+		// Constructor C - lambda-abstraction (arity 1, recursive).   [Apply-Func]
+		// Example: ../snippets/sc_scott_pattern_match.cpp
+		template <typename T>
+		struct MSET {};
 
-	namespace Mogensen_Scott {
+		// A(x)
+		template <std::size_t I>
+		struct MSET<Reference<I>> {
+			using result = VarLambda<
+								VarList<A, B, C>,
+								Application<
+									Reference<A>,
+									Reference<I>
+								>
+							>;
+		};
+		// A(1)
+		template <typename T>
+		struct MSET<Literal<T>> {
+			using result = VarLambda<
+								VarList<A, B, C>,
+									Application<
+										Reference<A>,
+										Literal<T>
+									>
+							>;
+		};
 
+		// B(x, xs)
+		template <typename Arg, typename ...Args>
+		struct MSET<ValList<Arg, Args...>> {
+			using result = VarLambda<
+								VarList<A, B, C>,
+								Application<
+									Reference<B>,
+									ValList<Arg, ValList<Args...>>
+								>
+							>;
+		};
+
+		// B(C(F), xs)
+		template <typename F, typename ...Args>
+		struct MSET<Application<F, ValList<Args...>>> {
+			using result = VarLambda<
+								VarList<A, B, C>,
+									Application<
+										Reference<B>,
+										ValList<
+											typename MSET<F>::result, 
+											ValList<Args...>
+										>
+								>
+							>;
+		};
+
+		// C(F)
+		template <typename V, typename T>
+		struct MSET<VarLambda<V, T>> {
+			using result = VarLambda<
+								VarList<A, B, C>,
+								Application<
+									Reference<C>,
+									VarLambda<
+										V, 
+										typename MSET<T>::result
+									>
+								>
+							>;
+		};
+
+		template <typename T>
+		using MSE = typename MSET<T>::result;
 	}
 }
 
