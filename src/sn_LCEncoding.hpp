@@ -262,9 +262,10 @@ namespace sn_LCEncoding {
 	// datatype - case/ADT/parsec - CPS
 	namespace Scott {
 		enum {
-			V1, V2, V3, V4, V5, A, B, C,
+			V1, V2, V3, V4,  V5, A, B, C,
 			V6, V7, V8, V9, V10, X, Y, N
 		};
+		// This should be extended to non-determined varadic varlist
 		using ScottZero = VarLambda<
 								VarList<X, Y>,
 								Reference<X>
