@@ -58,6 +58,35 @@ namespace sn_TypeTraits {
 		template <class T> 
 		struct is_polymorphic : public std::integral_constant<bool, sizeof(is_polymorphic_impl<T>(0)) == 1> {};
 	}
+
+	namespace sequence {
+		template <std::size_t ...I>
+		struct index_sequence {
+			using type = index_sequence;
+		};
+
+		template <typename T, typename U>
+		struct concate {};
+
+		template <std::size_t ...I1, std::size_t ...I2>
+		struct concate<index_sequence<I1...>, index_sequence<I2...>>
+			: index_sequence<I1..., (I2 + sizeof...(I1))...> {};
+		template <std::size_t N>
+		struct make_index_sequence_impl
+			: concate<
+				typename make_index_sequence_impl<N / 2>::type,
+				typename make_index_sequence_impl<N - N / 2>::type
+			> {};
+
+		template <>
+		struct make_index_sequence_impl<0> : index_sequence<> {};
+		template <>
+		struct make_index_sequence_impl<1> : index_sequence<0> {};
+
+		template <std::size_t N>
+		using make_index_sequence = typename make_index_sequence_impl<N>::type;
+
+	}
 }
 
 
