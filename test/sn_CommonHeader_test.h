@@ -27,6 +27,7 @@
 #include "../src/sn_Function.hpp"
 #include "../src/sn_AOP.hpp"
 #include "../src/sn_LC.hpp"
+#include "../src/sn_LCEncoding.hpp"
 //#include "../src/sn_TC.hpp"
 #include "../src/sn_Range.hpp"
 #include "../src/sn_TypeLisp.hpp"
@@ -37,7 +38,7 @@
 #include "../src/sn_PC.hpp"
 #include "../src/sn_PIC.hpp"
 #include "../src/sn_PD.hpp"
-#include "../src/sn_PM.hpp"
+//#include "../src/sn_PM.hpp"
 #include "../src/sn_Binary.hpp"
 
 

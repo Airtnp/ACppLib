@@ -5,6 +5,7 @@
 
 namespace sn_LC_test {
 	using namespace sn_LC;
+	using namespace sn_LCEncoding::Church;
 	void sn_lc_test() {
 		// 2 => 0, 3 => 0
 		using v_env = EnvLookup<3, Binding<2, Succ<Zero>, Binding<3, Zero, EmptyEnv>>>::result;
@@ -14,6 +15,29 @@ namespace sn_LC_test {
 		enum { P };
 		using x_eval = Eval<Application<Lambda<P, Reference<P>>, Literal<Zero>>, EmptyEnv>::result;
 		int x = x_eval::value;
+
+		// lambda .f (lambda .x x)
+		enum { F, S };
+		using ID = Lambda<F, Reference<F>>;
+		using ChurchZero = Lambda<S, Application<ID, Literal<Zero>>>;
+		constexpr int x1 = Eval<Application<ChurchZero, Literal<Succ<Zero>>>, EmptyEnv>::result::value;
+
+		using Square = Lambda<P, Mul<Reference<P>, Reference<P>>>;
+		using PSquare = Application<ChurchNumber<2>, ValList<Square, Literal<NaturalNumber<2>>>>;
+		constexpr int x2 = Eval<PSquare, EmptyEnv>::result::value;
+
+		// Not true -> false 0 2 -> C2 ^2 2 -> 16
+		using NotTrue = Application<ChurchNot, ValList<ChurchTrue>>;
+		using FalseEval = Application<NotTrue, ValList<ChurchNumber<0>, ChurchNumber<2>>>;
+		using TestFalse = Application<FalseEval, ValList<Square, Literal<NaturalNumber<2>>>>;
+		constexpr int x3 = Eval<TestFalse, EmptyEnv>::result::value;
+
+		// first (pair C0 C1) -> C0 ^2 2 -> 2
+		using PairP = Application<ChurchPair, ValList<ChurchNumber<0>, ChurchNumber<1>>>;
+		using FirstP = Application<ChurchFirst, ValList<PairP>>;
+		using TestP = Application<FirstP, ValList<Square, Literal<NaturalNumber<2>>>>;
+		constexpr int x3 = Eval<TestP, EmptyEnv>::result::value;
+
 
 		/* (((lambda .f 
 				lambda .x f(x)
