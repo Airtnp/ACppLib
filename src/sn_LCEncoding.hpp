@@ -40,7 +40,7 @@ namespace sn_LCEncoding {
 										T,
 										Application<
 											Reference<F>,
-											Reference<T>,
+											Reference<T>
 										>
 									>,
 									typename ChurchNValue<N - 1, FX, X>::value
@@ -60,7 +60,7 @@ namespace sn_LCEncoding {
 										T,
 										Application<
 											Reference<F>,
-											Reference<T>,
+											Reference<T>
 										>
 									>, 
 									X
@@ -137,8 +137,8 @@ namespace sn_LCEncoding {
 
 		template <std::size_t N, typename T>
 		struct ChurchNImpl {
-			constexpr static const std::size_t value = 
-				std::is_same<typename ChurchNV<N>::value, T> ? N : ChurchNImpl<N + 1, T>::value;
+			using value = 
+				NaturalNumber<std::is_same<typename ChurchNV<N>::value, T>::value ? N : ChurchNImpl<N + 1, T>::value::value>;
 		};
 
 
@@ -146,7 +146,7 @@ namespace sn_LCEncoding {
 		using ChurchNumber = typename ChurchNV<N>::value;
 		// hate operations... so this is tricky and compiler-errno
 		template <typename T>
-		using ChurchN = ChurchNImpl<0, T>::value;
+		using ChurchN = typename ChurchNImpl<0, T>::value;
 		
 		using ChurchTrue = VarLambda<
 								VarList<V1, V2>, 

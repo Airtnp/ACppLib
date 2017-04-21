@@ -17,8 +17,8 @@ namespace sn_LC_test {
 		int x = x_eval::value;
 
 		// lambda .f (lambda .x x)
-		enum { F, S };
-		using ID = Lambda<F, Reference<F>>;
+		enum { FX, S };
+		using ID = Lambda<FX, Reference<FX>>;
 		using ChurchZero = Lambda<S, Application<ID, Literal<Zero>>>;
 		constexpr int x1 = Eval<Application<ChurchZero, Literal<Succ<Zero>>>, EmptyEnv>::result::value;
 
@@ -36,7 +36,7 @@ namespace sn_LC_test {
 		using PairP = Application<ChurchPair, ValList<ChurchNumber<0>, ChurchNumber<1>>>;
 		using FirstP = Application<ChurchFirst, ValList<PairP>>;
 		using TestP = Application<FirstP, ValList<Square, Literal<NaturalNumber<2>>>>;
-		constexpr int x3 = Eval<TestP, EmptyEnv>::result::value;
+		constexpr int x4 = Eval<TestP, EmptyEnv>::result::value;
 
 
 		/* (((lambda .f 
@@ -54,7 +54,7 @@ namespace sn_LC_test {
 							>;
 		using t_func = Application<t_wrapper, x_func>;
 		using t_eval = Eval<Application<t_func, Literal<Succ<Zero>>>, EmptyEnv>::result;
-		int x1 = t_eval::value;
+		int x5 = t_eval::value;
 
 		// (if #f 0 1)
 		int y = Eval<If<Literal<False>, Literal<Zero>, Literal<Succ<Zero>>>, EmptyEnv>::result::value;
