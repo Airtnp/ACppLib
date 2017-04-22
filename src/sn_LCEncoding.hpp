@@ -5,6 +5,7 @@
 #include "sn_LC.hpp"
 
 // Not common encoding. Mogensen¨CScott/Church/Boehm-Berarducci
+// TODO: Boehm-Berarducci Encoding ref: http://okmij.org/ftp/tagless-final/course/Boehm-Berarducci.html
 namespace sn_LCEncoding {
 	using namespace sn_LC;
 	// datatype - foldr/accumulate - CPS
@@ -364,6 +365,24 @@ namespace sn_LCEncoding {
 		template <typename T>
 		using MSE = typename MSET<T>::result;
 	}
+
+	// ref: https://hackage.haskell.org/package/algebraic-graphs-0.0.4/docs/Algebra-Graph-Fold.html
+	// Boehm interpretation: 
+	//		f in ChurchNumber -> view type deal with expression type
+	//		ChurchNumber -> view'(view' (.... (view' exp)))
+	// exp   : datatype (encoded: with attribute f1, ..., fn) 
+	//				in lambda-calculus, exp: exp_f1 | ... | exp_fn
+	// expc  : lambda .a lambda .b .... [f1 -> f2 -> ... -> fn -> exp] (Case | Scott Encoding Constructor)
+	// exp_fi: [f1 -> ... -> fn -> exp -> exp -> ... -> exp] ::= lambda (.f1 ... .fn .exp...) fi(f1, ..., fn, exp...) | Or exp->fi(exp...)
+	// exp_fj: lit [f1 -> ... -> fn -> T -> exp] ::= lambda(.f1 ... .fn .T) fj(f1, ..., fn, T)                        | Or exp->fj(T)
+	// view  : lambda .exp [f1 -> ... -> fn -> exp -> V] exp(f1, ... fn) (Foldr | Church Encoding)
+	// exp_f : lit, neg, add
+	// f     : dlit, dneg, dadd
+	// view (add (lit 8) (add (lit 1) (lit 2)))
+	namespace Boehm {
+
+	}
+
 }
 
 

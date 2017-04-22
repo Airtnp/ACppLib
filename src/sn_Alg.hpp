@@ -9,6 +9,7 @@ TODO: (easy)
 dij/a* ±³°üdp prim kruskal floyd
 */
 
+// ref: https://github.com/Sd-Invol/shoka/tree/master/CodeLibrary
 namespace sn_Alg {
 	using namespace std;
 	
