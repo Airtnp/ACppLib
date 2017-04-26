@@ -31,26 +31,26 @@ namespace sn_Reflection {
 		} \
 
 
-		SN_REFLECTION_REGISTER_TYPE(unsigned char     , 1)
-		SN_REFLECTION_REGISTER_TYPE(unsigned short    , 2)
-		SN_REFLECTION_REGISTER_TYPE(unsigned int      , 3)
-		SN_REFLECTION_REGISTER_TYPE(unsigned long     , 4)
-		SN_REFLECTION_REGISTER_TYPE(unsigned long long, 5)
-		SN_REFLECTION_REGISTER_TYPE(signed char       , 6)
-		SN_REFLECTION_REGISTER_TYPE(short             , 7)
-		SN_REFLECTION_REGISTER_TYPE(int               , 8)
-		SN_REFLECTION_REGISTER_TYPE(long              , 9)
-		SN_REFLECTION_REGISTER_TYPE(long long         , 10)
-		SN_REFLECTION_REGISTER_TYPE(char              , 11)
-		SN_REFLECTION_REGISTER_TYPE(wchar_t           , 12)
-		SN_REFLECTION_REGISTER_TYPE(double, 13)
+		SN_REFLECTION_REGISTER_TYPE(unsigned char, 1)
+			SN_REFLECTION_REGISTER_TYPE(unsigned short, 2)
+			SN_REFLECTION_REGISTER_TYPE(unsigned int, 3)
+			SN_REFLECTION_REGISTER_TYPE(unsigned long, 4)
+			SN_REFLECTION_REGISTER_TYPE(unsigned long long, 5)
+			SN_REFLECTION_REGISTER_TYPE(signed char, 6)
+			SN_REFLECTION_REGISTER_TYPE(short, 7)
+			SN_REFLECTION_REGISTER_TYPE(int, 8)
+			SN_REFLECTION_REGISTER_TYPE(long, 9)
+			SN_REFLECTION_REGISTER_TYPE(long long, 10)
+			SN_REFLECTION_REGISTER_TYPE(char, 11)
+			SN_REFLECTION_REGISTER_TYPE(wchar_t, 12)
+			SN_REFLECTION_REGISTER_TYPE(double, 13)
 
-		// Type{} cannot use void* (may use type<Type>{}::type instead)
-		//SN_REFLECTION_REGISTER_TYPE(void*             , 13)
-		//SN_REFLECTION_REGISTER_TYPE(const void*       , 14)
-		
-		
-		template <typename T, std::size_t N>
+			// Type{} cannot use void* (may use type<Type>{}::type instead)
+			//SN_REFLECTION_REGISTER_TYPE(void*             , 13)
+			//SN_REFLECTION_REGISTER_TYPE(const void*       , 14)
+
+
+			template <typename T, std::size_t N>
 		struct array {
 			using type = T;
 			T data[N];  //save id and its position
@@ -136,7 +136,7 @@ namespace sn_Reflection {
 			return std::index_sequence<get<I>(a)...>{};
 		}
 
-		
+
 
 		namespace pod_tuple {
 			template <std::size_t N, typename T>
@@ -255,7 +255,7 @@ namespace sn_Reflection {
 #define SN_REFLECTION(STRUCT_NAME, ...) \
 	SN_GENERATE_META_DATA(STRUCT_NAME, SN_GET_ARG_N(__VA_ARGS__), __VA_ARGS__)
 
-		/* 
+		/*
 		In actual application, just expose whole into global namespace
 		Also, use tuple::apply and T.*get<N>(sn_reflection_member<T>::apply()) to access member
 
@@ -294,113 +294,115 @@ namespace sn_Reflection {
 		std::enable_if_t<!sn_is_reflection<T>::value, std::size_t> sn_reflection_get_value() {
 			return 0;
 		}
-		
+
 
 
 		*/
-		
+
 	}
 
 	// ref: https://www.zhihu.com/question/37692782
 #ifdef __GNUC__
-
-	template<typename Base>
-	class Reflection {
-	public:
-		template<typename Sub>
-		static std::string type_name() {
-			return TypeName<Sub>::type_name();
-		}
-
-		template<typename Sub>
-		static std::string type_name(Sub) {
-			return TypeName<Sub>::type_name();
-		}
-
-		static Base* create(const std::string& name) {
-			return (*s_creator[name])();
-		}
-
-	private:
-
-		class AllocatorBase {
+	namespace static_register_func_reflection {
+		template<typename Base>
+		class Reflection {
 		public:
-			virtual Base* operator()() = 0;
-		};
-
-		template<typename T>
-		class Allocator : public AllocatorBase {
-		public:
-			T* operator()() {
-				return new T;
-			}
-		};
-
-		template<typename Sub>
-		class Registery {
-		public:
-			Registery() {
-				s_creator[get_name()] = new Allocator<Sub>();
-			}
-
-			static std::string get_name() {
-				return typeid(Sub).name();
-			}
-			virtual ~Registery() {
-				s_creator.erase(s_creator.find(get_name()));
-			}
-		};
-
-		template<typename Sub>
-		class TypeName {
-		public:
+			template<typename Sub>
 			static std::string type_name() {
-				return s_registery.get_name();
+				return TypeName<Sub>::type_name();
 			}
+
+			template<typename Sub>
+			static std::string type_name(Sub) {
+				return TypeName<Sub>::type_name();
+			}
+
+			static Base* create(const std::string& name) {
+				return (*s_creator[name])();
+			}
+
 		private:
-			static Registery<Sub> s_registery;
+
+			class AllocatorBase {
+			public:
+				virtual Base* operator()() = 0;
+			};
+
+			template<typename T>
+			class Allocator : public AllocatorBase {
+			public:
+				T* operator()() {
+					return new T;
+				}
+			};
+
+			template<typename Sub>
+			class Registery {
+			public:
+				Registery() {
+					s_creator[get_name()] = new Allocator<Sub>();
+				}
+
+				static std::string get_name() {
+					return typeid(Sub).name();
+				}
+				virtual ~Registery() {
+					s_creator.erase(s_creator.find(get_name()));
+				}
+			};
+
+			template<typename Sub>
+			class TypeName {
+			public:
+				static std::string type_name() {
+					return s_registery.get_name();
+				}
+			private:
+				static Registery<Sub> s_registery;
+			};
+
+			static std::map<std::string, AllocatorBase* > s_creator;
 		};
 
-		static std::map<std::string, AllocatorBase* > s_creator;
-	};
+		template<typename Base>
+		std::map<std::string, typename Reflection<Base>::AllocatorBase*> Reflection<Base>::s_creator;
 
-	template<typename Base>
-	std::map<std::string, typename Reflection<Base>::AllocatorBase*> Reflection<Base>::s_creator;
+		template<typename Base>
+		template<typename Sub>
+		Reflection<Base>::Registery<Sub> Reflection<Base>::TypeName<Sub>::s_registery;
 
-	template<typename Base>
-	template<typename Sub>
-	Reflection<Base>::Registery<Sub> Reflection<Base>::TypeName<Sub>::s_registery;
+		class MapFn {
+		public:
+			virtual void call() = 0;
+		};
 
-	class MapFn {
-	public:
-		virtual void call() = 0;
-	};
+		// Actually, it register the function in static in main process
+		// Then call static func by name=>func mapping
+		// Relying on the initlaizing of map before main func (gcc/clang)
+		// Inherit MapFn and implement call
+		/*
+		class UserMapFn : public MapFn {
+			void call() {
+				puts("User Map Fn called");
+			}
+		};
 
-	// Actually, it register the function in static in main process
-	// Then call static func by name=>func mapping
-	// Inherit MapFn and implement call
-	/*
-	class UserMapFn : public MapFn {
-		void call() {
-			puts("User Map Fn called");
+		int main(int argc, char** argv)
+		{
+			if (argc == 1) {
+				std::string cmd = "";
+				cmd += argv[0];
+				cmd += " \"" + Reflection<MapFn>::type_name<UserMapFn>() + "\"";
+				std::cout << cmd << std::endl;
+				system(cmd.c_str());
+				return 0;
+			}
+			std::cout << "in sub process" << std::endl;
+			std::string name = argv[1];
+			Reflection<MapFn>::create(name)->call();  // 注意这子进程里从未显式调用过任何注册相关的代码
 		}
-	};
-
-	int main(int argc, char** argv)
-	{
-		if (argc == 1) {
-			std::string cmd = "";
-			cmd += argv[0];
-			cmd += " \"" + Reflection<MapFn>::type_name<UserMapFn>() + "\"";
-			std::cout << cmd << std::endl;
-			system(cmd.c_str());
-			return 0;
-		}
-		std::cout << "in sub process" << std::endl;
-		std::string name = argv[1];
-		Reflection<MapFn>::create(name)->call();  // 注意这子进程里从未显式调用过任何注册相关的代码
+		*/
 	}
-	*/
 #endif
 
 }
