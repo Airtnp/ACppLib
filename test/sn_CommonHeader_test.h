@@ -40,6 +40,7 @@
 #include "../src/sn_PD.hpp"
 //#include "../src/sn_PM.hpp"
 #include "../src/sn_Binary.hpp"
+#include "../src/sn_JSON.hpp"
 
 
 #endif
