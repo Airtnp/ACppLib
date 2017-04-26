@@ -502,6 +502,22 @@ namespace sn_Assist {
 			}
 		};
 
+		// default_constructor
+		template <bool dc>
+		struct enable_default_constructor {};
+
+		template <>
+		struct enable_default_constructor<true> {
+			using enable_type = enable_default_constructor;
+			enable_default_constructor() = default;
+			constexpr enable_default_constructor(void*) {}
+		};
+		template <>
+		struct enable_default_constructor<false> {
+			using enable_type = enable_default_constructor;
+			enable_default_constructor() = delete;
+			constexpr enable_default_constructor(void*) {}
+		};
 	}
 
 	// ref: https://github.com/akemimadoka/NatsuLib/blob/master/NatsuLib/natConcepts.h
@@ -619,6 +635,17 @@ namespace sn_Assist {
 
 	namespace sn_type_assist {
 
+		template <typename ...Args>
+		struct identity {};
+
+		template <>
+		struct identity<> {};
+
+		template <typename T, typename ...Args>
+		struct identity<T, Args...> {
+			using type = T;
+		};
+
 		template <typename T, typename ...Args>
 		struct is_contain;
 
@@ -677,7 +704,7 @@ namespace sn_Assist {
 		};
 
 		template<std::size_t ...I>
-		struct  append_index<I...>
+		struct  append_index<0, I...>
 		{
 			using result = std::integer_sequence<std::size_t, I...>;
 		};

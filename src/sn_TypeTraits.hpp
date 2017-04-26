@@ -87,6 +87,14 @@ namespace sn_TypeTraits {
 		using make_index_sequence = typename make_index_sequence_impl<N>::type;
 
 	}
+
+	template <typename T>
+	struct is_class_or_union {
+		template <typename U>
+		static int check(void(U::*)(void));
+		static char check(...);
+		static const bool value = sizeof(check<T>(0)) == sizeof(int);
+	};
 }
 
 

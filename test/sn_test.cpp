@@ -113,7 +113,7 @@ int main() {
 	sn_Thread_test::sn_thread_test();
 	sn_LC_test::sn_lc_test();
 #endif
-	getchar();
+	//getchar();
 	return 0;
 
 }

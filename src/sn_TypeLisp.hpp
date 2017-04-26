@@ -130,6 +130,9 @@ namespace sn_TypeLisp {
 		constexpr static const int value = (TypeIndex<TypeList<T...>, ST>::value == -1) ? -1 : 1 + (TypeIndex<TypeList<T...>, ST>::value);
 	};
 
+	template <typename L, typename ST>
+	constexpr std::size_t TypeIndex_v = TypeIndex<L, ST>::value;
+
 	template <typename L1, typename L2>
 	struct TypeAppend;
 

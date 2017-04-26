@@ -4,6 +4,7 @@
 #include "sn_CommonHeader.h"
 #include "sn_Assist.hpp"
 #include "sn_Log.hpp"
+#include "sn_TypeLisp.hpp"
 
 //TODO: add concepts required by C++1z
 namespace sn_Type {
@@ -387,6 +388,7 @@ namespace sn_Type {
 			Variant(T&& value) : m_typeIndex(typeid(std::decay_t<T>)) {
 				destroy(m_typeIndex, &m_data);
 				new (&m_data) std::decay_t<T>(std::forward<T>(value));
+				get_type();
 			}
 
 			//TODO: change to is_convertible?
@@ -419,8 +421,8 @@ namespace sn_Type {
 				return sn_Assist::sn_type_assist::contain_index<T, Args...>::value;
 			}
 
-			std::size_t index() const {
-				get_type();
+			constexpr std::size_t index() const {
+				//get_type();
 				return m_index;
 			}
 
@@ -503,19 +505,19 @@ namespace sn_Type {
 			}
 		private:
 
-			void get_type() {
+			void get_type() const {
 				if (m_index != -1)
 					return;
 				std::initializer_list<int>{(get_typeT<Args>(), 0)...};
 			}
 
 			template <typename T>
-			void get_typeT() {
+			void get_typeT() const {
 				if (m_typeIndex == std::type_index(typeid(T)))
 					m_index = type_index<T>();
 			}
 
-			std::size_t m_index = -1;
+			const std::size_t m_index = -1;
 
 
 			void destroy(const std::type_index& index, void* data) {
@@ -550,6 +552,243 @@ namespace sn_Type {
 		
 			std::type_index m_typeIndex;
 			data_t m_data;
+
+		};
+	}
+
+	namespace constexpr_variant {
+		// ref: https://github.com/tomilov/variant/tree/master/include/versatile
+		// VS2015 not support static constexpr non-integral...
+		template <std::size_t I>
+		using index_t = std::integral_constant<std::size_t, I>;
+		
+		struct in_place_t {};
+
+		template <typename T = in_place_t>
+		constexpr in_place_t in_place(T) {
+			return{};
+		}
+		template <std::size_t I>
+		constexpr in_place_t in_place(index_t<I>) {
+			return{};
+		}
+		
+		using sn_Assist::sn_type_assist::identity;
+		using sn_TypeLisp::TypeList;
+		// td = trivially destructible
+		template <bool td, typename ...Args>
+		class constructor_dispatcher;
+		template <bool td>
+		class constructor_dispatcher<td> {};
+		template <typename T, typename ...Args>
+		class constructor_dispatcher<true, T, Args...> {
+			union {
+				T m_head;
+				constructor_dispatcher<true, Args...> m_tail;
+			};
+		public:
+			template <typename ...PArgs>
+			constexpr constructor_dispatcher(index_t<1 + sizeof...(PArgs)>, PArgs&&... args)
+				: m_head(std::forward<PArgs>(args)...){}
+			template <typename ...PArgs>
+			constexpr constructor_dispatcher(PArgs&&... args)
+				: m_tail(std::forward<PArgs>(args)...) {}
+			using this_type = std::decay_t<T>;
+			constexpr operator const this_type& () const noexcept {
+				return m_head;
+			}
+			constexpr operator this_type& () noexcept {
+				return m_head;
+			}
+			template <typename U>
+			constexpr operator const U& () const noexcept {
+				return m_tail;
+			}
+			template <typename U>
+			constexpr operator U& () noexcept {
+				return m_tail;
+			}
+		};
+		template <typename T, typename ...Args>
+		class constructor_dispatcher<false, T, Args...> {
+			union {
+				T m_head;
+				constructor_dispatcher<true, Args...> m_tail;
+			};
+		public:
+			constructor_dispatcher(const constructor_dispatcher&) = default;
+			constructor_dispatcher(constructor_dispatcher&&) = default;
+			constructor_dispatcher& operator= (const constructor_dispatcher&) = default;
+			constructor_dispatcher& operator= (constructor_dispatcher&&) = default;
+			~constructor_dispatcher() noexcept {}
+			template <typename ...PArgs>
+			constexpr constructor_dispatcher(index_t<1 + sizeof...(PArgs)>, PArgs&&... args)
+				: m_head(std::forward<PArgs>(args)...) {}
+			template <typename ...PArgs>
+			constexpr constructor_dispatcher(PArgs&&... args)
+				: m_tail(std::forward<PArgs>(args)...) {}
+			void destruct(in_place_t(&)(T)) noexcept {
+				m_head.~T();
+			}
+			// Use function pointer to pass type
+			template <typename U>
+			void destruct(in_place_t(&)(U)) noexcept {
+				m_tail.destruct(in_place<U>);
+			}
+			using this_type = std::decay_t<T>;
+			constexpr operator const this_type& () const noexcept {
+				return m_head;
+			}
+			constexpr operator this_type& () noexcept {
+				return m_head;
+			}
+			template <typename U>
+			constexpr operator const U& () const noexcept {
+				return m_tail;
+			}
+			template <typename U>
+			constexpr operator U& () noexcept {
+				return m_tail;
+			}
+		};
+
+		// td: trivially destructible
+		template <bool td, typename ...Args>
+		struct destructor_dispatcher {};
+
+		template <typename ...Args>
+		struct destructor_dispatcher<true, Args...> {
+			std::size_t m_index;
+			constructor_dispatcher<true, Args...> m_storage;
+		public:
+			constexpr std::size_t index() const noexcept {
+				return m_index;
+			}
+			template <typename Is, typename ...PArgs>
+			constexpr destructor_dispatcher(Is, PArgs&&... args)
+				: m_index(Is::value), m_storage(Is{}, std::forward<PArgs>(args)...) {}
+			template <typename U>
+			constexpr operator const U& () const noexcept {
+				return m_storage;
+			}
+			template <typename U>
+			constexpr operator U& () noexcept {
+				return m_storage;
+			}
+		};
+		template <typename ...Args>
+		struct destructor_dispatcher<false, Args...> {
+			std::size_t m_index;
+			constructor_dispatcher<false, Args...> m_storage;
+			using storage = constructor_dispatcher<false, Args...>;
+
+			template <typename U>
+			static void destruct(storage& str) noexcept {
+				str.destruct(in_place<U>);
+			}
+			using dtor = decltype(&destructor_dispatcher::template destruct<typename sn_Assist::sn_type_assist::identity<Args...>::type>);
+			static constexpr dtor m_dtors[sizeof...(Args)] = { destructor_dispatcher::template destruct<Args>... };
+
+		public:
+			constexpr std::size_t index() const noexcept {
+				return m_index;
+			}
+			destructor_dispatcher(const destructor_dispatcher&) = default;
+			destructor_dispatcher(destructor_dispatcher&&) = default;
+			destructor_dispatcher& operator= (const destructor_dispatcher&) = default;
+			destructor_dispatcher& operator= (destructor_dispatcher&&) = default;
+			~destructor_dispatcher() noexcept {
+				if (0 < m_index)
+					m_dtors[sizeof...(Args) - m_index](m_storage);
+			}
+			template <typename Is, typename ...PArgs>
+			constexpr destructor_dispatcher(Is, PArgs&&... args)
+				: m_index(Is::value), m_storage(Is{}, std::forward<PArgs>(args)...) {}
+			template <typename U>
+			constexpr operator const U& () const noexcept {
+				return m_storage;
+			}
+			template <typename U>
+			constexpr operator U& () noexcept {
+				return m_storage;
+			}
+		};
+		template <typename ...Args>
+		constexpr const typename destructor_dispatcher<false, Args...>::dtor destructor_dispatcher<false, Args...>::m_dtors[sizeof...(Args)];
+
+		template <bool ...I>
+		struct get_index {};
+
+		template <>
+		struct get_index<> {};
+
+		template <bool ...I>
+		struct get_index<true, I...>
+			: index_t<(1 + sizeof...(I))> {};
+		template <bool ...I>
+		struct get_index<false, I...>
+			: get_index<I...> {};
+
+		template <bool ...I>
+		using get_index_t = typename get_index<I...>::value;
+
+		template <typename ...Args>
+		class versatile
+			: sn_Assist::sn_functional_base::enable_default_constructor<(std::is_constructible<Args>::value || ...)> {
+			destructor_dispatcher<(std::is_trivially_destructible<Args>::value && ...), Args...> m_storage;
+		public:
+			using variant_type = versatile;
+			using types_t = identity<std::decay_t<Args>...>;
+			using indices_t = std::index_sequence_for<Args...>;
+			template <typename U>
+			using index_at_t = index_t<sn_TypeLisp::TypeIndex_v<TypeList<Args...>, std::decay_t<U>>>;
+			template <typename ...PArgs>
+			using index_of_constructible_t = get_index_t<std::is_constructible<Args, PArgs...>::value...>;
+			constexpr std::size_t index() const noexcept {
+				return m_storage.index();
+			}
+			template <typename U>
+			constexpr bool active() const noexcept {
+				return (m_storage.index() == index_at_t<U>::value);
+			}
+			constexpr versatile()
+				: versatile(in_place<>) {}
+			template <std::size_t I, typename ...PArgs>
+			explicit constexpr versatile(in_place_t(&)(index_t<I>), PArgs&&... args)
+				: versatile::enable_type({}), m_storage(index_t<I>{}, std::forward<PArgs>(args)...) {}
+			template <typename T, typename I = index_at_t<T>>
+			explicit constexpr versatile(T&& v)
+				: versatile(in_place<I>, std::forward<T>(v)) {}
+			template <typename T, typename ...PArgs, typename I = index_at_t<T>>
+			explicit constexpr versatile(in_place_t(&)(T), PArgs&&... args)
+				: versatile(in_place<I>, std::forward<PArgs>(args)...) {}
+			template <typename ...PArgs, typename I = index_of_constructible_t<PArgs...>>
+			explicit constexpr versatile(in_place_t(&)(in_place_t), PArgs&&... args)
+				: versatile(in_place<I>, std::forward<PArgs>(args)...) {}
+			constexpr void swap(versatile & rhs) noexcept(std::is_nothrow_move_assignable<versatile>::value && std::is_nothrow_move_constructible<versatile>::value) {
+				versatile this_ = std::move(*this);
+				*this = std::move(rhs);
+				rhs = std::move(this_);
+			}
+			template <typename T, typename I = index_at_t<T>>
+			constexpr versatile& operator= (T&& v) noexcept {
+				return (*this = versatile(std::forward<T>(v)));
+			}
+			template <typename T, typename I = index_at_t<T>>
+			explicit constexpr operator const T& () const {
+				return (active<T>() ? m_storage : throw std::bad_cast{});
+			}
+			template <typename T, typename I = index_at_t<T>>
+			explicit constexpr operator T& () {
+				return (active<T>() ? m_storage : throw std::bad_cast{});
+			}
+		};
+		template <>
+		class versatile<> {};
+
+		template <typename ...Args>
+		class variant
+			: sn_Assist::sn_functional_base::enable_default_constructor<(std::is_constructible<Args>::value || ...)> {
 
 		};
 	}
