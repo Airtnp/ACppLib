@@ -584,6 +584,43 @@ namespace sn_Builtin {
 
 	}
 
+	namespace recur_wrapper {
+		template <typename T>
+		class unique_wrapper {
+			std::unique_ptr<T> m_storage;
+		public:
+			template <typename ...Args>
+			unique_wrapper(Args&&... args)
+				: m_storage(std::make_unqiue<T>(std::forward<Args>(args)...)) {}
+			template <typename U>
+			operator U& () noexcept {
+				return static_cast<U&>(*m_storage);
+			}
+			template <typename U>
+			operator const U& () noexcept {
+				return static_cast<const U&>(*m_storage);
+			}
+			void swap(unique_wrapper& rhs) noexcept {
+				m_storage.swap(rhs.m_storage);
+			}
+		};
+
+		template <typename T>
+		struct unwrap_type {};
+
+		template <typename T>
+		struct unwrap_type<unique_wrapper<T>>
+			: std::decay<T> {};
+		
+		template <typename T>
+		struct unref_type {};
+
+		template <typename T>
+		struct unref_type<unique_wrapper<T>>
+			: std::remove_reference<T> {};
+
+	}
+
 	//ref: Effective Cpp
 	namespace shared_ptr {
 		template <typename T>

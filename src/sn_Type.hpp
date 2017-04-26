@@ -5,6 +5,7 @@
 #include "sn_Assist.hpp"
 #include "sn_Log.hpp"
 #include "sn_TypeLisp.hpp"
+#include "sn_Builtin.hpp"
 
 //TODO: add concepts required by C++1z
 namespace sn_Type {
@@ -555,7 +556,8 @@ namespace sn_Type {
 
 		};
 	}
-
+#ifdef __GNUC__
+	// constexpr variant
 	namespace constexpr_variant {
 		// ref: https://github.com/tomilov/variant/tree/master/include/versatile
 		// VS2015 not support static constexpr non-integral...
@@ -588,11 +590,11 @@ namespace sn_Type {
 			};
 		public:
 			template <typename ...PArgs>
-			constexpr constructor_dispatcher(index_t<1 + sizeof...(PArgs)>, PArgs&&... args)
-				: m_head(std::forward<PArgs>(args)...){}
-			template <typename ...PArgs>
-			constexpr constructor_dispatcher(PArgs&&... args)
-				: m_tail(std::forward<PArgs>(args)...) {}
+			constexpr constructor_dispatcher(index_t<0>, PArgs&&... args)
+				: m_head(std::forward<PArgs>(args)...) {}
+			template <std::size_t I, typename ...PArgs>
+			constexpr constructor_dispatcher(index_t<I>, PArgs&&... args)
+				: m_tail(index_t<I - 1>{}, std::forward<PArgs>(args)...) {}
 			using this_type = std::decay_t<T>;
 			constexpr operator const this_type& () const noexcept {
 				return m_head;
@@ -622,11 +624,11 @@ namespace sn_Type {
 			constructor_dispatcher& operator= (constructor_dispatcher&&) = default;
 			~constructor_dispatcher() noexcept {}
 			template <typename ...PArgs>
-			constexpr constructor_dispatcher(index_t<1 + sizeof...(PArgs)>, PArgs&&... args)
+			constexpr constructor_dispatcher(index_t<0>, PArgs&&... args)
 				: m_head(std::forward<PArgs>(args)...) {}
-			template <typename ...PArgs>
-			constexpr constructor_dispatcher(PArgs&&... args)
-				: m_tail(std::forward<PArgs>(args)...) {}
+			template <std::size_t I, typename ...PArgs>
+			constexpr constructor_dispatcher(index_t<I>, PArgs&&... args)
+				: m_tail(index_t<I - 1>{}, std::forward<PArgs>(args)...) {}
 			void destruct(in_place_t(&)(T)) noexcept {
 				m_head.~T();
 			}
@@ -742,6 +744,8 @@ namespace sn_Type {
 			using indices_t = std::index_sequence_for<Args...>;
 			template <typename U>
 			using index_at_t = index_t<sn_TypeLisp::TypeIndex_v<TypeList<Args...>, std::decay_t<U>>>;
+			template <std::size_t I>
+			using type_at_t = sn_TypeLisp::TypeAt_t<TypeList<Args...>, I>;
 			template <typename ...PArgs>
 			using index_of_constructible_t = get_index_t<std::is_constructible<Args, PArgs...>::value...>;
 			constexpr std::size_t index() const noexcept {
@@ -750,6 +754,14 @@ namespace sn_Type {
 			template <typename U>
 			constexpr bool active() const noexcept {
 				return (m_storage.index() == index_at_t<U>::value);
+			}
+			template <typename T, typename I = index_at_t<T>>
+			constexpr T& get() {
+				return (active<T>() ? m_storage : throw std::bad_cast{});
+			}
+			template <typename T, typename I = index_at_t<T>>
+			constexpr const T& get() const {
+				return (active<T>() ? m_storage : throw std::bad_cast{});
 			}
 			constexpr versatile()
 				: versatile(in_place<>) {}
@@ -765,6 +777,10 @@ namespace sn_Type {
 			template <typename ...PArgs, typename I = index_of_constructible_t<PArgs...>>
 			explicit constexpr versatile(in_place_t(&)(in_place_t), PArgs&&... args)
 				: versatile(in_place<I>, std::forward<PArgs>(args)...) {}
+			template <typename ...PArgs, typename V = std::enable_if_t<(1 < sizeof...(PArgs))>, typename I = index_of_constructible_t<PArgs...>>
+			explicit constexpr versatile(PArgs&&... args)
+				: versatile(in_place<I>, std::forward<PArgs>(args)...) {}
+			
 			constexpr void swap(versatile & rhs) noexcept(std::is_nothrow_move_assignable<versatile>::value && std::is_nothrow_move_constructible<versatile>::value) {
 				versatile this_ = std::move(*this);
 				*this = std::move(rhs);
@@ -785,13 +801,8 @@ namespace sn_Type {
 		};
 		template <>
 		class versatile<> {};
-
-		template <typename ...Args>
-		class variant
-			: sn_Assist::sn_functional_base::enable_default_constructor<(std::is_constructible<Args>::value || ...)> {
-
-		};
 	}
+#endif
 
 	namespace helper {
 		template <typename T, typename ...Args>
@@ -809,6 +820,7 @@ namespace sn_Type {
 			return optional::Optional<std::decay_t<T>>(std::forward<T>(value)).emplace(std::forward<Args>(args)...);
 		}
 
+		// actual it's not constexpr index()
 		template <typename Overloader, typename ...Args>
 		constexpr auto visit(Overloader&& vis, variant::Variant<Args...> var) {
 			return sn_Assist::sn_invoke(std::forward<Overloader>(vis), var.get<sn_Assist::sn_type_assist::visit_at<var.index(), Args...>>());
