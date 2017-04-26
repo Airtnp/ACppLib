@@ -769,7 +769,7 @@ namespace sn_Type {
 			explicit constexpr versatile(in_place_t(&)(index_t<I>), PArgs&&... args)
 				: versatile::enable_type({}), m_storage(index_t<I>{}, std::forward<PArgs>(args)...) {}
 			template <typename T, typename I = index_at_t<T>>
-			explicit constexpr versatile(T&& v)
+			constexpr versatile(T&& v)
 				: versatile(in_place<I>, std::forward<T>(v)) {}
 			template <typename T, typename ...PArgs, typename I = index_at_t<T>>
 			explicit constexpr versatile(in_place_t(&)(T), PArgs&&... args)
