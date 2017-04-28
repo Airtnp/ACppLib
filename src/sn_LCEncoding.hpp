@@ -384,6 +384,103 @@ namespace sn_LCEncoding {
 
 	}
 
+	namespace SKI {
+		enum {
+			V1, V2, V3, V4, V5, A, B, C,
+			V6, V7, V8, V9, V10, X, Y, Z
+		};
+		// I : \x -> x
+		using I = VarLambda<VarList<X>, Reference<X>>;
+		
+		// K : \x, y -> x  (AK: A -> (B -> A))
+		using K = VarLambda<VarList<X, Y>, Reference<X>>;
+		
+		// S : \x, y, z -> x(z, y(z))  (AS: A -> (B -> C) -> (A -> B) -> (A -> C))
+		using S = VarLambda<
+						VarList<X, Y, Z>,
+						Application<
+							Reference<X>,
+							ValList<
+								Reference<Z>,
+								Application<
+									Reference<Y>,
+									Reference<Z>
+								>
+							>
+						>
+					>;
+
+		// lota = \x -> x(S, K)
+		using lota = VarLambda<
+							VarList<X>,
+							Application<
+								Reference<X>,
+								ValList<S, K>
+							>
+						>;
+
+		// SII = \x -> I(x)(I(x)) -> x(x)
+		using SII = VarLambda<
+							VarList<Y>,
+							Application<
+								Application<
+									I,
+									ValList<Reference<Y>>
+								>,
+								ValList<
+									Application<
+										I,
+										ValList<Reference<Y>>
+									>
+								>
+							>
+						>;
+		
+		// Reverse: \x \y: S(K(S, I))(K(x, y))
+		using Reverse = VarLambda<
+							VarList<V1, V2>,
+							Application<
+								Application<
+									S,
+									ValList<
+										Application<
+											K,
+											ValList<S, I>
+										>,
+										K,
+										Reference<V1>
+									>
+								>,
+								ValList<
+									Reference<V2>
+								>
+							>
+						>;
+
+		using T = K;
+		using F = VarLambda<
+						VarList<V1, V2>,
+						Application<
+							Application<
+								K,
+								ValList<
+									I,
+									Reference<V1>
+								>
+							>,
+							ValList<Reference<V2>>
+						>
+					>;
+						
+		using Not = VarLambda<
+						VarList<V1>,
+						Application<
+							F,
+							ValList<T, Reference<V1>>
+						>
+					>;
+	}
+
 }
 
 

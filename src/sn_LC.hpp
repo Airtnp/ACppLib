@@ -154,6 +154,13 @@ namespace sn_LC {
 	template <typename Var, typename Val, typename Env>
 	struct VarBinding;
 
+	
+
+	/*
+	template <typename Proc, typename Value>
+	struct VarApply {};
+	*/
+
 	template <std::size_t I1, std::size_t ...I, typename Arg, typename ...Args, typename Env>
 	struct VarBinding<VarList<I1, I...>, ValList<Arg, Args...>, Env> {
 		using result = Binding<I1, Arg, typename VarBinding<VarList<I...>, ValList<Args...>, Env>::result>;
@@ -174,15 +181,157 @@ namespace sn_LC {
 		using result = typename Apply<typename Eval<F, Env>::result, typename Eval<ValList<Args...>, Env>::result>::result;
 	};
 
+	/* GG. Teamplte debug failure
+	template <typename F, typename ...Args, typename Env>
+	struct Eval<VarApplication<F, ValList<Args...>>, Env> {
+		using result = typename VarApply<typename Eval<F, Env>::result, typename Eval<ValList<Args...>, Env>::result>::result;
+	};
+	*/
+
 	template <typename ...Args, typename Env>
 	struct Eval<ValList<Args...>, Env> {
 		using result = ValList<typename Eval<Args, Env>::result...>;
 	};
 
+	template <typename L1, typename L2>
+	struct ConcatValList {};
+
+	template <typename ...Args1, typename ...Args2>
+	struct ConcatValList<ValList<Args1...>, ValList<Args2...>> {
+		using result = ValList<Args1..., Args2...>;
+	};
+
+	template <typename L>
+	struct DropValList {};
+
+	template <typename Arg, typename ...Args>
+	struct DropValList<ValList<Arg, Args...>> {
+		using result = ValList<Args...>;
+	};
+
+	template <>
+	struct DropValList<ValList<>> {
+		using result = ValList<>;
+	};
+
+	template <typename L, std::size_t N, typename V = void>
+	struct ExtractValList {};
+
+	template <typename Arg, typename ...Args, std::size_t N>
+	struct ExtractValList<ValList<Arg, Args...>, N, std::enable_if_t<N != 0>> {
+		using prev = typename ConcatValList<ValList<Arg>, typename ExtractValList<ValList<Args...>, N - 1>::prev>::result;
+		using succ = typename ExtractValList<ValList<Args...>, N - 1>::succ;
+	};
+
+	template <typename ...Args>
+	struct ExtractValList<ValList<Args...>, 0> {
+		using prev = ValList<>;
+		using succ = ValList<Args...>;
+	};
+
+	template <typename L1, typename L2>
+	struct ConcatVarList {};
+
+	template <std::size_t ...Is1, std::size_t ...Is2>
+	struct ConcatVarList<VarList<Is1...>, VarList<Is2...>> {
+		using result = VarList<Is1..., Is2...>;
+	};
+
+	template <typename L, std::size_t N, typename V = void>
+	struct ExtractVarList {};
+
+	template <std::size_t I, std::size_t ...Is, std::size_t N>
+	struct ExtractVarList<VarList<I, Is...>, N, std::enable_if_t<N != 0>> {
+		using prev = typename ConcatVarList<VarList<I>, typename ExtractVarList<VarList<Is...>, N - 1>::prev>::result;
+		using succ = typename ExtractVarList<VarList<Is...>, N - 1>::succ;
+	};
+
+	template <std::size_t ...Is>
+	struct ExtractVarList<VarList<Is...>, 0> {
+		using prev = VarList<>;
+		using succ = VarList<Is...>;
+	};
+
+	template <typename F, typename Arg>
+	struct VarApplicationImpl {};
+
+	// Env problem...
+	// VarApplication<Curry<F, I>, ValList<...>>
+	template <std::size_t ...I, typename Body, typename ...Args>
+	struct VarApplicationImpl<VarLambda<VarList<I...>, Body>, ValList<Args...>> {
+		using result = typename std::conditional<
+							sizeof...(I) >= sizeof...(Args),
+							Application<
+								VarLambda<VarList<I...>, Body>,
+								ValList<Args...>
+							>,
+							typename VarApplicationImpl<
+								typename Eval<Application<
+									VarLambda<VarList<I...>, Body>,
+									typename ExtractValList<ValList<Args...>, sizeof...(I)>::prev
+								>, EmptyEnv>::result,
+								typename ExtractValList<ValList<Args...>, sizeof...(I)>::succ
+							>::result
+						>::type;
+
+	};
+
+	template <std::size_t ...I, typename Body, typename Env, typename ...Args>
+	struct VarApplicationImpl<Closure<VarLambda<VarList<I...>, Body>, Env>, ValList<Args...>> {
+		using result = typename std::conditional<
+							sizeof...(I) >= sizeof...(Args),
+							Application<
+								VarLambda<VarList<I...>, Body>,
+								ValList<Args...>
+							>,
+							typename VarApplicationImpl<
+								typename Eval<Application<
+									VarLambda<VarList<I...>, Body>,
+									typename ExtractValList<ValList<Args...>, sizeof...(I)>::prev
+								>, EmptyEnv>::result,
+								typename ExtractValList<ValList<Args...>, sizeof...(I)>::succ
+							>::result
+						>::type;
+
+	};
+
+	template <typename F, typename Arg>
+	using VarApplication = typename VarApplicationImpl<F, Arg>::result;
+
+
+	// Question: difference between func currying / env evaluation
+	// Eval<Application<VarLambda<VarList<Is...>, Application<Body, ValList<Binding<I, Arg, Env>, Reference<Is...>>>, ValList<Args...>>, Env>
+	// Easy-implementation here led to bad style of currying
+	// Fail: satisfy f(g, x) -> g(y) === f(g, x, y) -> g(y) syntax sugar
 	template <std::size_t ...I, typename Body, typename Env, typename ...Args>
 	struct Apply<Closure<VarLambda<VarList<I...>, Body>, Env>, ValList<Args...>> {
 		using result = typename Eval<Body, typename VarBinding<VarList<I...>, ValList<Args...>, Env>::result>::result;
 	};
+
+	/*
+	template <std::size_t ...I, typename Body, typename Env, typename ...Args>
+	struct VarApply<Closure<VarLambda<VarList<I...>, Body>, Env>, ValList<Args...>> {
+		using result = typename std::conditional<
+							sizeof...(I) >= sizeof...(Args),
+							typename Eval<Body, typename VarBinding<VarList<I...>, ValList<Args...>, Env>::result>::result,
+							typename Eval<
+								VarApplication<
+									typename Apply<
+										Closure<VarLambda<VarList<I...>, Body>, Env>,
+										typename ExtractValList<ValList<Args...>, sizeof...(I)>::prev
+									>::result,
+									typename ExtractValList<ValList<Args...>, sizeof...(I)>::succ
+								>, 
+								//typename VarBinding<
+								//	VarList<I...>, 
+								//	typename ExtractValList<ValList<Args...>, sizeof...(I)>::prev, 
+								//	Env>::result
+								// >::result
+								Env
+							>::result
+						>::type;
+	};
+	*/
 
 	// support operation
 	template <typename T, typename U>
@@ -328,6 +477,36 @@ namespace sn_LC {
 		using Cond = typename Eval<Equal<typename Eval<Arg, Env>::result, True>, Env>::result;
 		using result = typename ValListAppend<typename FilterImpl<Cond, Arg>::result, typename Eval<Filter<L, ValList<Args...>>, Env>::result>::type;
 	};
+
+	// Curry
+	template <typename L, typename Arg>
+	struct CurryImpl {};
+
+	template <std::size_t I, std::size_t ...Is, typename Body, typename Arg, typename ...Args>
+	struct CurryImpl<VarLambda<VarList<I, Is...>, Body>, ValList<Arg, Args...>> {
+		using curried = VarLambda<
+							VarList<Is...>,
+							Application<
+								VarLambda<
+									VarList<I, Is...>,
+									Body
+								>,
+								ValList<
+									Arg,
+									Reference<Is>...
+								>
+							>
+						>;
+		using result = typename CurryImpl<curried, ValList<Args...>>::result;
+	};
+
+	template <std::size_t ...Is, typename Body>
+	struct CurryImpl<VarLambda<VarList<Is...>, Body>, ValList<>> {
+		using result = VarLambda<VarList<Is...>, Body>;
+	};
+
+	template <typename L, typename Arg>
+	using Curry = typename CurryImpl<L, Arg>::result;
 
 	// Y :   lambda .f ( lambda .x (f(x)(x)) lambda .x f(x)(x) ) or lambda .f (lambda .u u(u))(lambda.x f(x)(x))
 	// ref: http://picasso250.github.io/2015/03/31/reinvent-y.html

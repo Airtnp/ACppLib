@@ -71,7 +71,15 @@ namespace sn_LC_test {
 							>, EmptyEnv>::result;
 		constexpr int w = v_func::value;
 		
-
+		enum { P2, P3 };
+		using SKIF = sn_LCEncoding::SKI::F;
+		using SKIT = sn_LCEncoding::SKI::T;
+		using SKIK = sn_LCEncoding::SKI::K;
+		using SKII = sn_LCEncoding::SKI::I;
+		constexpr int pw = Eval<VarApplication<
+									Curry<SKIK, ValList<SKII>>, 
+									ValList<Literal<Zero>, Literal<Succ<Succ<Zero>>>>
+								>, EmptyEnv>::result::value;
 	}
 
 }
