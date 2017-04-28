@@ -41,6 +41,7 @@
 //#include "../src/sn_PM.hpp"
 #include "../src/sn_Binary.hpp"
 #include "../src/sn_JSON.hpp"
+#include "../src/sn_SM.hpp"
 
 
 #endif

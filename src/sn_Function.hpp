@@ -817,6 +817,8 @@ namespace sn_Function {
 			constexpr auto F(std::tuple<Args...> args) {
 				// By condition
 				return make_trampoline_wrapper<T, std::tuple<Args...>>(...);
+				-> true
+				-> false
 			}
 		*/
 	}
