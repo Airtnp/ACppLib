@@ -16,6 +16,7 @@ namespace sn_LCEncoding {
 	churchfold f z (x:xs) = f x (churchfold f z xs)
 	*/
 	// TODO: add real calculation operators
+	// TODO: add foldr/foldl/append... ref: http://benji6.github.io/church/docs/lists.html
 	namespace Church {
 		using Nonsense = Literal<Zero>;
 		enum { F, T };
