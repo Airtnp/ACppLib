@@ -288,10 +288,17 @@ namespace sn_LC {
 								typename Eval<Application<
 									VarLambda<VarList<I...>, Body>,
 									typename ExtractValList<ValList<Args...>, sizeof...(I)>::prev
-								>, EmptyEnv>::result,
+								>, Env>::result,
 								typename ExtractValList<ValList<Args...>, sizeof...(I)>::succ
 							>::result
 						>::type;
+
+	};
+
+	// MSVC bugs?
+	template <typename F>
+	struct VarApplicationImpl<F, ValList<>> {
+		using result = F;
 
 	};
 

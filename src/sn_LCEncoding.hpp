@@ -483,7 +483,7 @@ namespace sn_LCEncoding {
 
 	namespace BCKW {
 		enum {
-			V1, V2, V3, V4, V5, A, B, C,
+			V1, V2, V3, V4, V5,
 			V6, V7, V8, V9, V10, X, Y, Z
 		};
 
@@ -516,7 +516,7 @@ namespace sn_LCEncoding {
 		// K ::= x y -> x
 		using K = VarLambda<VarList<X, Y>, Reference<X>>;
 
-		//W ::= x y -> x y y
+		// W ::= x y -> x y y
 		using W = VarLambda<
 						VarList<X, Y>,
 						Application<
