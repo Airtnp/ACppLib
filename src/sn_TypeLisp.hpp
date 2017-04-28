@@ -431,6 +431,8 @@ namespace sn_TypeLisp {
 	};
 
 	// Lisp: quote/atom/eq/car/cdr/cons/cond
+
+	// TODO: add simple meta ref: http://ericniebler.com/2014/11/13/tiny-metaprogramming-library/
 }
 
 

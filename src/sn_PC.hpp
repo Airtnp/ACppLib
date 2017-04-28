@@ -8,6 +8,7 @@
 // TODO: add examples and get hang of this techniques
 // TODO: ref the realization of Lily-Cat https://zhuanlan.zhihu.com/p/25411428?
 // TODO: ref the Ninputer/VBF CPS-style parsec http://www.cnblogs.com/Ninputer/archive/2011/07/03/2096944.html
+// TODO: ref the realization of parsnip http://spikebucket.blogspot.jp/
 namespace sn_PC {
 	
 	using std::string;
