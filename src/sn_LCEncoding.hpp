@@ -481,6 +481,64 @@ namespace sn_LCEncoding {
 					>;
 	}
 
+	namespace BCKW {
+		enum {
+			V1, V2, V3, V4, V5, A, B, C,
+			V6, V7, V8, V9, V10, X, Y, Z
+		};
+
+		// B ::= x o y
+		using B = VarLambda<
+						VarList<X, Y, Z>,
+						Application<
+							Reference<X>,
+							ValList<
+								Application<
+									Reference<Y>,
+									Reference<Z>
+								>
+							>
+						>
+					>;
+
+		// C ::= x y z -> x z y
+		using C = VarLambda<
+						VarList<X, Y, Z>,
+						Application<
+							Reference<X>,
+							ValList<
+								Reference<Z>,
+								Reference<Y>
+							>
+						>
+					>;
+
+		// K ::= x y -> x
+		using K = VarLambda<VarList<X, Y>, Reference<X>>;
+
+		//W ::= x y -> x y y
+		using W = VarLambda<
+						VarList<X, Y>,
+						Application<
+							Reference<X>,
+							ValList<
+								Reference<Y>,
+								Reference<Y>
+							>
+						>
+					>;
+
+		/*
+		B = S (K S) K
+		C = S (S (K (S (K S) K)) S)(K K)
+		K = K
+		W = S S£¨K (S K K))
+		
+		I = W K
+		K = K
+		S = B (B (B W) C) (B B)[1] = B (B B B W B) C
+		*/
+	}
 }
 
 
