@@ -715,6 +715,32 @@ namespace sn_Assist {
 		}
 
 	}
+
+	namespace demangle {
+		template <typename T>
+		std::string demangle_type() {
+			using TR = typename std::remove_reference<T>::type;
+			std::unique_ptr<char, void(*)(void*)> own;
+				(
+			#ifndef _MSC_VER
+				abi::__cxa_demangle(typeid(TR).name(), nullptr, nullptr, nullptr),
+			#else
+				nullptr,
+			#endif
+				std::free
+				);
+			std::string r = own != nullptr ? own.get() : typeid(TR).name();
+			if (std::is_const<TR>::value)
+				r += " const";
+			if (std::is_volatile<TR>::value)
+				r += " volatile";
+			if (std::is_lvalue_reference<TR>::value)
+				r += "&";
+			if (std::is_rvalue_reference<TR>::value)
+				r += "&&";
+			return r;
+		}
+	}
 }
 
 

@@ -29,6 +29,7 @@ for detail: https://gcc.gnu.org/onlinedocs/libstdc++/ext/pb_ds/
 */
 #include <ext/pb_ds/>
 #include <x86intrin.h>
+#include <cxxabi.h>
 #else
 #include <intrin.h>
 #endif
