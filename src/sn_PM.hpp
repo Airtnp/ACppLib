@@ -13,8 +13,8 @@
 // Yes, it failed in Clang3.9! Illegal Instruction!
 // Yes, it succeeded in gcc6.3!
 // TODO: runtime match ref : https://github.com/solodon4/Mach7/tree/master/code
-// TODO: runtime match using structure binding. inspect(s) { [..., ...] = s => ... };
 // TODO: Cpp1z allows template deduction guide explicit template<...> C<...> -> C<p...> (Naturally type match)
+// TODO: Now the mathced function cannot do partial closure -> Add one Curry Wrapper to FuncTypeWrapper
 namespace sn_PM {
 	using sn_TypeLisp::TypeList;
 	using sn_Assist::sn_require::Require;

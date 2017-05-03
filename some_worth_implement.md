@@ -1,5 +1,42 @@
 # Something Worth Implementation
 
 ## Weighted-choice
-* [ref](https://deque.blog/2017/04/29/weighted-choice-implementation/)
+* [weighted-choice](https://deque.blog/2017/04/29/weighted-choice-implementation/)
 
+## Optional-ref
+* [optional-ref](https://codereview.stackexchange.com/questions/159836/an-optional-reft)
+
+## Coroutine
+* [bigger-coroutine](https://codereview.stackexchange.com/questions/151211/bigger-coroutine-class)
+
+## Checked (Strong Type)
+* [checked](https://github.com/MichaelSuen-thePointer/checked/blob/master/checked/checked.h)
+
+## Cast
+* [yslib-ystdex::cast](https://github.com/FrankHB/YSLib/blob/dc0317b085bc99e8965b570ced94c00bfda9cd01/YBase/include/ystdex/cast.hpp)
+
+## CppStdDB
+* [cppstddb](https://github.com/cruisercoder/cppstddb)
+
+## Malloc
+* [dlmalloc](https://github.com/greg7mdp/dlmalloc/)
+
+## Compile-time x86 Assembly
+* [ctai](https://github.com/stryku/ctai)
+
+## Break-for-each
+* [Kotlin-way](https://zhuanlan.zhihu.com/p/26683156)
+* or filter + foreach
+
+## qsort
+* [glibc-qsort](https://www.zhihu.com/question/39214230/answer/80244880)
+
+## Runtime-Y
+* [vczh-Y](https://gist.github.com/kenpusney/9274727)
+
+## Meta Algorithms
+* [metal](https://github.com/odinthenerd/metal)
+* [mpl11](https://github.com/ldionne/mpl11)
+
+## Concept-based Polymorphism
+* [dyno](https://github.com/ldionne/dyno)

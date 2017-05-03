@@ -87,6 +87,19 @@ namespace sn_String {
 		}
 
 	}
+
+	namespace trimmer {
+		 std::string trim(const std::string& str, char delim = ' ') {
+			std::string::size_type pos = str.find_first_not_of(delim);
+			if (pos == std::string::npos)
+				return str;
+			std::string::size_type pos2 = str.find_last_not_of(delim);
+			if (pos2 != std::string::npos)
+				return str.substr(pos, pos2 - pos + 1);
+			return str.substr(pos);
+		}
+	}
+
 	namespace wide_conv {
 		using std::string;
 		using std::wstring;
