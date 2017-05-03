@@ -133,10 +133,9 @@ struct policy_access {
     }
 };
 
-struct CRTP_C : public policy_access<CRTP_C> {
-    
-}
+struct CRTP_C : public policy_access<combiner<A, B, C>> {}
 
+// CRTP_C a; a.foo();
 
 struct T_policy;
 
@@ -153,7 +152,4 @@ struct T_policy {
     using f = T_public_policy<T>;
 };
 
-int main() {
-    
-}
 ```
