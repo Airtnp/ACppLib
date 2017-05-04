@@ -31,12 +31,14 @@
 ## qsort
 * [glibc-qsort](https://www.zhihu.com/question/39214230/answer/80244880)
 
-## Runtime-Y
-* [vczh-Y](https://gist.github.com/kenpusney/9274727)
-
 ## Meta Algorithms
 * [metal](https://github.com/odinthenerd/metal)
 * [mpl11](https://github.com/ldionne/mpl11)
 
 ## Concept-based Polymorphism
 * [dyno](https://github.com/ldionne/dyno)
+
+## Recursively visit
+* [video](https://www.youtube.com/watch?v=mqei4JJRQ7s&index=1&list=PL9hrFapz4dsMQuBQTnHXogJpMj6L_EQ10)
+* Y-combinator + Lambda
+* [talk](https://github.com/SuperV1234/accu2017/blob/master/implementing_variant_visitation_using_lambdas/talk.pdf)

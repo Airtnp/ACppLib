@@ -415,8 +415,10 @@ namespace sn_Assist {
 	}
 
 	namespace sn_overload {
-		//ref: https://www.zhihu.com/question/37202431
-		//ref: http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0051r2.pdf
+		// ref: https://www.zhihu.com/question/37202431
+		// ref: http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0051r2.pdf
+		// In C++1z, you can straightly
+		// class F : P... 		
 		template <typename F, typename...Args>
 		struct func_overload_impl : F, func_overload_impl<Args...> {
 			using F::operator();
@@ -434,8 +436,6 @@ namespace sn_Assist {
 		decltype(auto) make_overload_func(Args... args) {
 			return func_overload_impl<Args...>{args...};
 		}
-
-
 	}
 
 	namespace sn_tuple_assist {
