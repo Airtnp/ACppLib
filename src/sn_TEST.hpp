@@ -69,6 +69,45 @@ namespace sn_TEST {
 		};
 	}
 
+	namespace error {
+		template <class T, class E = std::error_condition>
+		class expected {
+		private:
+			T t_;
+			E e_;
+			bool has_v = false;	
+		public:
+			using value_type = T;
+			using error_type = E;
+
+			constexpr expected(const T& t) : t_(t), has_v(true) {}
+			constexpr expected(T&& t) : t_(std::move(t)), has_v(true) {}
+			constexpr expected(const E& e) : e_(e), has_v(false) {}
+			constexpr expected(E&& e) : e_(std::move(e)), has_v(false) {}
+			
+			constexpr T& value() {
+				if (has_v) {
+					return t_;
+				}
+				else {
+					throw std::runtime_error("...");
+				}
+			}
+
+			template <class U>
+			constexpr T value_or(U&& u) {
+				if (has_v) {
+					return t_;
+				}
+				else {
+					return std::forward<T>(u);
+				}
+			}
+
+
+		}
+	}
+
 }
 
 

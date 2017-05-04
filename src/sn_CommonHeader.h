@@ -84,6 +84,7 @@ for detail: https://gcc.gnu.org/onlinedocs/libstdc++/ext/pb_ds/
 // For exception
 #include <stdexcept>
 #include <exception>
+#include <system_error>
 
 
 // For platform-related

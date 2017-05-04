@@ -42,3 +42,6 @@
 * [video](https://www.youtube.com/watch?v=mqei4JJRQ7s&index=1&list=PL9hrFapz4dsMQuBQTnHXogJpMj6L_EQ10)
 * Y-combinator + Lambda
 * [talk](https://github.com/SuperV1234/accu2017/blob/master/implementing_variant_visitation_using_lambdas/talk.pdf)
+
+## Result/Expected<T, E>
+* like Rust
