@@ -64,3 +64,6 @@
 
 ## Source-location
 * [cppr](http://en.cppreference.com/w/cpp/experimental/source_location)
+
+## Quine
+* [github](https://github.com/neelkamath/quine)

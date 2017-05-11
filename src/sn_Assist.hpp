@@ -4,6 +4,33 @@
 #include "sn_CommonHeader.h"
 
 namespace sn_Assist {
+
+	namespace sn_demangle {
+		template <typename T>
+		std::string demangle_type() {
+			using TR = typename std::remove_reference<T>::type;
+			std::unique_ptr<char, void(*)(void*)> own;
+				(
+			#ifndef _MSC_VER
+				abi::__cxa_demangle(typeid(TR).name(), nullptr, nullptr, nullptr),
+			#else
+				nullptr,
+			#endif
+				std::free
+				);
+			std::string r = own != nullptr ? own.get() : typeid(TR).name();
+			if (std::is_const<TR>::value)
+				r += " const";
+			if (std::is_volatile<TR>::value)
+				r += " volatile";
+			if (std::is_lvalue_reference<TR>::value)
+				r += "&";
+			if (std::is_rvalue_reference<TR>::value)
+				r += "&&";
+			return r;
+		}
+	}
+
 	namespace sn_detect {
 		template <typename T, T v>
 		struct sn_integral_constant {
@@ -85,6 +112,8 @@ namespace sn_Assist {
 	}
 
 	namespace sn_has_member {
+
+		// Old-style : see sn_TypeTraits
 
 		//std::experimental::is_detected
 		//__if_exists in VS
@@ -214,7 +243,7 @@ namespace sn_Assist {
 		struct type_descriptor {
 			static string descript() {
 				std::string tmp = "[unknown type, maybe \"";
-				std::initializer_list<int>{(tmp += typeid(Args).name(), 0)...};
+				std::initializer_list<int>{(tmp = tmp + sn_demangle::demangle_type<Arg>() + " ", 0)...};
 				tmp += "\"]";
 				return tmp;
 			}
@@ -415,6 +444,18 @@ namespace sn_Assist {
 	}
 
 	namespace sn_overload {
+		
+		// overload even can be used to detect member
+		/* auto o = make_overload_func(
+				[](auto&& c, auto&&... args) -> decltype(c.func_name(std::forward<Args>(args)...)) {
+					return c.func_name(std::forward<Args>(args)...);
+				},
+				[](auto&& c, auto&&... args) {
+					// do nothing
+				}
+			);
+		*/
+
 		// ref: https://www.zhihu.com/question/37202431
 		// ref: http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0051r2.pdf
 		// In C++1z, you can straightly
@@ -716,31 +757,6 @@ namespace sn_Assist {
 
 	}
 
-	namespace demangle {
-		template <typename T>
-		std::string demangle_type() {
-			using TR = typename std::remove_reference<T>::type;
-			std::unique_ptr<char, void(*)(void*)> own;
-				(
-			#ifndef _MSC_VER
-				abi::__cxa_demangle(typeid(TR).name(), nullptr, nullptr, nullptr),
-			#else
-				nullptr,
-			#endif
-				std::free
-				);
-			std::string r = own != nullptr ? own.get() : typeid(TR).name();
-			if (std::is_const<TR>::value)
-				r += " const";
-			if (std::is_volatile<TR>::value)
-				r += " volatile";
-			if (std::is_lvalue_reference<TR>::value)
-				r += "&";
-			if (std::is_rvalue_reference<TR>::value)
-				r += "&&";
-			return r;
-		}
-	}
 }
 
 
