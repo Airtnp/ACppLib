@@ -42,6 +42,7 @@
 * [video](https://www.youtube.com/watch?v=mqei4JJRQ7s&index=1&list=PL9hrFapz4dsMQuBQTnHXogJpMj6L_EQ10)
 * Y-combinator + Lambda
 * [talk](https://github.com/SuperV1234/accu2017/blob/master/implementing_variant_visitation_using_lambdas/talk.pdf)
+* [repo](https://github.com/SuperV1234/scelta)
 
 ## Heterogeneous container
 * [static-unordered-map](https://gieseanw.wordpress.com/2017/05/03/a-true-heterogeneous-container-in-c/)
@@ -54,3 +55,12 @@
 
 ## Cmdline
 * [github](https://github.com/tanakh/cmdline)
+
+## Meta
+* [ctti](https://github.com/Manu343726/ctti)
+
+## Test
+* [catch](https://github.com/philsquared/Catch)
+
+## Source-location
+* [cppr](http://en.cppreference.com/w/cpp/experimental/source_location)

@@ -59,13 +59,13 @@ namespace sn_TEST {
 	namespace dummy {
 		struct dummy_test {
 			int v;
-			dummy_test() { std::cout << "default ctor.\n"; }
-			dummy_test(int xv): v(xv) { std::cout << "parameter ctor.\n"; }
-			dummy_test(const dummy_test& rhs): v(rhs.v) { std::cout << "copy ctor.\n"; }
-			dummy_test(dummy_test&& rhs): v(std::move(rhs.v)) { std::cout << "move ctor.\n"; }
-			dummy_test& operator=(const dummy_test& rhs) { v = rhs.v; std::cout << "copy operator.\n"; }
-			dummy_test& operator=(dummy_test&& rhs) { v = std::move(rhs.v); std::cout << "move operator.\n"; }
-			~dummy_test() { std::cout << "dtor.\n"; }
+			dummy_test() { std::cout << std::addressof(*this) << " default ctor.\n"; }
+			dummy_test(int xv): v(xv) { std::cout << std::addressof(*this) <<  " parameter ctor.\n"; }
+			dummy_test(const dummy_test& rhs): v(rhs.v) { std::cout << std::addressof(*this) << " copy ctor.\n"; }
+			dummy_test(dummy_test&& rhs): v(std::move(rhs.v)) { std::cout << std::addressof(*this) << " move ctor.\n"; }
+			dummy_test& operator=(const dummy_test& rhs) { v = rhs.v; std::cout << std::addressof(*this) << " copy operator.\n"; }
+			dummy_test& operator=(dummy_test&& rhs) { v = std::move(rhs.v); std::cout << std::addressof(*this) << " move operator.\n"; }
+			~dummy_test() { std::cout << std::addressof(*this) << " dtor.\n"; }
 		};
 	}
 
