@@ -1,11 +1,5 @@
 # Something Worth Implementation
 
-## Weighted-choice
-* [weighted-choice](https://deque.blog/2017/04/29/weighted-choice-implementation/)
-
-## Optional-ref
-* [optional-ref](https://codereview.stackexchange.com/questions/159836/an-optional-reft)
-
 ## Coroutine
 * [bigger-coroutine](https://codereview.stackexchange.com/questions/151211/bigger-coroutine-class)
 
@@ -44,14 +38,8 @@
 * [talk](https://github.com/SuperV1234/accu2017/blob/master/implementing_variant_visitation_using_lambdas/talk.pdf)
 * [repo](https://github.com/SuperV1234/scelta)
 
-## Heterogeneous container
-* [static-unordered-map](https://gieseanw.wordpress.com/2017/05/03/a-true-heterogeneous-container-in-c/)
-
 ## Generic Hasher
 * boost.hash
-
-## C-hack
-* [zhihu](https://www.zhihu.com/question/27417946)
 
 ## Cmdline
 * [github](https://github.com/tanakh/cmdline)
@@ -65,5 +53,5 @@
 ## Source-location
 * [cppr](http://en.cppreference.com/w/cpp/experimental/source_location)
 
-## Quine
-* [github](https://github.com/neelkamath/quine)
+## Lock-free
+* [HPLFDS](https://github.com/yebangyu/HPLFDS)

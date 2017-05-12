@@ -117,7 +117,8 @@ namespace sn_Assist {
 
 		//std::experimental::is_detected
 		//__if_exists in VS
-		//Usage: sn_has_member(a); bool has_member = sn_has_member_value<T>(a);
+		//Usage: SN_HAS_MEMBER(a); bool has_member_a = SN_HAS_MEMBER_VALUE<T>(a);
+
 #define SN_HAS_MEMBER(member_name) \
 	template <typename T, typename V = std::void_t<>> \
 	struct sn_has_member_##member_name : std::false_type {}; \
@@ -172,6 +173,29 @@ namespace sn_Assist {
 		using type = decltype(check<C>(nullptr)); \
 		};
 		*/
+
+		/*
+		Old-style
+
+		#define CREATE_MEMBER_DETECTOR(X)                                                   	\
+			template<typename T> class Detect_##X {                                             \
+				struct Fallback { int X; };                                                     \
+				struct Derived : T, Fallback { };                                               \
+																								\
+				template<typename U, U> struct Check;                                           \
+																								\
+				typedef char ArrayOfOne[1];                                                     \
+				typedef char ArrayOfTwo[2];                                                     \
+																								\
+				template<typename U> static ArrayOfOne & func(Check<int Fallback::*, &U::X> *); \
+				template<typename U> static ArrayOfTwo & func(...);                             \
+			public:                                                                           	\
+				typedef Detect_##X type;                                                        \
+				enum { value = sizeof(func<Derived>(0)) == 2 };                                 \
+			};
+		
+		*/
+
 
 	}
 

@@ -169,6 +169,13 @@ namespace sn_String {
 			wstring wstr = string_to_wstring(str);
 			return wstring_to_unhex(wstr);
 		}
+
+		void hex_print(const std::string& s) {
+			std::cout << std::hex << std::setfill('0');
+			for(unsigned char c : s)
+				std::cout << std::setw(2) << static_cast<int>(c) << ' ';
+			std::cout << std::dec << '\n';
+		}
 	}
 	namespace misc {
 		using std::to_string;

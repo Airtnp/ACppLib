@@ -804,6 +804,103 @@ namespace sn_Type {
 	}
 #endif
 
+	namespace heterogeneous {
+		
+		// ref: https://gieseanw.wordpress.com/2017/05/03/a-true-heterogeneous-container-in-c/
+		class HeterogeneousContainer {
+		public:
+			HeterogeneousContainer() = default;
+			HeterogeneousContainer(const HeterogeneousContainer& rhs) {
+				*this = rhs;
+			}
+			HeterogeneousContainer& operator=(const HeterogeneousContainer& rhs) {
+				clear();
+				m_clearFuncs = rhs.m_clearFuncs;
+				m_copyFuncs = rhs.m_copyFuncs;
+				m_sizeFuncs = rhs.m_sizeFuncs;
+				for (auto&& copyFunc : m_copyFuncs)
+					copyFunc(rhs, *this);
+				return *this;
+			}
+
+			template <typename T>
+			void push_back(const T& t) {
+				if (m_items<T>.find(this) == std::end(m_items<T>)) {
+					m_clearFuncs.emplace_back([](HeterogeneousContainer& c){
+						m_items<T>.erase(&c);
+					});
+					m_copyFuncs.emplace_back([](const HeterogeneousContainer& from, HeterogeneousContainer& to){
+						m_items<T>[&to] = m_items<T>[&from];
+					});
+					m_sizeFuncs.emplace_back([](const HeterogeneousContainer& c){
+						return m_items<T>[&c].size();
+					});
+					m_items<T>[this].push_back(t);
+				}
+			}
+
+			void clear() {
+				for (auto&& clearFunc : m_clearFuncs)
+					clearFunc(*this);
+			}
+
+			std::size_t size() const {
+				std::size_t sum = 0;
+				for (auto&& sizeFunc : m_sizeFuncs)
+					sum += sizeFunc(*this);
+				return sum;
+			}
+
+			~HeterogeneousContainer() {
+				clear();
+			}
+
+			template <typename T>
+			void visit(T&& visitor) {
+				visit_impl(visitor, typename std::decay_t<T>::types{});
+			}
+
+		private:
+			template <typename T>
+			static std::unordered_map<const HeterogeneousContainer*, std::vector<T>> m_items;
+			
+			template <typename T, typename U>
+			using visit_function = decltype(std::declval<T>().operator()(std::declval<U&>()));
+
+			template <typename T, typename U>
+			static constexpr bool has_visit_v = sn_Assist::sn_detect::sn_is_detected<visit_function, T, U>::value;
+
+			template <typename T, template <typename...> typename TL, typename ...Args>
+			void visit_impl(T&& visitor, TL<Args...>) {
+				//(..., visit_impl_helper<std::decay_t<T>, Args>(visitor));
+				std::initializer_list<int>{(visit_impl_helper<std::decay_t<T>, Args>(visitor), 0)...};
+			}
+
+			template <typename T, typename U>
+			void visit_impl_helper(T& visitor) {
+				static_assert(has_visit_v<T, U>, "Visitors must provide a visit function accepting a reference to each type");
+				for (auto&& elem : m_items<U>[this])
+					visitor(elem);
+			}
+
+			std::vector<std::function<void(HeterogeneousContainer&)>> m_clearFuncs;
+			std::vector<std::function<void(const HeterogeneousContainer&, HeterogeneousContainer&)>> m_copyFuncs;
+			std::vector<std::function<std::size_t(const HeterogeneousContainer&)>> m_sizeFuncs;
+			
+		};
+
+		template <typename T>
+		std::unordered_map<const HeterogeneousContainer*, std::vector<T>> HeterogeneousContainer::m_items;
+
+		template <typename ...Args>
+		struct TypeList {};
+
+		template <typename ...Args>
+		struct base_visitor {
+			using types = TypeList<Args...>;
+		};
+	}
+
 	namespace helper {
 		template <typename T, typename ...Args>
 		any::Any make_any(Args&&... args) {

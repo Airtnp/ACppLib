@@ -6,6 +6,10 @@
 #include "sn_StdStream.hpp"
 
 namespace sn_TEST {
+
+#define SN_STATIC_ASSERT(cond) \
+	((void)sizeof(char[1 - 2 * !!(cond)]))
+
 #define SN_TESTCASE(Name) \
 	extern void sn_test_case_function_##Name(void); \
 	struct SN_TestCaseClass_##Name { \
