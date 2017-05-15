@@ -376,6 +376,31 @@ namespace sn_Function {
 
 	}
 
+	namespace template_currying {
+		template <template <typename ...TArgs> typename Op, typename ...Args>
+		struct TemplateCurrying {
+			template <typename ...LArgs>
+			struct LTemplate {
+				using type = Op<Args..., LArgs...>;
+			};
+            template <typename ...LArgs>
+            using type = typename LTemplate<LArgs...>::type;
+		};
+
+		template <typename ...LArgs>
+		template <template <typename ...TArgs> typename Op, typename ...Args>
+		using TPC = typename TemplateCurrying<Op, Args...>::template type<LArgs...>;
+
+		/*
+		Usage:
+			template <typename ...LArgs>
+			using AC = TPC<Op, Args...>;
+			
+			using T = AC<Args...>;
+		*/
+
+	}
+
 	namespace combining {
 		template <typename A, typename B, typename C>
 		class Combining {};
@@ -900,6 +925,7 @@ namespace sn_Function {
 	using trampoline::make_trampoline_wrapper;
 	using YCombinator::Y;
 	using YCombinator::YA;
+	using template_currying::TPC;
 
 	const auto ChainHead = pipeline::Chain<>();
 }
