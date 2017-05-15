@@ -267,7 +267,7 @@ namespace sn_Assist {
 		struct type_descriptor {
 			static string descript() {
 				std::string tmp = "[unknown type, maybe \"";
-				std::initializer_list<int>{(tmp = tmp + sn_demangle::demangle_type<Arg>() + " ", 0)...};
+				std::initializer_list<int>{(tmp = tmp + sn_demangle::demangle_type<Args>() + " ", 0)...};
 				tmp += "\"]";
 				return tmp;
 			}
