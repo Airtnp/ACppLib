@@ -170,7 +170,7 @@ namespace sn_Function {
 				function::Func<function_type> m_target;
 				Arg0 m_firstParam;
 			public:
-				Binder(const function::Func<function_type>& target, Arg0 param) : m_target(target), m_firstParam(param) {}
+				Binder(const function::Func<function_type>& target, Arg0&& param) : m_target(target), m_firstParam(std::forward<Arg0>(param)) {}
 
 				R operator()(Args&&... args) {
 					return m_target(std::forward<Arg0>(m_firstParam), std::forward<Args>(args)...);
