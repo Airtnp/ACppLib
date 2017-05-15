@@ -7,6 +7,9 @@
 
 namespace sn_TEST {
 
+#define SN_ASSERT(expr, msg) \
+	assert(expr && msg)
+
 #define SN_STATIC_ASSERT(cond) \
 	((void)sizeof(char[1 - 2 * !!(cond)]))
 
