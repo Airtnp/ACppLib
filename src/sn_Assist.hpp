@@ -52,7 +52,7 @@ namespace sn_Assist {
 			void operator= (sn_nonesuch const&) = delete;
 		};
 
-		template <class T, class = std::void_t<>, template<class...> class Op, class... Args>
+		template <class T, class V /* = std::void_t<>*/, template<class...> class Op, class... Args>
 		struct sn_detector {
 			using value_t = std::false_type;
 			using type = T;
@@ -68,7 +68,7 @@ namespace sn_Assist {
 		using sn_is_detected = typename sn_detector<sn_nonesuch, void, Op, Args...>::value_t;
 
 		template <template<class...> class Op, class... Args>
-		constexpr bool sn_is_detected_v = typename sn_detector<sn_nonesuch, void, Op, Args...>::value_t::value;
+		constexpr static const bool sn_is_detected_v = sn_is_detected<Op, Args...>::value;
 
 		template <template<class...> class Op, class... Args>
 		using sn_detected_v = typename sn_detector<sn_nonesuch, void, Op, Args...>::type;

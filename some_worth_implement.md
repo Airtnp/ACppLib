@@ -46,6 +46,8 @@
 
 ## Meta
 * [ctti](https://github.com/Manu343726/ctti)
+* compile-time math function
+* compile-time matrix
 
 ## Test
 * [catch](https://github.com/philsquared/Catch)
@@ -55,3 +57,10 @@
 
 ## Lock-free
 * [HPLFDS](https://github.com/yebangyu/HPLFDS)
+
+## Machine
+* PDA
+* Turing
+
+## DB
+* [simdb](https://github.com/LiveAsynchronousVisualizedArchitecture/simdb)

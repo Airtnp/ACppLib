@@ -386,13 +386,13 @@ namespace sn_TypeLisp {
 		using type = NullType;
 	};
 
-	template <typename H, typename ...T>
-	struct Atom<TypeList<H, T...>> {
-		using type = TypeList<>;
+	template <template <typename ...> typename TL, typename H, typename ...T>
+	struct Atom<TL<H, T...>> {
+		using type = TL<>;
 	};
 
-	template <>
-	struct Atom<TypeList<>> {
+	template <template <typename ...> typename TL>
+	struct Atom<TL<>> {
 		using type = NullType;
 	};
 
@@ -412,6 +412,7 @@ namespace sn_TypeLisp {
 	template <typename T1, typename T2>
 	using Eq_t = typename Eq<T1, T2>::type;
 
+/*
 	template <typename L, typename V = void>
 	struct Cond {};
 
@@ -429,13 +430,208 @@ namespace sn_TypeLisp {
 	struct Cond<TypeList<>> {
 		using type = TypeList<>;
 	};
-
+*/
 	// Lisp: quote/atom/eq/car/cdr/cons/cond
 
-	// TODO: add simple meta ref: http://ericniebler.com/2014/11/13/tiny-metaprogramming-library/
-	// TODO: add take/replicate/drop
-	// TODO: rewrite it into GeneralList template <template <typename ...Args> typename L>
-	// TODO: add lazy repeat match L<Repeat<Arg>> -> L<Arg, Repeat<Arg>>
+	template <template <typename ...> typename TL, typename H, typename ...T>
+	struct TypeCar<TL<H, T...>> {
+		using type = H;
+	};
+
+	template <template <typename ...> typename TL>
+	struct TypeCar<TL<>> {
+		using type = TL<>;
+	};
+
+	template <template <typename ...> typename TL, typename H, typename ...T>
+	struct TypeCdr<TL<H, T...>> {
+		using type = TL<T...>;
+	};
+
+	template <template <typename ...> typename TL, typename H>
+	struct TypeCdr<TL<H>> {
+		using type = NullType;
+	};
+
+	template <template <typename ...> typename TL>
+	struct TypeCdr<TL<>> {
+		using type = NullType;
+	};
+
+	template <template <typename ...> typename TL>
+	struct TypeLength<TL<>> {
+		constexpr static const std::size_t value = 0;
+	};
+
+	template <template <typename ...> typename TL, typename H, typename ...T>
+	struct TypeLength<TL<H, T...>> {
+		constexpr static const std::size_t value = 1 + TypeLength<TL<T...>>::value;
+	};
+
+	template <template <typename ...> typename TL, std::size_t N>
+	struct TypeAt<TL<>, N> {
+		using type = NullType;
+	};
+
+	template <template <typename ...> typename TL, typename H, typename ...T, std::size_t N>
+	struct TypeAt<TL<H, T...>, N> {
+		using type = std::conditional_t<N == 0, H, typename TypeAt<TL<T...>, N - 1>::type>;
+	};
+
+	template <template <typename ...> typename TL, typename ...Args, typename ST>
+	struct TypeIndex<TL<ST, Args...>, ST> {
+		constexpr static const int value = 0;
+	};
+
+	template <template <typename ...> typename TL, typename H, typename ...T, typename ST>
+	struct TypeIndex<TL<H, T...>, ST> {
+		constexpr static const int value = (TypeIndex<TL<T...>, ST>::value == -1) ? -1 : 1 + (TypeIndex<TL<T...>, ST>::value);
+	};
+
+	template <template <typename ...> typename TL, typename ...T>
+	struct TypeAppend<TL<T...>, NullType> {
+		using type = TL<T...>;
+	};
+
+	template <template <typename ...> typename TL, typename ...T, typename ST>
+	struct TypeAppend<TL<T...>, ST> {
+		using type = TL<T..., ST>;
+	};
+
+	template <template <typename ...> typename TL, typename ...T, typename ST>
+	struct TypeAppend<ST, TL<T...>> {
+		using type = TL<ST, T...>;
+	};
+
+	template <template <typename ...> typename TL, typename ...T1, typename ...T2>
+	struct TypeAppend<TL<T1...>, TL<T2...>> {
+		using type = TL<T1..., T2...>;
+	};
+
+	template <typename T, std::size_t N>
+	struct TypeTake {};
+
+	template <template <typename ...> typename TL, typename H, typename ...T, std::size_t N>
+	struct TypeTake<TL<H, T...>, N> {
+		using type = typename TypeAppend<H, typename TypeTake<TL<T...>, N-1>::type>::type;
+	};
+
+	template <template <typename ...> typename TL, typename ...T>
+	struct TypeTake<TL<T...>, 0> {
+		using type = TL<>;
+	};
+
+	template <typename T, std::size_t N>
+	using TypeTake_t = typename TypeTake<T, N>::type;
+
+	template <typename T, std::size_t N>
+	struct TypeDrop {};
+
+	template <template <typename ...> typename TL, typename H, typename ...T, std::size_t N>
+	struct TypeDrop<TL<H, T...>, N> {
+		using type = typename TypeTake<TL<T...>, N-1>::type;
+	};
+
+	template <template <typename ...> typename TL, typename ...T>
+	struct TypeDrop<TL<T...>, 0> {
+		using type = TL<T...>;
+	};
+
+	template <typename T, std::size_t N>
+	using TypeDrop_t = typename TypeDrop<T, N>::type;
+
+	template <typename T, template <typename> class Op>
+	struct TypeTakeWhile {};
+
+	template <template <typename ...> typename TL, typename H, typename ...T, template <typename> class Op>
+	struct TypeTakeWhile<TL<H, T...>, Op> {
+		using type = std::conditional_t<Op<H>::value,
+											typename TypeAppend<H, typename TypeTakeWhile<TL<T...>, Op>::type>::type,
+											TL<H, T...>
+										>;
+	};
+
+	template <template <typename ...> typename TL, template <typename> typename Op>
+	struct TypeTakeWhile<TL<>, Op> {
+		using type = TL<>;
+	};
+
+	template <typename T, template <typename> class Op>
+	using TypeTakeWhile_t = typename TypeTakeWhile<T, Op>::type;
+
+	template <typename T, template <typename> class Op>
+	struct TypeDropWhile {};
+
+	template <template <typename ...> typename TL, typename H, typename ...T, template <typename> typename Op>
+	struct TypeDropWhile<TL<H, T...>, Op> {
+		using type = std::conditional_t<Op<H>::value,
+											typename TypeDropWhile<TL<T...>, Op>::type,
+											TL<H, T...>
+										>;
+	};
+
+	template <template <typename ...> typename TL, template <typename> typename Op>
+	struct TypeDropWhile<TL<>, Op> {
+		using type = TL<>;
+	};
+
+	template <typename T, template <typename> class Op>
+	using TypeDropWhile_t = typename TypeDropWhile<T, Op>::type;
+
+	template <typename T, template <typename> class Op>
+	struct TypeFilter {};
+
+	template <template <typename ...> typename TL, typename H, typename ...T, template <typename> typename Op>
+	struct TypeFilter<TL<H, T...>, Op> {
+		using type = std::conditional_t<Op<H>::value,
+											typename TypeAppend<H, typename TypeFilter<TL<T...>, Op>::type>::type,
+											typename TypeFilter<TL<T...>, Op>::type
+										>;
+	};
+
+	template <template <typename ...> typename TL, typename ...T, template <typename> typename Op>
+	struct TypeFilter<TL<T...>, Op> {
+		using type = TL<>;
+	};
+
+	template <typename T, template <typename> class Op>
+	using TypeFilter_t = typename TypeFilter<T, Op>::type;
+
+	template <template <typename ...> typename TL, typename ...T, typename ST>
+	struct TypeEraseAll<TL<T...>, ST> {
+		template <typename SST>
+		struct IsNotEqualST {
+			static constexpr const bool value = IsTypeSame<SST, ST>::value;
+		};
+		using type = typename TypeFilter<TL<T...>, IsNotEqualST>::type;
+	};
+
+	template <typename T, std::size_t N>
+	struct TypeReplicate {};
+
+	template <template <typename ...> typename TL, typename ...T, std::size_t N>
+	struct TypeReplicate<TL<T...>, N> {
+		using type = typename TypeAppend<TL<T...>, typename TypeReplicate<TL<T...>, N-1>::type>::type;
+	};
+
+	template <template <typename ...> typename TL, typename ...T>
+	struct TypeReplicate<TL<T...>, 0> {
+		using type = TL<>;
+	};
+
+	template <typename T>
+	struct Repeat {};
+
+	template <template <typename ...> typename TL, typename H, typename ...T, std::size_t N>
+	struct TypeTake<TL<Repeat<H>, T...>, N> {
+		using type = typename TypeAppend<H, typename TypeTake<TL<Repeat<H>, T...>, N-1>::type>::type;
+	};
+
+	template <template <typename ...> typename TL, typename H, typename ...T, std::size_t N>
+	struct TypeDrop<TL<Repeat<H>, T...>, N> {
+		using type = typename TypeTake<TL<H, T...>, N-1>::type;
+	};
+
 }
 
 

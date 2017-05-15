@@ -154,6 +154,8 @@ namespace sn_Function {
 	}
 
 	namespace currying {
+		// TODO: add proxy (self-adjusting curry)
+
 		template <typename T>
 		struct Currying {};
 

@@ -2,6 +2,7 @@
 #define SN_TYPE_TRAITS_H
 
 #include "sn_CommonHeader.h"
+#include "sn_TypeLisp.hpp"
 
 namespace sn_TypeTraits {
 	namespace functor {
@@ -95,6 +96,7 @@ namespace sn_TypeTraits {
 		static char check(...);
 		static const bool value = sizeof(check<T>(0)) == sizeof(int);
 	};
+
 }
 
 

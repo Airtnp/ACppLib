@@ -46,9 +46,7 @@ class drawable_model : public drawable_concept {
         model_.draw();
     }
 }
-```
-* Concept 2
-```c++
+
 class drawable {
     std::unique_ptr<drawable_concept> object_;
     public:
