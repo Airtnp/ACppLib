@@ -7,6 +7,7 @@
 // Brzozowski's derivative
 // TODO: add DFA (ref : https://people.mpi-sws.org/~turon/re-deriv.pdf, derivative can => DFA)
 // TODO: add reduction
+// Visitor pattern-GADT
 namespace sn_RegexD {
 	namespace AST {
 		// Instance ---- this ----> Exp ---- *Exp ---> Instance

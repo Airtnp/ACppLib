@@ -5,7 +5,8 @@
 #include "sn_Macro.hpp"
 
 namespace sn_Reflection {
-	//ref: http://purecpp.org/?p=1074
+	// ref: http://purecpp.org/?p=1074
+	// TODO: complete utility ref: https://github.com/apolukhin/magic_get
 	//VS2015 (no update?) gave little support on constexpr function (defined in C++1y)
 #if defined(__GNUC__) || defined(__clang__)
 	namespace unamed_pod_reflect {
@@ -399,7 +400,7 @@ namespace sn_Reflection {
 			}
 			std::cout << "in sub process" << std::endl;
 			std::string name = argv[1];
-			Reflection<MapFn>::create(name)->call();  // 注意这子进程里从未显式调用过任何注册相关的代码
+			Reflection<MapFn>::create(name)->call();  // 注锟斤拷锟斤拷锟接斤拷锟斤拷锟斤拷锟斤拷未锟斤拷式锟斤拷锟矫癸拷锟轿猴拷注锟斤拷锟斤拷锟截的达拷锟斤拷
 		}
 		*/
 	}
