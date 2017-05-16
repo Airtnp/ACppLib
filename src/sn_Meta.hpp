@@ -1,7 +1,25 @@
-#ifndef SN_MATH_H
-#define SN_MATH_H
+#ifndef SN_META_H
+#define SN_META_H
 
-namespace sn_Math {
+namespace sn_Meta {
+    namespace constexpr_container {
+        template <typename T, std::size_t N>
+        class array_result {
+        private:
+            constexpr static std::size_t m_size = N;
+            T m_data[N] {};
+        public:
+            constexpr std::size_t size() const { return N; }
+            constexpr T& operator[](std::size_t n)
+            { return m_data[n]; }
+            constexpr const T& operator[](std::size_t n) const
+            { return m_data[n]; }
+            using iterator = T*;
+            constexpr iterator begin() { return &m_data[0]; }
+            constexpr iterator end() { return &m_data[N]; }
+        };
+    }
+
     namespace constexpr_math {
         // complete 14-support
         constexpr double pow_int(double base, int exp) {
@@ -33,6 +51,8 @@ namespace sn_Math {
             return x;
         }
     }
+
+   
 
 }
 

@@ -2,6 +2,7 @@
 #define SN_EXCEPTION_H
 
 #include "sn_CommonHeader.h"
+#include "sn_Macro.hpp"
 
 namespace sn_Exception {
 
@@ -69,11 +70,6 @@ namespace sn_Exception {
     ScopeGuardForException<std::decay_t<F>, false> operator+(ScopeGuardOnSuccess, F&& fn) {
         return ScopeGuardForException<std::decay_t<F>, false>(std::forward<F>(fn));
     }
-
-#define CONCATENATE_IMPL(s1, s2) s1 ## s2
-#define CONCATENATE(s1, s2) CONCATENATE_IMPL(s1, s2)
-// Or __COUNTER__
-#define ANONYMOUS_VARIABLE(str) CONCATENATE(str, __LINE__)
 
 #define SCOPE_EXIT \
     auto ANONYMOUS_VARIABLE(SCOPE_EXIT_STATE) \
