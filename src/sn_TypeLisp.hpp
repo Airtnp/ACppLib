@@ -632,6 +632,19 @@ namespace sn_TypeLisp {
 		using type = typename TypeTake<TL<H, T...>, N-1>::type;
 	};
 
+	template <bool Statement, typename T1, typename T2>
+	struct TypeIf {
+		using type = T1;
+	};
+
+	template <typename T1, typename T2>
+	struct TypeIf<false, T1, T2> {
+		using type = T2;
+	};
+
+	template <bool Statement, typename T1, typename T2>
+	using TypeIf_t = typename TypeIf<Statement, T1, T2>::type;
+
 }
 
 

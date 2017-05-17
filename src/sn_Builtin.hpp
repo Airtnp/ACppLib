@@ -672,6 +672,13 @@ namespace sn_Builtin {
 		}
 	}
 
+	template <typename T>
+	void safe_delete(T* p) {
+		using complete_type_check = T;
+		sizeof(complete_type_check);
+		delete p;
+	}
+
 }
 
 #endif

@@ -196,6 +196,49 @@ namespace sn_Assist {
 		
 		*/
 
+		struct yes_type { char[2] m; };
+		struct no_type { char[1] m; };
+		// consider member/ADL/global
+		// When the test is false, call ADL swap. Otherwise, perform a function-pointer based test. Call apply2 by
+		// taking the address of swap, which is known to be possible because at least one swap exists.
+#define SN_DETECT_X_TRAITS_AND_CALL(X) \
+	struct Traits_##X { \
+		template <typename T, void (T::*F)(T&)> \
+		class yes1 : public sn_Assist::sn_has_member::yes_type {}; \
+		template <typename T, void (*F)(T&)> \
+		class yes2 : public sn_Assist::sn_has_member::yes_type {}; \
+		template <typename T> \
+		inline static void apply (T& a, T& b) { \
+			apply1(a, b, test(&a)); \
+		} \
+	private: \
+		template <typename T> \
+		static yes1<T, &T::##X>* test(T*) { return 0; } \
+		template <typename T> \
+		static yes2<T, &T::##X>* test(T*) { return 0; } \
+		static no_type* test(void*) { return 0; } \
+		\
+		template <typename T> \
+		inline static void apply1(T& a, T& b, no_type*) { \
+			X##(a, b); \
+		} \
+		template <typename T> \
+		inline static void apply1(T& a, T& b, yes_type*) { \
+			apply2(a, b, &T::##X); \
+		} \
+		template <typename T> \
+		inline static void apply2(T& a, T& b, void (*)(T&, T&)) { \
+			T::##X##(a, b); \
+		} \
+		template <typename T, typename BASE> \
+		inline static void apply2(T& a, T& b, void (BASE::*)(BASE&)) { \
+			a.##X##(b); \
+		} \
+		template <typename T> \
+		inline static void apply2(T& a, T& b, ...) { \
+			X##(a, b); \
+		} \
+	}; \
 
 	}
 

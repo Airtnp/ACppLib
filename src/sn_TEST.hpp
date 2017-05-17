@@ -55,12 +55,97 @@ namespace sn_TEST {
 			static std::chrono::nanoseconds report() {
 				return t.time_since_epoch();
 			}
+
 		};
 
 		template <typename T>
 		std::chrono::time_point<std::chrono::steady_clock> profile<T>::t{ 1 };
 		template <typename T>
 		std::chrono::time_point<std::chrono::steady_clock> profile<T>::s;
+
+		template <typename Traits>
+		class basic_timer {
+			using tm_t = typename Traits::time_type;
+			using diff_t = typename Traits::difference_type
+			tm_t m_start;
+			tm_t m_stop;
+			inline static tm_t now() {
+				return Traits::get_time();
+			}
+			double elapsed(const tm_t end) const {
+				static const tm_t freq = Traits::get_freq();
+				return static_cast<double>(static_cast<diff_t>(end - m_start)) / freq;
+			}
+		public:
+			using time_type = tm_t;
+			using difference_type = diff_t;
+			basic_timer()
+				: start_() {}
+			difference_type lap() const { return now() - m_start; }
+			time_type start() { return m_start = now(); }
+			difference_type stop() { return (m_stop = now()) - m_start; }
+			difference_type interval() const { return m_stop - m_start; }
+			double as_seconds() const { return elapsed(m_stop); }
+			double elapsed() const { return elapsed(now()); }
+		};
+
+		// #include <ctime>
+		struct clock_time_traits {
+			using time_type = size_t;
+			using difference_type = ptrdiff_t;
+			static time_type get_time() {
+				time_t t;
+				return std::time(&t);
+			}
+			static time_type get_freq() {
+				return 1;
+			}
+		};
+
+		struct cpu_time_traits {
+			using time_type = size_t;
+			using difference_type = ptrdiff_t;
+			static time_type get_time() {
+				return std::clock();
+			}
+			static time_type get_freq() {
+				return CLOCKS_PER_SEC;
+			}
+		};
+
+#ifdef _WIN32
+		// #include <windows.h>
+		struct windows_clock_time_traits {
+			using time_type = ULONGLONG;
+			using difference_type = LONGLONG;
+			static time_type get_time() {
+				LARGE_INTEGER i;
+				QueryPerformanceCounter(&i);
+				return i.QuadPart;
+			}
+			static time_type get_freq() {
+				LARGE_INTEGER value;
+				QueryPerformanceFrequency(&value);
+				return value.QuadPart;
+			}
+		};
+		using platform_clock_traits = windows_clock_time_traits;
+#elif defined(__APPLE__)
+		// #include <sys/time.h>
+		struct macosx_clock_time_traits {
+			using time_type = uint64_t;
+			using difference_type = int64_t;
+			static time_type get_time() {
+				timeval now;
+				gettimeofday(&now, 0);
+				return static_cast<time_type>(now.tv_sec) * get_freq() + now.tv_usec;
+			}
+			static time_type get_freq() {
+				return 1000000;
+			}
+		};
+		using platform_clock_traits = macosx_clock_time_traits;
+#endif
 	}
 
 	namespace dummy {

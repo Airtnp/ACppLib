@@ -151,7 +151,65 @@ namespace sn_Macro { //useless namespace
 #define SN_APPLY_EXPAND_N(N, F, ...) SN_APPLY_NEST_N(N, SN_APPLY_EXPAND_F, SN_APPLY_EXPAND_L, SN_APPLY_EXPAND_NE, F, __VA_ARGS__)
 #define SN_APPLY_EXPAND(F, ...) SN_APPLY_EXPAND_N(SN_GET_ARG_N(SN_POP_ARG_1(__VA_ARGS__)), F, __VA_ARGS__)
 
+#define SN_STRING_WIDEN_IMPL(x) L ## x
+#define SN_STRING_WIDEN(x) SN_STRING_WIDEN_IMPL(x)
+#define __WFILE__ SN_STRING_WIDEN(__FILE__)
 
+#ifdef __GNUC__
+	struct source_location {
+	public:
+		static constexpr source_location current(
+			const char* file = __builtin_FILE(),
+			const char* func = __builtin_FUNCTION(),
+			int line = __builtin_LINE(),
+			int col = 0
+		) noexcept {
+			source_location loc;
+			loc.m_file = file;
+			loc.m_func = func;
+			loc.m_line = line;
+			loc.m_col = col;
+		}
+		constexpr source_location() noexcept
+			: m_file("Unknown"), m_func(m_file), m_line(0), m_col(0) {}
+		constexpr uint_least32_t line() const noexcept { return m_line; }
+		constexpr uint_least32_t column() const noexcept { return m_col; }
+		constexpr const char* file() const noexcept { return m_file; }
+		constexpr const char* func() const noexcept { return m_func; }
+	private:
+		const char* m_file;
+		const char* m_func;
+		uint_least32_t m_line;
+		uint_least32_t m_col;
+	};
+#elif defined(_MSC_VER)
+	struct source_location {
+	public:
+		static constexpr source_location current(
+			const wchar_t* file = __WFILE__,
+			const char* func = __func__,
+			int line = __LINE__,
+			int col = 0
+		) noexcept {
+			source_location loc;
+			loc.m_file = file;
+			loc.m_func = func;
+			loc.m_line = line;
+			loc.m_col = col;
+		}
+		constexpr source_location() noexcept
+			: m_file(L"Unknown"), m_func("Unknown"), m_line(0), m_col(0) {}
+		constexpr uint_least32_t line() const noexcept { return m_line; }
+		constexpr uint_least32_t column() const noexcept { return m_col; }
+		constexpr const wchar_t* file() const noexcept { return m_file; }
+		constexpr const char* func() const noexcept { return m_func; }
+	private:
+		const wchar_t* m_file;
+		const char* m_func;
+		uint_least32_t m_line;
+		uint_least32_t m_col;
+	};
+#endif
 
 }
 

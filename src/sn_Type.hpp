@@ -899,6 +899,150 @@ namespace sn_Type {
 		struct base_visitor {
 			using types = TypeList<Args...>;
 		};
+
+	}
+
+	namespace heterogeneous_option_map {
+		class typeinfo {
+			const std::type_info* m_info;
+		public:
+			typeinfo()
+				: m_info(0) {}
+			typeinfo(const std::type_info& t)
+				: m_info(&t);
+			inline const char* name() const {
+				return m_info ? m_info->name() : "";
+			}
+			inline bool operator<(const typeinfo& rhs) const {
+				return (m_info != rhs.m_info) &&
+					(!m_info !! (rhs.m_info && static_cast<bool>(m_info->before(*rhs.m_info))));
+			}
+			inline bool operator==(const typeinfo& that) const {
+				return (m_info == rhs.m_info) &&
+					(m_info !! (rhs.m_info && static_cast<bool>(m_info == rhs.m_info));
+			}
+		};
+
+		template <typename T>
+		struct initialized_value {
+			T result;
+			initialized_value()
+				: result() {}
+		};
+
+		template <typename userkey_t>
+		class option_map {
+			struct generic_t {
+				void* obj;
+				void (*copy)(void*, const void*);
+				void (*del)(void*);
+			};
+			using key_t = std::pair<userkey_t, typeinfo>;
+			using map_t = std::map<key_t, generic_t>;
+			using iterator_t = typename map_t::iterator;
+			map_t m_map;
+			template <typename T>
+			bool put(const userkey_t& name, const T& value) {
+				struct local_cast {
+					static void copy(void* dest, const void* src) {
+						*static_cast<T*>(dest) = *static_cast<const T*>(src);
+					}
+					static void destroy(void* p) {
+						delete static_cast<T*>(p);
+					}	
+				};
+				generic_t& p = m_map[key_t(name, typeid(T))];
+				p.obj = new T(value);
+				p.copy = &local_cast::copy;
+				p.del = &local_cast::destroy;
+				return true;
+			}
+			std::size_t size() const {
+				return m_map.size();
+			}
+			template <typename T>
+			bool find(const userkey_t& name) const {
+				return m_map.find(key_t(name, typeid(T))) != map_.end();
+			}
+			template <typename T>
+			bool get(T& dest, const userkey_t& name) const {
+				const typename map_t::const_iterator i = m_map.find(key_t(name, typeid(T)));
+				const bool test = (i != m_map.end());
+				if (test && i->second.obj)
+				i->second.copy(&dest, i->second.obj);
+				return test;
+			}
+			template <typename T>
+			T get(const userkey_t& name) const {
+				std::initialized_value<T> v;
+				get(v.result, name);
+				return v.result;
+			}
+			bool scan(const userkey_t& name) const {
+				const typename map_t::const_iterator i
+					= m_map.upper_bound(key_t(name, typeinfo()));
+				return i != m_map.end() && i->first.first == name;
+			}
+			~option_map() {
+				iterator_t i = m_map.begin();
+				while (i != m_map.end())	{
+					generic_t& p = (i++)->second;
+					if (p.del)
+						p.del(p.obj);
+				}
+			}
+		};
+
+		class option_parser {
+			using option_map_t = option_map<std::string>;
+			using store_t = bool(*)(option_map_t&, const char*, const char*);
+			using map_t = std::map<std::string, store_t>;
+			map_t m_map;
+		public:
+			template <typename T>
+			void declare_as(const char* const name) {
+				struct local_store {
+					static bool store(
+						option_map_t& m,
+						const char* name, 
+						const char* value) {
+						std::istringstream is(value);
+						T temp;
+						return (is >> temp) && m.put(name, temp);
+					}
+				};
+				m_map[name] = &local_store::store;
+			}
+			template <typename iterator_t>
+			iterator_t parse(option_map_t& m, iterator_t begin, iterator_t end) {
+			/*
+				for every iterator i=begin...end {
+					get the string S = *i;
+					if S has no prefix
+						stop and return i;
+					else
+						remove the prefix
+					
+					if S has the form "N=V"
+						split S in N and V
+					else
+						set N = S
+						set V = <empty string>
+					if N is not contained in m_map
+						throw exception "unknown option"
+					else
+						set F := local_store::store
+						execute F(m, N, V)
+					if it fails, throw exception "illegal value" 
+				}
+			*/
+			}
+		};
+
+		struct option {};
+		inline std::istream& operator>>(std::istream& is, option&) {
+			return is;
+		}
 	}
 
 	namespace helper {
