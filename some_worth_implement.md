@@ -6,9 +6,6 @@
 ## Checked (Strong Type)
 * [checked](https://github.com/MichaelSuen-thePointer/checked/blob/master/checked/checked.h)
 
-## Cast
-* [yslib-ystdex::cast](https://github.com/FrankHB/YSLib/blob/dc0317b085bc99e8965b570ced94c00bfda9cd01/YBase/include/ystdex/cast.hpp)
-
 ## Malloc
 * [dlmalloc](https://github.com/greg7mdp/dlmalloc/)
 
@@ -59,3 +56,15 @@
 ## DB
 * [simdb](https://github.com/LiveAsynchronousVisualizedArchitecture/simdb)
 * [cppstddb](https://github.com/cruisercoder/cppstddb)
+
+## Macro
+* Type as Macros
+
+## YSTDEX
+* [cast](https://github.com/FrankHB/YSLib/blob/dc0317b085bc99e8965b570ced94c00bfda9cd01/YBase/include/ystdex/cast.hpp)
+* [construct](https://github.com/FrankHB/YSLib/blob/271b2e4e0c17866e08cdd9c5c52f90b5380cfb96/YBase/include/ystdex/placement.hpp)
+* [type_traits](https://github.com/FrankHB/YSLib/blob/271b2e4e0c17866e08cdd9c5c52f90b5380cfb96/YBase/include/ystdex/type_traits.hpp)
+
+## Natsulib
+* [Exception](https://github.com/akemimadoka/NatsuLib/blob/master/NatsuLib/natException.cpp)
+* [StackWalker](https://github.com/akemimadoka/NatsuLib/blob/master/NatsuLib/natStackWalker.cpp)

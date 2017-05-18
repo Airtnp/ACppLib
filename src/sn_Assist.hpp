@@ -45,6 +45,10 @@ namespace sn_Assist {
 		using sn_false_type = sn_integral_constant<bool, false>;
 		using sn_true_type = sn_integral_constant<bool, false>;
 
+		struct sn_any_constructible {
+			sn_any_constructible(...);
+		};
+
 		struct sn_nonesuch {
 			sn_nonesuch() = delete;
 			~sn_nonesuch() = delete;

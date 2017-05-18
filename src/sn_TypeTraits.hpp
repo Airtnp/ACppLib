@@ -97,6 +97,12 @@ namespace sn_TypeTraits {
 		static const bool value = sizeof(check<T>(0)) == sizeof(int);
 	};
 
+	template<typename>
+	struct is_decomposable : std::false_type {};
+
+	template<template<typename...> class _gOp, typename... _types>
+	struct is_decomposable<_gOp<_types...>> : std::true_type {};
+
 }
 
 
