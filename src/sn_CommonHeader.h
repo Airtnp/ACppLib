@@ -90,6 +90,12 @@ for detail: https://gcc.gnu.org/onlinedocs/libstdc++/ext/pb_ds/
 // For platform-related
 #ifdef _WIN32
 #include <fstream>
+	#ifdef SN_ENABLE_STACK_WALKER
+	#include <stdio.h>
+	#include <windows.h>
+	#include <tchar.h>
+	#pragma comment(lib, "version.lib")
+	#endif
 #else
 #include <fcntl.h>
 #endif

@@ -9,9 +9,6 @@
 ## Cast
 * [yslib-ystdex::cast](https://github.com/FrankHB/YSLib/blob/dc0317b085bc99e8965b570ced94c00bfda9cd01/YBase/include/ystdex/cast.hpp)
 
-## CppStdDB
-* [cppstddb](https://github.com/cruisercoder/cppstddb)
-
 ## Malloc
 * [dlmalloc](https://github.com/greg7mdp/dlmalloc/)
 
@@ -52,9 +49,6 @@
 ## Test
 * [catch](https://github.com/philsquared/Catch)
 
-## Source-location
-* [cppr](http://en.cppreference.com/w/cpp/experimental/source_location)
-
 ## Lock-free
 * [HPLFDS](https://github.com/yebangyu/HPLFDS)
 
@@ -64,3 +58,4 @@
 
 ## DB
 * [simdb](https://github.com/LiveAsynchronousVisualizedArchitecture/simdb)
+* [cppstddb](https://github.com/cruisercoder/cppstddb)
