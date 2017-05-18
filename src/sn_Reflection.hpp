@@ -400,7 +400,7 @@ namespace sn_Reflection {
 			}
 			std::cout << "in sub process" << std::endl;
 			std::string name = argv[1];
-			Reflection<MapFn>::create(name)->call();  // ע�����ӽ�������δ��ʽ���ù��κ�ע�����صĴ���
+			Reflection<MapFn>::create(name)->call();  // 注意这子进程里从未显式调用过任何注册相关的代码
 		}
 		*/
 	}

@@ -4,6 +4,7 @@
 #include "sn_CommonHeader.h"
 #include "sn_Macro.hpp"
 
+// TODO: ref: https://github.com/akemimadoka/NatsuLib/blob/master/NatsuLib/natException.cpp
 namespace sn_Exception {
 
     namespace scope_exception_guard {
@@ -1385,49 +1386,45 @@ namespace sn_Exception {
             }
         };
 #elif defined(__linux__)
-        #include <signal.h>
-        #include <stdio.h>
-        #include <stdlib.h>
-        #include <execinfo.h>
-        #include <sys/types.h>
-        #include <sys/stat.h>
-        #include <fcntl.h>
-        #include <string.h>
-        #include <unistd.h>
 
         #define PRINT_DEBUG
-
-        static void callstack(int sig) {
-            void *array[10];
-            size_t size;
-            size = backtrace(array, 10);
+        class StackWalker {
+            static void callstack(int sig) {
+                void *array[10];
+                size_t size;
+                size = backtrace(array, 10);
 #ifdef PRINT_DEBUG
-            char **strings;
-            int i;
-            strings = backtrace_symbols(array, size);
-            printf("Obtained %d stack frames.\n", size);
-            for (i = 0; i < size; i++)
-                printf("%s\n", strings[i]);
-            free(strings);
+                char **strings;
+                int i;
+                strings = backtrace_symbols(array, size);
+                printf("Obtained %d stack frames.\n", size);
+                for (i = 0; i < size; i++)
+                    printf("%s\n", strings[i]);
+                free(strings);
 
-            char cmd[64] = "addr2line -C -f -e ";
-            char* prog = cmd + strlen(cmd);
-            readlink("/proc/self/exe", prog, sizeof(cmd) - strlen(cmd) - 1);// 获取进程的完整路径
+                char cmd[64] = "addr2line -C -f -e ";
+                char* prog = cmd + strlen(cmd);
+                readlink("/proc/self/exe", prog, sizeof(cmd) - strlen(cmd) - 1);// 获取进程的完整路径
 
-            FILE* fp = popen(cmd, "w");
-            if (fp != NULL) {
-                for (i = 0; i < size; ++i) {
-                    fprintf(fp, "%p\n", array[i]);
+                FILE* fp = popen(cmd, "w");
+                if (fp != NULL) {
+                    for (i = 0; i < size; ++i) {
+                        fprintf(fp, "%p\n", array[i]);
+                    }
+                    pclose(fp);
                 }
-                pclose(fp);
-            }
 #else
-            int fd = open("err.log", O_CREAT | O_WRONLY);
-            backtrace_symbols_fd(array, size, fd);
-            close(fd);
+                int fd = open("err.log", O_CREAT | O_WRONLY);
+                backtrace_symbols_fd(array, size, fd);
+                close(fd);
 #endif
-            exit(0);
-        }
+                exit(0);
+            }
+        public:
+            void showCallstack() {
+                callstack();
+            }
+        };
 
 #endif
 

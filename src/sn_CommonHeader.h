@@ -98,6 +98,16 @@ for detail: https://gcc.gnu.org/onlinedocs/libstdc++/ext/pb_ds/
 	#endif
 #else
 #include <fcntl.h>
+	#ifdef SN_ENABLE_STACK_WALKER
+        #include <signal.h>
+        #include <stdio.h>
+        #include <stdlib.h>
+        #include <execinfo.h>
+        #include <sys/types.h>
+        #include <sys/stat.h>
+        #include <string.h>
+        #include <unistd.h>
+	#endif
 #endif
 
 template <typename T>
