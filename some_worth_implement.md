@@ -68,3 +68,16 @@
 ## Natsulib
 * [Exception](https://github.com/akemimadoka/NatsuLib/blob/master/NatsuLib/natException.cpp)
 * [StackWalker](https://github.com/akemimadoka/NatsuLib/blob/master/NatsuLib/natStackWalker.cpp)
+* Formatter
+* Injector
+
+## MCF
+* [MCF](https://github.com/lhmouse/MCF/tree/master/MCF/src)
+* [MCFCRT](https://github.com/lhmouse/MCF/tree/master/MCFCRT/src)
+
+## String-operation
+* formatter
+* [StrTK](http://www.partow.net/programming/strtk/index.html#tutorial)
+
+## Conversion rank
+* constexpr calculate of conversion rank

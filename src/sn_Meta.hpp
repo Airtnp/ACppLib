@@ -158,6 +158,39 @@ namespace sn_Meta {
         return type_id_info::make<T>();
     }
 
+
+    // ref: https://github.com/ZaMaZaN4iK/constexpr_allocator/blob/master/test.cpp
+    template <class T, unsigned N = 100>
+    struct constexpr_allocator {
+        T data[N] = {};
+        unsigned used = 0;
+        using value_type = T;
+        using pointer = T*;
+
+        constexpr pointer allocate(unsigned s) {
+            pointer ret = data + used;
+            used += s;
+            return ret;
+        }
+
+        template< class U, class... Args >
+        constexpr void construct( U* p, Args&&... args ) {
+            *p = T(std::forward<Args>(args)...);
+        }
+
+        template< class U >
+        constexpr void destroy( U* ) {}
+
+        constexpr void deallocate(T* p, unsigned n ) {
+            if (data + used - n == p)
+                used -= n;
+        }
+
+        static constexpr bool allocator_auto_cleanup = true;
+    };  
+
+
+
     namespace constexpr_container {
         template <typename T, std::size_t N>
         class array_result {
