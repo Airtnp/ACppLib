@@ -5,6 +5,7 @@
 #include "sn_Assist.hpp"
 #include "sn_Log.hpp"
 #include "sn_TypeLisp.hpp"
+#include "sn_TypeTraits.hpp"
 #include "sn_Builtin.hpp"
 
 //TODO: add concepts required by C++1z
@@ -759,7 +760,17 @@ namespace sn_Type {
 			constexpr T& get() {
 				return (active<T>() ? m_storage : throw std::bad_cast{});
 			}
+			/*
+			template <std::size_t I, typename T = type_at_t<I>>
+			constexpr T& get() const {
+				return (active<T>() ? m_storage : throw std::bad_cast{});
+			}
+			*/
 			template <typename T, typename I = index_at_t<T>>
+			constexpr const T& get() const {
+				return (active<T>() ? m_storage : throw std::bad_cast{});
+			}
+			template <std::size_t I, typename T = type_at_t<I>>
 			constexpr const T& get() const {
 				return (active<T>() ? m_storage : throw std::bad_cast{});
 			}
@@ -771,9 +782,11 @@ namespace sn_Type {
 			template <typename T, typename I = index_at_t<T>>
 			constexpr versatile(T&& v)
 				: versatile(in_place<I>, std::forward<T>(v)) {}
+			/*
 			template <typename T, typename ...PArgs, typename I = index_at_t<T>>
 			explicit constexpr versatile(in_place_t(&)(T), PArgs&&... args)
 				: versatile(in_place<I>, std::forward<PArgs>(args)...) {}
+			*/
 			template <typename ...PArgs, typename I = index_of_constructible_t<PArgs...>>
 			explicit constexpr versatile(in_place_t(&)(in_place_t), PArgs&&... args)
 				: versatile(in_place<I>, std::forward<PArgs>(args)...) {}
@@ -801,6 +814,213 @@ namespace sn_Type {
 		};
 		template <>
 		class versatile<> {};
+
+		// constexpr auto value = v.get<decltype(v)::type_at_t<v.index()>>();
+		// T conversion is broken
+
+		/*
+		template <typename Vis, typename ...Vars>
+		class dispatcher {};
+
+		template <typename Vis, template <typename ...> class Var, typename ...Vars, typename ...Ts>
+		class dispatcher<Vis, Var<Ts...>, Vars...> {
+			
+			template <typename ...Args>
+			struct result_type {
+				using type = sn_TypeLisp::TypeList<decltype(std::declval<Vis>()(std::declval<Var>(), std::declval<Args>()...))>;
+			};
+			
+			template <typename ...Args>
+			using result_type_t = sn_TypeLisp::TypeCar_t<typename result_type<Args...>::type>;
+
+			template <typename T, typename ...Args>
+			static constexpr result_type_t<Args...> callee(Vis&& vis, Var&& var, Args&&... args) {
+				return std::forward<Vis>(vis)(
+					std::forward<T>(var.get<T>()),
+					std::forward<Args>(args)...
+				);
+			}
+
+			template <typename ...Args>
+			using callee_t = decltype(&dispatcher::template callee<Var, Args...>);
+
+			template <typename ...Args>
+			static constexpr callee_t<Args...> m_callies[sizeof...(Ts)] = {
+				dispatcher::template callee<Ts, Args...>...
+			};
+			
+		public:
+
+			template <typename ...Args>
+			static constexpr result_type_t<Args...> caller(Vis&& vis, Var&& var, Args&&... args) {
+				const std::size_t idx = var.index();
+				assert(!(sizeof...(Ts) < idx));
+				return (0 < idx) ? 
+					m_callies<Args...>[sizeof...(Ts) - idx](
+						std::forward<Vis>(vis), 
+						std::forward<Var>(var), 
+						std::forward<Args>(args)...
+						)
+					:
+					throw std::bad_cast("Bad index.");
+			}
+		};
+
+		template <typename Vis, template <typename ...> class Var, typename...Vars, typename ...Ts>
+		template <typename ...Args>
+		constexpr typename dispatcher<Vis, Var<Ts...>, Vars...>::template callee_t<Args...> dispatcher<Vis, Var<Ts...>, Vars...>::m_callies[sizeof...(Ts)];
+
+		template <typename Vis, typename Var, typename ...Vars>
+		constexpr decltype(auto) visit(Vis&& vis, Var&& var, Vars&&... vars) {
+			return dispatcher<Vis, Var, Vars...>::template caller<Vars...>(
+				std::forward<Vis>(vis), 
+				std::forward<Var>(var), 
+				std::forward<Vars>(vars)...
+			);
+		}
+		*/
+
+		template <typename Var>
+		struct variant_size {};
+
+		template <typename Var>
+		struct variant_size<const Var> : variant_size<Var> {};
+
+		template <typename Var>
+		struct variant_size<volatile Var> : variant_size<Var> {};
+		
+		template <typename Var>
+		struct variant_size<const volatile Var> : variant_size<Var> {};
+		
+		template <typename ...Ts>
+		struct variant_size<versatile<Ts...>> : std::integral_constant<std::size_t, sizeof...(Ts)> {};
+
+		template <typename Var>
+		/*inline*/ constexpr const std::size_t variant_size_v = variant_size<Var>::value;
+
+		template <std::size_t Np, typename Var>
+		struct variant_alternative {};
+
+		template <std::size_t Np, typename T, typename ...Ts>
+		struct variant_alternative<Np, versatile<T, Ts...>>
+			: variant_alternative<Np - 1, versatile<Ts...>> {};
+		
+		template <typename T, typename ...Ts>
+		struct variant_alternative<0, versatile<T, Ts...>> {
+			using type = T;
+		};
+
+		template <std::size_t Np, typename Var>
+		using variant_alternative_t = typename variant_alternative<Np, Var>::type;
+		
+		template <std::size_t Np, typename Var>
+		struct variant_alternative<Np, const Var> {
+			using type = std::add_const_t<variant_alternative_t<Np, Var>>;
+		};
+
+		template <std::size_t Np, typename Var>
+		struct variant_alternative<Np, volatile Var> {
+			using type = std::add_const_t<variant_alternative_t<Np, Var>>;
+		};
+
+		template <std::size_t Np, typename Var>
+		struct variant_alternative<Np, const volatile Var> {
+			using type = std::add_const_t<variant_alternative_t<Np, Var>>;
+		};
+
+		
+		template <std::size_t I, typename ...Ts>
+		constexpr auto get(versatile<Ts...>& var) {
+			return var.template get<I>();
+		}
+
+		namespace vt {
+
+			template <std::size_t Np, typename ...Ts>
+			struct Nth_type;
+
+			template <std::size_t Np, typename T, typename ...Ts>
+			struct Nth_type<Np, T, Ts...>
+				: Nth_type<Np - 1, Ts...> {};
+
+			template <typename T, typename ...Ts>
+			struct Nth_type<0, T, Ts...> {
+				using type = T;
+			};
+
+			template <typename T, std::size_t ...Dimensions>
+			struct multi_array {
+				constexpr const T& M_access() const { return M_data; }
+				T M_data;
+			};
+
+			template <typename T, std::size_t first, std::size_t ...rest>
+			struct multi_array<T, first, rest...> {
+				template <typename ...Args>
+				constexpr const T& M_access(std::size_t first_idx, Args&&... rest_idxs) const {
+					return M_arr[first_idx].M_access(rest_idxs...);
+				}
+				multi_array<T, rest...> M_arr[first];
+			};
+
+			template <typename ArrayT, typename VarTp, typename IdxSeq>
+			struct gen_vtable_impl {};
+
+			template <typename RT, typename Vis, std::size_t... Dis, typename... Vars, std::size_t... Idxs>
+			struct gen_vtable_impl<multi_array<RT(*)(Vis, Vars...), Dis...>, std::tuple<Vars...>, std::index_sequence<Idxs...>> {
+				using next_t = std::remove_reference_t<typename Nth_type<sizeof...(Idxs), Vars...>::type>;
+				using array_t = multi_array<RT(*)(Vis, Vars...), Dis...>;
+				static constexpr array_t S_apply() {
+					array_t vtable{};
+					S_apply_all_alts(vtable, std::make_index_sequence<variant_size_v<next_t>>());
+					return vtable;
+				}
+				template <std::size_t ...var_idxs>
+				static constexpr void S_apply_all_alts(array_t& vtable, std::index_sequence<var_idxs...>) {
+					std::initializer_list<int>{(S_apply_single_alt<var_idxs>(vtable.M_arr[var_idxs]), 0)...};
+				}
+				template <std::size_t idx, typename T>
+				static constexpr void S_apply_single_alt(T& elem) {
+					using alternative_t = variant_alternative_t<idx, next_t>;
+					elem = gen_vtable_impl<std::remove_reference_t<decltype(elem)>, std::tuple<Vars...>, std::index_sequence<Idxs..., idx>>::S_apply();
+				}
+			};
+
+			template <typename RT, typename Vis, typename ...Vars, std::size_t ...Idx>
+			struct gen_vtable_impl<multi_array<RT(*)(Vis, Vars...)>, std::tuple<Vars...>, std::index_sequence<Idx...>> {
+				using array_t = multi_array<RT(*)(Vis&&, Vars...)>;
+				static constexpr decltype(auto) visit_invoke(Vis&& vis, Vars... vars) {
+					return std::forward<Vis>(vis)(get<Idx>(std::forward<Vars>(vars))...);
+				}
+				static constexpr auto S_apply() {
+					return array_t{&visit_invoke};
+				}
+			};
+
+			template <typename RT, typename Vis, typename ...Vars>
+			struct gen_vtable {
+				using func_ptr_t = RT(*)(Vis&&, Vars...);
+				using array_t = multi_array<func_ptr_t, variant_size_v<std::remove_reference_t<Vars>>...>;
+				static constexpr array_t S_apply() {
+					return gen_vtable_impl<array_t, std::tuple<Vars...>, std::index_sequence<>>::S_apply();
+				}
+				static constexpr auto S_vtable = S_apply();
+			};
+		}
+		
+
+		template <typename Vis, typename ...Vars>
+		constexpr decltype(auto) visit(Vis&& vis, Vars&&... vars) {
+			using result_type = decltype(
+				std::forward<Vis>(vis)(
+					get<0>(std::forward<Vars>(vars)...)
+				)
+			);
+			constexpr auto& vtable = vt::gen_vtable<result_type, Vis, Vars...>::S_vtable;
+			auto func_ptr = vtable.M_access(vars.index()...);
+			return (*func_ptr)(std::forward<Vis>(vis), std::forward<Vars>(vars)...);
+		}
+
 	}
 #endif
 
