@@ -84,6 +84,3 @@
 
 ## itoa
 * [miloyip](https://github.com/miloyip/itoa-benchmark)
-
-## Visitor
-* [versatile](https://github.com/tomilov/variant/blob/master/include/versatile/visit.hpp)

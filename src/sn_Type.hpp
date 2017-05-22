@@ -934,6 +934,7 @@ namespace sn_Type {
 			return var.template get<I>();
 		}
 
+		// GCC-SVN visit implementaion
 		namespace vt {
 
 			template <std::size_t Np, typename ...Ts>
