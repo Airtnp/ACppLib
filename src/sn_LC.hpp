@@ -116,6 +116,7 @@ namespace sn_LC {
 		using result = typename Eval<If<typename Eval<Cond, Env>::result, Then, Else>, Env>::result;
 	};
 
+	// Add cannot reduction cases
 	template <std::size_t Name, typename Body, typename Env, typename Value>
 	struct Apply<Closure<Lambda<Name, Body>, Env>, Value> {
 		using result = typename Eval<Body, Binding<Name, Value, Env>>::result;
