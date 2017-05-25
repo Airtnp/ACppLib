@@ -30,12 +30,14 @@ uisng result2 = foo<char>;
 ## Concept-based-polymorphism
 * Concept
 ```c++
+#include <memory>
+
 class drawable_concept {
     public:
         drawable_concept() = default;
         virtual ~drawable_concept() = default;
         virtual void draw() = 0;
-}
+};
 
 template <typename T>
 class drawable_model : public drawable_concept {
@@ -45,7 +47,7 @@ class drawable_model : public drawable_concept {
     void draw() {
         model_.draw();
     }
-}
+};
 
 class drawable {
     std::unique_ptr<drawable_concept> object_;
@@ -55,13 +57,13 @@ class drawable {
     void draw() {
         object_->draw();
     }
-}
+};
 
 struct my_widget {
     void draw() {
         //...
     }
-}
+};
 
 int main() {
     drawable d(my_widget{});

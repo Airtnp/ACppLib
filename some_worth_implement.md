@@ -84,3 +84,6 @@
 
 ## itoa
 * [miloyip](https://github.com/miloyip/itoa-benchmark)
+
+## codecvt
+* [codecvt](https://gcc.gnu.org/viewcvs/gcc/trunk/libstdc%2B%2B-v3/include/bits/)
