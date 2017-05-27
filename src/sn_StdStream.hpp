@@ -7,7 +7,7 @@ namespace sn_StdStream {
 	namespace manipulator {
 		template <class CharT, class Traits>
 		std::basic_ostream<CharT, Traits>& nl(std::basic_ostream<CharT, Traits>& os) {
-			os.puts('\n');
+			os.put('\n');
 			return os;
 		}
 	}
