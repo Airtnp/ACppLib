@@ -621,7 +621,9 @@ namespace sn_Builtin {
 
 	}
 
-	//ref: Effective Cpp
+	// ref: Effective Cpp
+	// TODO: fix enable_shared_from_this multiple inheritance problem
+	// ref: https://zhuanlan.zhihu.com/p/25065603
 	namespace shared_ptr {
 		template <typename T>
 		struct CtrlBlkBase {
