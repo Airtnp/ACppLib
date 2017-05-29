@@ -90,3 +90,6 @@
 
 ## vrm
 * [vrm-core](https://github.com/SuperV1234/vrm_core/tree/cfd4ac84380bdf02b6fcced6bb4a378196ffa467/include/vrm/core)
+
+## Injector
+* [GenericInjector](https://github.com/akemimadoka/GenericInjector/tree/master/GenericInjector)

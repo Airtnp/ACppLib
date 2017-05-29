@@ -465,6 +465,8 @@ namespace sn_TypeLisp {
 
 	template <template <typename ...> typename TL, typename H, typename ...T>
 	struct TypeLength<TL<H, T...>> {
+		// or directly
+		// constexpr static const std::size_t value = sizeof...(T) + 1; 
 		constexpr static const std::size_t value = 1 + TypeLength<TL<T...>>::value;
 	};
 

@@ -20,7 +20,9 @@ namespace sn_Macro { //useless namespace
 #define ANONYMOUS_VARIABLE(str) MACRO_RAW_CONCAT(str, __LINE__)
 
 	// static char THIS_FILE[] = __FILE__
-#define DEBUG_NEW(THIS_FILE, __FILE__)
+	// #define new DEBUG_NEW
+	// void* operator new(std::size_t, LPCSTR, int)
+#define SN_DEBUG_NEW new(THIS_FILE, __LINE__)
 
 	//tricky get va_list size (n = N - 1)
 #define SN_MAX_ARG_N = 10
@@ -66,7 +68,8 @@ namespace sn_Macro { //useless namespace
 
 #define SN_TOP_ARG_N(N, ...) APPLY_VARIADIC_MACRO(MACRO_CONCAT(SN_TOP_ARG, N), __VA_ARGS__)
 
-	// SN_APPLY_NEST_N(first, last, nest, x) -> first(x, first(nest(xx), first(nest(nest(xx)), last(nest(nest(nest(xx)))))))
+// F(x, F(N(x), ...(F(N(N(...x)))), L(N(N(N(...x))))))))
+// SN_APPLY_NEST_N(first, last, nest, x) -> first(x, first(nest(xx), first(nest(nest(xx)), last(nest(nest(nest(xx)))))))
 #define SN_APPLY_NEST_0(F, L, N, ...)
 
 #define SN_APPLY_NEST_1(F, L, N, ...) MACRO_EXPAND(L(MACRO_EXPAND(__VA_ARGS__)))
@@ -81,6 +84,7 @@ namespace sn_Macro { //useless namespace
 
 #define SN_APPLY_NEST_N(N, F, L, NF, ...) APPLY_VARIADIC_MACRO(MACRO_CONCAT(SN_APPLY_NEST, N), F, L, NF, __VA_ARGS__)
 
+// F(n) F(n-1) ... F(1)
 #define SN_APPLY_MULTI_0(F) 
 
 #define SN_APPLY_MULTI_1(F) F(1)
@@ -95,6 +99,7 @@ namespace sn_Macro { //useless namespace
 
 #define SN_APPLY_MULTI_N(N, F) APPLY_VARIADIC_MACRO(MACRO_CONCAT(SN_APPLY_MULTI, N), F)
 
+// F(F(F(F(....L()))))
 #define SN_APPLY_REPEAT_0(F, L, ...)
 
 #define SN_APPLY_REPEAT_1(F, L, ...) MACRO_EXPAND(L(1, MACRO_EXPAND(__VA_ARGS__)))
@@ -153,7 +158,105 @@ namespace sn_Macro { //useless namespace
 
 #define SN_STRING_WIDEN_IMPL(x) L ## x
 #define SN_STRING_WIDEN(x) SN_STRING_WIDEN_IMPL(x)
-#define __WFILE__ SN_STRING_WIDEN(__FILE__)
+#define SN_WFILE SN_STRING_WIDEN(__FILE__)
+
+// ref: https://zhuanlan.zhihu.com/p/27024686
+
+#define SN_EXPAND_IF_PAREN(x) SN_EXPAND x
+#define SN_EXPAND(x)
+
+// Then SN_EXPAND_IF_PAREN((x)) -> SN_EXPAND(x) -> ___
+// 		SN_EXPAND_IF_PAREN( x ) -> SN_EXPAND x
+
+#define SN_IIF(cond) MACRO_CONCAT(SN_IIF, cond)
+#define SN_IIF_0(t, ...) __VA_ARGS__
+#define SN_IIF_1(t, ...) t
+
+/*
+Usage:
+	SN_IIF(cond) (
+		SN_IF_TRUE(...),
+		SN_IF_FALSE(...)
+	)
+*/
+
+#define SN_COMPL(cond) MACRO_CONCAT(SN_COMPL, cond)
+#define SN_COMPL_0 1
+#define SN_COMPL_1 0
+
+// or use probe
+// only 0 will be 1
+#define SN_NOT(x) SN_CHECK(MACRO_CONCAT(SN_NOT, x))
+#define SN_NOT_0 SN_PROBE()
+
+#define SN_PROBE(x) x, 1
+#define SN_CHECK(...) SN_TOP_ARG_2(__VA_ARGS__, 0)
+
+// SN_CHECK(SN_PROBE()) -> SN_CHECK(x, 1, 0) -> 1
+// SN_CHECK(SOMETHING_NOT_EMPTY) -> 0
+
+#define SN_IS_EMPTY(x) SN_CHECK(MACRO_RAW_CONCAT(MACRO_RAW_CONCAT(SN_IS_EMPTY_, x), 0))
+#define SN_IS_EMPTY_0 SN_PROBE()
+
+// SN_IS_EMPTY() -> SN_CHECK(IS_EMPTY_0) -> 1
+// SN_IS_EMPTY(x) -> SN_CHECK(IS_EMPTY_x0) -> 1
+
+#define SN_IS_PAREN(x) SN_CHECK(SN_IS_PAREN_PROBE x)
+#define SN_IS_PAREN_PROBE(...) SN_PROBE()
+
+// SN_IS_PAREN(()) -> SN_CHECK(SN_IS_PAREN_PROBE ()) -> SN_CHECK(SN_PROBE()) -> 1
+// SN_IS_PAREN(x) -> SN_CHECK(SN_IS_PAREN_PROBE x) -> 0
+
+#define SN_BOOL(x) SN_COMPL(SN_NOT(X))
+#define SN_IF(cond) SN_IIF(SN_BOOL(c))
+
+#define SN_IF_ELSE(cond) MACRO_CONCAT(SN_IF_ELSE_, SN_BOOL(cond))
+#define SN_IF_ELSE_1(...) __VA_ARGS__ SN_IF_ELSE_IMPL_1
+#define SN_IF_ELSE_0(...) SN_IF_ELSE_IMPL_0
+
+#define SN_IF_ELSE_IMPL_1(...)
+#define SN_IF_ELSE_IMPL_0(...) __VA_ARGS__
+
+/*
+Usage:
+	SN_IF_ELSE(0) (
+		True branch
+	) (
+		False branch
+	)
+*/
+
+#define SN_EMPTY()
+#define SN_DEFER(id) id SN_EMPTY()
+
+/*
+Usage:
+	FOO() -> macro
+	SN_DEFER(FOO)() -> FOO EMPTY() () -> FOO ()
+	MACRO_EXPAND(SN_DEFER(FOO)()) -> macro
+*/
+
+#define SN_FOR_EACH(macro, x, ...) macro(x) MACRO_CONCAT(SN_FOR_EACH, SN_IS_EMPTY(__VA_ARGS__)) (macro, x, __VA_ARGS__)
+#define SN_FOR_EACH_IMPL() SN_FOR_EACH
+#define SN_FOR_EACH_0(macro, x, ...) macro(x) SN_DEFER(SN_FOR_EACH_IMPL)() (macro, __VA_ARGS__) 
+#define SN_FOR_EACH_1(...) macro(x)
+
+/*
+Usage:
+	#define Foo(x) -> void x();
+	MACRO_EXPAND(MACRO_EXPAND(SN_FOR_EACH(FOO, x, y, z))) -> void x(); void y(); void z();
+	SN_EVAL(SN_FOR_EACH(FOO, x, y, z))
+*/
+
+// 3^5 = 243
+#define SN_EVAL(...)   SN_EVAL_1(SN_EVAL_1(SN_EVAL_1(__VA_ARGS__)))
+#define SN_EVAL_1(...) SN_EVAL_2(SN_EVAL_2(SN_EVAL_2(__VA_ARGS__)))
+#define SN_EVAL_2(...) SN_EVAL_3(SN_EVAL_3(SN_EVAL_3(__VA_ARGS__)))
+#define SN_EVAL_3(...) SN_EVAL_4(SN_EVAL_4(SN_EVAL_4(__VA_ARGS__)))
+#define SN_EVAL_4(...) SN_EVAL_5(SN_EVAL_5(SN_EVAL_5(__VA_ARGS__)))
+// #define SN_EVAL_5(...) SN_EVAL_6(SN_EVAL_6(SN_EVAL_6(__VA_ARGS__)))
+#define SN_EVAL_5(...) MACRO_EXPAND(__VA_ARGS__)
+
 
 #ifdef __GNUC__
 	struct source_location {
@@ -186,7 +289,7 @@ namespace sn_Macro { //useless namespace
 	struct source_location {
 	public:
 		static constexpr source_location current(
-			const wchar_t* file = __WFILE__,
+			const wchar_t* file = SN_WFILE,
 			const char* func = __func__,
 			int line = __LINE__,
 			int col = 0

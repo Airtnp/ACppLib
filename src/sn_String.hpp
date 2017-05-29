@@ -305,6 +305,11 @@ namespace sn_String {
 			return make_string_impl(str, std::make_index_sequence<N - 1>{});
 		}
 
+		template <char ...str>
+		constexpr string<str...> operator "" _sn() {
+			return string<str...>{};
+		}
+
 		inline string_view operator "" _snsv(const char* str, std::size_t len) {
 			return string_view(str, len);
 		}
