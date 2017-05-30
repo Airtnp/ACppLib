@@ -109,12 +109,12 @@ namespace sn_Type {
 				!std::is_same<std::decay_t<U>, Any>::value,
 				U>>
 			Any(U&& value) : 
-				m_ptr(new Derived <std::decay_t<U>>(std::forward<U>(value))),
+				m_ptr(new Derived<std::decay_t<U>>(std::forward<U>(value))),
 				m_typeIndex(std::type_index(typeid(std::decay_t<U>))) {}
 
 			template <typename U, typename ...Args>
 			Any(Args&&... args) :
-				m_ptr(new Derived <std::decay_t<U>>(std::forward<U>(U{ std::forward<Args>(args)... }))),
+				m_ptr(new Derived<std::decay_t<U>>(std::forward<U>(U{ std::forward<Args>(args)... }))),
 				m_typeIndex(std::type_index(typeid(std::decay_t<U>))) {}
 
 			bool is_null() const {
