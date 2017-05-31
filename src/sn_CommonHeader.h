@@ -110,6 +110,12 @@ for detail: https://gcc.gnu.org/onlinedocs/libstdc++/ext/pb_ds/
 	#endif
 #endif
 
+// Some feature switch
+// #define SN_WINDOWS_API
+// #define SN_CPP_17_EXPERIMENTAL
+// #define SN_ENABLE_STACK_WALKER
+
+
 template <typename T>
 using observer_ptr = T*;
 

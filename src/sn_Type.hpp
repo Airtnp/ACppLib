@@ -1025,6 +1025,7 @@ namespace sn_Type {
 	}
 #endif
 
+	// TODO: another implementation: using parent and idx (like tuple)
 	namespace heterogeneous {
 		
 		// ref: https://gieseanw.wordpress.com/2017/05/03/a-true-heterogeneous-container-in-c/
