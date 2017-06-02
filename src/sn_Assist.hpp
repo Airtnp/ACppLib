@@ -8,7 +8,7 @@ namespace sn_Assist {
 	namespace sn_demangle {
 		template <typename T>
 		std::string demangle_type() {
-			using TR = typename std::remove_reference<T>::type;
+			using TR = typename std::decay<T>::type;
 			std::unique_ptr<char, void(*)(void*)> own;
 				(
 			#ifndef _MSC_VER
@@ -19,13 +19,13 @@ namespace sn_Assist {
 				std::free
 				);
 			std::string r = own != nullptr ? own.get() : typeid(TR).name();
-			if (std::is_const<TR>::value)
+			if (std::is_const<T>::value)
 				r += " const";
-			if (std::is_volatile<TR>::value)
+			if (std::is_volatile<T>::value)
 				r += " volatile";
-			if (std::is_lvalue_reference<TR>::value)
+			if (std::is_lvalue_reference<T>::value)
 				r += "&";
-			if (std::is_rvalue_reference<TR>::value)
+			if (std::is_rvalue_reference<T>::value)
 				r += "&&";
 			return r;
 		}

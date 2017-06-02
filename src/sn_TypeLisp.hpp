@@ -431,6 +431,23 @@ namespace sn_TypeLisp {
 		using type = TypeList<>;
 	};
 */
+
+	template <bool B, typename T, typename F>
+	struct TypeCond {};
+
+	template <typename T, typename F>
+	struct TypeCond<true, T, F> {
+		using type = T;
+	};
+
+	template <typename T, typename F>
+	struct TypeCond<false, T, F> {
+		using type = F;
+	};
+
+	template <bool B, typename T, typename F>
+	using TypeCond_t = typename TypeCond<B, T, F>::type;
+
 	// Lisp: quote/atom/eq/car/cdr/cons/cond
 
 	template <template <typename ...> typename TL, typename H, typename ...T>

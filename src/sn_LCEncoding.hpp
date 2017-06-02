@@ -4,7 +4,7 @@
 #include "sn_CommonHeader.h"
 #include "sn_LC.hpp"
 
-// Not common encoding. Mogensen¨CScott/Church/Boehm-Berarducci
+// Not common encoding. Mogensenï¿½CScott/Church/Boehm-Berarducci
 // TODO: Boehm-Berarducci Encoding ref: http://okmij.org/ftp/tagless-final/course/Boehm-Berarducci.html
 namespace sn_LCEncoding {
 	using namespace sn_LC;
@@ -384,6 +384,9 @@ namespace sn_LCEncoding {
 
 	}
 
+	// TODO: add Church number
+	// ref: https://wiki.haskell.org/Type_SK
+	// ref: https://weblogs.asp.net/dixin/lambda-calculus-via-c-sharp-21-ski-combinator-calculus
 	namespace SKI {
 		enum {
 			V1, V2, V3, V4, V5, A, B, C,
@@ -532,7 +535,7 @@ namespace sn_LCEncoding {
 		B = S (K S) K
 		C = S (S (K (S (K S) K)) S)(K K)
 		K = K
-		W = S S£¨K (S K K))
+		W = S S (S K)
 		
 		I = W K
 		K = K

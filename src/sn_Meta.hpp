@@ -120,6 +120,47 @@ namespace sn_Meta {
 #define SN_META_NOT_IMPLEMENTED \
     SN_META_STATIC_ASSERT(false)
 
+
+#define SN_META_CONSTANT_STRUCT(...) \
+    struct ANONYMOUS_VARIABLE(SN_CONSTANT_STRUCT) { \
+        using value_type = decltype(__VA_ARGS__); \
+        static constexpr auto value() { \
+            return __VA_ARGS__; \
+        } \
+        constexpr operator value_type() const noexcept { \
+            return value(); \
+        } \
+        constexpr value_type operator()() const noexcept { \
+            return value(); \
+        } \
+    }; \
+
+
+/* = or not*/
+#define SN_META_CONSTANT_LAMBDA(...) \
+    [] { \
+        struct R { \
+            using value_type = decltype(__VA_ARGS__); \
+            static constexpr auto value() { \
+                return __VA_ARGS__; \
+            } \
+            constexpr operator value_type() const noexcept { \
+                return value(); \
+            } \
+            constexpr value_type operator()() const noexcept { \
+                return value(); \
+            } \
+        }; \
+        return R{}; \
+    } \
+
+
+
+
+
+
+
+
     class type_id_info {
     public:
         using id_t = std::size_t;
@@ -208,6 +249,7 @@ namespace sn_Meta {
         };
     }
 
+    // TODO: ref: https://github.com/Manu343726/constexpr
     namespace constexpr_math {
         // complete 14-support
         constexpr double pow_int(double base, int exp) {

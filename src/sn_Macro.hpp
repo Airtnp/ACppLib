@@ -258,6 +258,12 @@ Usage:
 #define SN_EVAL_5(...) MACRO_EXPAND(__VA_ARGS__)
 
 
+#define SN_MAKE_LAMBDA(args, ret_type, body) \
+	class ANONYMOUS_VARIABLE(LAMBDA) { \
+		public: \
+		ret_type operator() args { body; } \
+	}; \
+
 #ifdef __GNUC__
 	struct source_location {
 	public:

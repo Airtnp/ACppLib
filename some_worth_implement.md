@@ -93,3 +93,7 @@
 
 ## Injector
 * [GenericInjector](https://github.com/akemimadoka/GenericInjector/tree/master/GenericInjector)
+
+## Executable format
+* PE
+* ELF

@@ -68,13 +68,13 @@ namespace sn_DB_test {
 		auto pstr = eraseFirstTab(move(get<1>(test_str)));
 		auto pstr2 = eraseFirstTab(move(get<0>(test_str)));
 
-		wstring test = L"ÈÕ";
+		wstring test = L"ï¿½ï¿½";
 		string hex_text = wstring_to_hex(test);
 
-		string username = "ÈÕ";
+		string username = "ï¿½ï¿½";
 		string hex_username = wstring_to_unhex(string_to_wstring(username));
 
-		string detail = "ÈÕ,123,admin,ÎÖÈÕ";
+		string detail = "ï¿½ï¿½,123,admin,ï¿½ï¿½ï¿½ï¿½";
 		auto d_list = string_split<wstring>(string_to_wstring(detail), L",", split_option::empty_remain);
 
 		vector<pair<string, string>> conds = { make_pair("hex(username)", wstring_to_hex(test)) };

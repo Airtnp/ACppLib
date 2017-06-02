@@ -285,6 +285,7 @@ namespace sn_String {
 
 		};
 
+		// TODO: write a formatter
 		template<std::size_t ...str>
 		struct string {
 			static constexpr const char chars[sizeof...(str)+1] = { str..., '\0' };

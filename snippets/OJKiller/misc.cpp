@@ -1,5 +1,5 @@
 #include </dev/random>      # Linux
-#include <CON>              # Windows
+#include <CON>              # Windows // 标准输入输出
 
 #include "/var/www/JudgeOnline/include/db_info.inc.php"
 // chroot
