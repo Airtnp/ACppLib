@@ -78,6 +78,7 @@
 ## String-operation
 * formatter
 * [StrTK](http://www.partow.net/programming/strtk/index.html#tutorial)
+* pystring
 
 ## Conversion rank
 * constexpr calculate of conversion rank

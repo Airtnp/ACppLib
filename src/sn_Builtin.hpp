@@ -622,9 +622,15 @@ namespace sn_Builtin {
 	}
 
 	// ref: Effective Cpp
+	// TODO: write real shared_ptr/weak_ptr
 	// TODO: fix enable_shared_from_this multiple inheritance problem
 	// ref: https://zhuanlan.zhihu.com/p/25065603
+	// ref: https://www.codeproject.com/articles/286304/solution-for-multiple-enable-shared-from-this-in-i
 	namespace shared_ptr {
+
+#ifdef SN_ENABLE_TEMPORARY_UNAVAILABLE
+		class enable_shared_from_this;
+
 		template <typename T>
 		struct CtrlBlkBase {
 			explicit CtrlBlkBase(observer_ptr<T> t) : m_t(t) {}
@@ -655,14 +661,15 @@ namespace sn_Builtin {
 
 		template <typename T>
 		struct shared_ptr {
-			shared_ptr(observer_ptr<T> t) : shared_ptr(new CtrlBlk<T, false>(t)) {}
-			observer_ptr<T> get() const { 
+			shared_ptr(T* t) : shared_ptr(new CtrlBlk<T, false>(t)) {}
+			// shared_ptr(const weak_ptr<T>& rhs) : shared_ptr(new CtrlBlk<T, false>(rhs.lock())) {}
+			T* get() const { 
 				return m_t; 
 			}
 		private:
 			shared_ptr(CtrlBlk<T, true> *cb) : m_ctrl_blk(cb), m_t(m_ctrl_blk->m_t) {}
 			CtrlBlkBase<T>* m_ctrl_blk;
-			observer_ptr<T> m_t;
+			T* m_t;
 
 			template <typename U, typename ...Args>
 			friend shared_ptr<U> make_shared(Args&&... args);
@@ -672,6 +679,28 @@ namespace sn_Builtin {
 		shared_ptr<T> make_shared(Args&&... args) {
 			return shared_ptr<T>(new CtrlBlk<T, true>(std::forward<Args>(args)...));
 		}
+
+		template <typename T>
+		class enable_shared_from_this {
+		protected:
+			constexpr enable_shared_from_this() {}
+			enable_shared_from_this(const enable_shared_from_this&) {}
+			enable_shared_from_this& operator=(const enable_shared_from_this&) {
+				return *this;
+			}
+			~enable_shared_from_this() {}
+		public:
+			shared_ptr<T> shared_from_this() {
+				return m_ptr.lock();
+			}
+			const shared_ptr<T> shared_from_this() const {
+				return m_ptr.lock();
+			}
+		private:
+			mutable weak_ptr<T> m_ptr;
+			friend shared_ptr<T>;
+		};
+#endif
 	}
 
 	template <typename T>

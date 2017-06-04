@@ -111,9 +111,11 @@ for detail: https://gcc.gnu.org/onlinedocs/libstdc++/ext/pb_ds/
 #endif
 
 // Some feature switch
-// #define SN_WINDOWS_API
-// #define SN_CPP_17_EXPERIMENTAL
+// #define SN_ENABLE_WINDOWS_API
+// #define SN_ENABLE_CPP_17_EXPERIMENTAL
 // #define SN_ENABLE_STACK_WALKER
+// #define SN_ENABLE_TEMPORARY_UNAVAILABLE
+// #define SN_ENABLE_SUSPICIOUS_IMPLEMENTATION
 
 
 template <typename T>

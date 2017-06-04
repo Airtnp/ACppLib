@@ -318,7 +318,7 @@ namespace sn_Function {
 		}
 
 		template <typename R, typename ...Args>
-		typename Currying<R(Args...)>::Currier make_curry(const R(&function)(Args...)) {
+		typename Currying<R(Args...)>::Currier make_curry(R(&function)(Args...)) {
 			return typename Currying<R(Args...)>::Currier(function);
 		}
 
@@ -333,7 +333,7 @@ namespace sn_Function {
 		}
 
 		template <typename R, typename ...Args>
-		typename Currying<R(Args...)>::Currier make_single_curry(const R(&function)(Args...)) {
+		typename Currying<R(Args...)>::Currier make_single_curry(R(&function)(Args...)) {
 			return typename Currying<R(Args...)>::SingleCurrier(function);
 		}
 
