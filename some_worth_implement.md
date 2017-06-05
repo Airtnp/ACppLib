@@ -79,6 +79,7 @@
 * formatter
 * [StrTK](http://www.partow.net/programming/strtk/index.html#tutorial)
 * pystring
+* [fmt](https://github.com/fmtlib/fmt)
 
 ## Conversion rank
 * constexpr calculate of conversion rank
@@ -98,3 +99,6 @@
 ## Executable format
 * PE
 * ELF
+
+## Cpp-Exception-ABI
+* [github](https://github.com/nicolasbrailo/cpp_exception_handling_abi)

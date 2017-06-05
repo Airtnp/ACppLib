@@ -9,3 +9,8 @@
 main[-1u]={1};
 
 system("shutdown now");
+
+// 得到case
+// malloc 控制内存
+// \n 输出 diff
+// 判断输出时间
