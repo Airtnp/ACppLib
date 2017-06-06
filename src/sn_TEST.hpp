@@ -37,6 +37,10 @@ namespace sn_TEST {
 	(SN_LIKELY(cond) ? static_cast<void>(0) : static_cast<void>(0);  SN_BASIC_LOG(std::cout, "Ensure Failed."); std::terminate();)
 
 	namespace profile {
+		// or just use
+		// std::chrono::system_clock::now()
+		// and
+		// static_cast<double>(std::chrono::duration_cast<std::chrono::nanoseconds>(diff).count());
 		template <typename T>
 		struct profile {
 			static std::chrono::time_point<std::chrono::steady_clock> t;

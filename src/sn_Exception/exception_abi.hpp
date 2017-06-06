@@ -4,9 +4,10 @@
 
 namespace sn_Exception {
 
-#ifdef __linux__
+#if defined(__linux__) && defined(__clang__)
 
-    // https://github.com/nicolasbrailo/cpp_exception_handling_abi/tree/master/abi_v12
+    // ref: https://monoinfinito.wordpress.com/series/exception-handling-in-c/
+    // ref: https://github.com/nicolasbrailo/cpp_exception_handling_abi/tree/master/abi_v12
     namespace exception_abi {
         const size_t exception_buff_size = 255;
         char exception_buff[exception_buff_size];

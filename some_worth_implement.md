@@ -100,5 +100,4 @@
 * PE
 * ELF
 
-## Cpp-Exception-ABI
-* [github](https://github.com/nicolasbrailo/cpp_exception_handling_abi)
+## Tribool
