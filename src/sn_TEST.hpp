@@ -57,7 +57,7 @@ namespace sn_TEST {
 				t = 0;
 			}
 			static std::chrono::nanoseconds report() {
-				return t.time_since_epoch();
+				return std::chrono::duration_cast<std::chrono::nanoseconds>(t.time_since_epoch());
 			}
 
 		};
