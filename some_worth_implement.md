@@ -80,6 +80,7 @@
 * [StrTK](http://www.partow.net/programming/strtk/index.html#tutorial)
 * pystring
 * [fmt](https://github.com/fmtlib/fmt)
+* [rethinking-string](https://github.com/vmware/rethinking-strings)
 
 ## Conversion rank
 * constexpr calculate of conversion rank
