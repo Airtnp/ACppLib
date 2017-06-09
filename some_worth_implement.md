@@ -102,3 +102,6 @@
 * ELF
 
 ## Tribool
+
+## Expression Templates
+* [yap](https://github.com/tzlaine/yap)
