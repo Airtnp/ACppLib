@@ -44,6 +44,8 @@
 * compile-time matrix
 * [cx](https://github.com/elbeno/constexpr)
 * [parser](https://github.com/lefticus/constexpr_all_the_things/blob/master/src/include/cx_parser.h)
+* [petra](https://github.com/jacquelinekay/petra)
+* + compile-time-result -> runtime-access (set jump table)
 
 ## Test
 * [catch](https://github.com/philsquared/Catch)
