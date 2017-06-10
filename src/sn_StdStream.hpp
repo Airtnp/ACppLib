@@ -141,6 +141,7 @@ namespace sn_StdStream {
 
 }
 
+// This is undefined behavior!
 namespace std {
 	using sn_StdStream::manipulator::nl;
 	using namespace sn_StdStream::stlio;

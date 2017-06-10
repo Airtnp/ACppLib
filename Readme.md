@@ -6,7 +6,7 @@ Because it's so naive, no comments and documentation supported. And its code-sty
 
 No common namespace, because loosely connected.
 
-I strongly recommend Herb Sutter's C++ Coding Standard / C++ API Design , my code is full of junk (however, I strongly appreciate the reference code I copied).
+I strongly recommend Herb Sutter's C++ Coding Standard / C++ API Design / SEI CERT C++ Coding Standard (2016), my code is full of junk (however, I strongly appreciate the reference code I copied).
 
 ## Wheel List (super naive, all incomplete) (* even having no function)
 * sn_Alg: some algorithms
