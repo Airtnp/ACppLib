@@ -42,6 +42,8 @@
 * [ctti](https://github.com/Manu343726/ctti)
 * compile-time math function
 * compile-time matrix
+* [cx](https://github.com/elbeno/constexpr)
+* [parser](https://github.com/lefticus/constexpr_all_the_things/blob/master/src/include/cx_parser.h)
 
 ## Test
 * [catch](https://github.com/philsquared/Catch)
