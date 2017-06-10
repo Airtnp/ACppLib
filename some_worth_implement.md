@@ -47,6 +47,7 @@
 
 ## Test
 * [catch](https://github.com/philsquared/Catch)
+* [Hippomock](https://github.com/dascandy/hippomocks)
 
 ## Lock-free
 * [HPLFDS](https://github.com/yebangyu/HPLFDS)
