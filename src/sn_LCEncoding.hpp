@@ -17,6 +17,104 @@ namespace sn_LCEncoding {
 	*/
 	// TODO: add real calculation operators
 	// TODO: add foldr/foldl/append... ref: http://benji6.github.io/church/docs/lists.html
+	
+	namespace Combinator {
+
+		enum {
+			V1, V2, V3, V4,  V5, A, B, C, D, E, F
+			V6, V7, V8, V9, V10, X, Y, N, M, U
+		};
+
+		/*
+		
+			I := λx.x
+			K := λx.λy.x
+			S := λx.λy.λz.x z (y z)
+			B := λx.λy.λz.x (y z)
+			C := λx.λy.λz.x z y
+			W := λx.λy.x y y
+			U := λx.λy.y (x x y)
+			ω := λx.x x
+			Ω := ω ω
+			Y := λg.(λx.g (x x)) (λx.g (x x))
+		
+		*/
+
+		// U = lambda .x lambda .y y (x x y)
+		using UCombinator = Lambda<
+								X, 
+								Lambda<
+									Y, 
+									Application<
+										Y, 
+										Application<
+											X, 
+											Application<
+												X, 
+												Y
+											>
+										>
+									>
+								>
+							>;
+
+		// omega := lambda .x x x
+		using omega = Lambda<
+							V1,
+							Application<
+								Application<
+									Reference<V1>
+									Reference<V1>
+								>
+							>
+						>;
+
+		// Omega := omega omega
+		using Omega = Application<omega, omega>;
+
+		using YCombinator = Lambda<F, 
+							Application<
+								Lambda<U, 
+									Application<Reference<U>,
+										Reference<U>
+									>
+								>, 
+								Lambda<X,
+									Application<
+										Application<Reference<F>, 
+											Reference<X>
+										>, Reference<X>
+									>
+								>
+							>
+						>;
+
+		using TCombinator = Application<
+							Lambda<X,
+								Lambda<Y, 
+									Application<Reference<Y>, 
+										Application<Reference<X>, 
+											Application<Reference<X>, 
+												Reference<Y>
+											>
+										>
+									>
+								>
+							>, 
+							Lambda<X,
+								Lambda<Y, 
+									Application<Reference<Y>, 
+										Application<Reference<X>, 
+											Application<Reference<X>, 
+												Reference<Y>
+											>
+										>
+									>
+								>
+							>
+						>;
+	}
+	
 	namespace Church {
 		using Nonsense = Literal<Zero>;
 		enum { F, T };

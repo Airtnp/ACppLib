@@ -3,6 +3,8 @@
 namespace sn_Assist {
 
 #ifdef SN_ENABLE_CPP17_EXPERIMENTAL
+    // TODO: nested bind/const binder/noexcept/volatile/const
+    // TODO: ref: https://github.com/lhmouse/MCF/blob/master/MCF/src/Function/Bind.hpp
     namespace sn_bind {
 
         template<std::size_t I>
@@ -23,9 +25,9 @@ namespace sn_Assist {
         struct IsReferenceWrapper<std::reference_wrapper<T>> : std::true_type {};
 
         template<std::size_t I, typename... Args, typename... UArgs>
-        decltype(auto) bind_map(std::tuple<Args...>& args, std::tuple<UArgs...>& uargs)
+        decltype(auto) bind_map(std::tuple<Args...>& args, [[maybe_unused]] std::tuple<UArgs...>& uargs)
         {
-            auto& arg = std::get<I>(args);
+            [[maybe_unused]] auto& arg = std::get<I>(args);
             using Type = std::tuple_element_t<I, std::tuple<Args...>>;
             using DecayedType = std::decay_t<Type>;
             

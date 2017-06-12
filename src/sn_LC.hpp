@@ -518,7 +518,13 @@ namespace sn_LC {
 
 	// Y :   lambda .f ( lambda .x (f(x)(x)) lambda .x f(x)(x) ) or lambda .f (lambda .u u(u))(lambda.x f(x)(x))
 	// ref: http://picasso250.github.io/2015/03/31/reinvent-y.html
-	template <std::size_t F, std::size_t U, std::size_t X>
+	enum {
+		 F, U, X, Y
+	};
+
+	// Should not be template symbol
+	// template <std::size_t F, std::size_t U, std::size_t X>
+	
 	using YCombinator = Lambda<F, 
 							Application<
 								Lambda<U, 
@@ -536,10 +542,11 @@ namespace sn_LC {
 							>
 						>;
 
-	template <std::size_t F, std::size_t U, std::size_t X, typename L>
-	using YFunc = Application<YCombinator<F, U, X>, L>;
+	// template <std::size_t F, std::size_t U, std::size_t X, typename L>
+	using YFunc = Application<YCombinator, L>;
 
-	template <std::size_t X, std::size_t Y>
+	// template <std::size_t X, std::size_t Y>
+	
 	using TCombinator = Application<
 							Lambda<X,
 								Lambda<Y, 
@@ -565,8 +572,9 @@ namespace sn_LC {
 							>
 						>;
 
-	template <std::size_t X, std::size_t Y, typename L>
-	using TFunc = Application<TCombinator<X, Y>, L>;
+	// template <std::size_t X, std::size_t Y, typename L>
+	
+	using TFunc = Application<TCombinator, L>;
 
 	// TODO: Add call/cc
 	// To implement this, we need full-context-CPS / Stimulaton Device

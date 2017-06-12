@@ -5,7 +5,7 @@
 
 ```c++
 struct S {
-    void* do_thing() {}
+    void* do_things() {}
     S* lhs;
     S* rhs;
 };

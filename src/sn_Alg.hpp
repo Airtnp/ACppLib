@@ -6,7 +6,8 @@
 
 /*
 TODO: (easy)
-dij/a* ±³°üdp prim kruskal floyd
+dij/a* èƒŒåŒ…dp prim kruskal floyd
+rotate n-th permutation
 */
 
 // ref: https://github.com/Sd-Invol/shoka/tree/master/CodeLibrary
