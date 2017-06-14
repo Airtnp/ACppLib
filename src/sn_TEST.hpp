@@ -7,8 +7,29 @@
 
 namespace sn_TEST {
 
+#ifdef SN_ENABLE_SELF_ASSERT
+
+void _assert(char *msg , char *file , unsigned int line){
+    char buf[1024] ;
+    sprintf(buf , "assertion fail:\n%s\nin file:\n%s\non line:\n%d" , msg , file , line);
+#ifdef SN_ENABLE_WINDOWS_API
+	::MessageBox(NULL , buf , "assertion failure" , MB_OK);
+#endif
+    exit(0);
+}
+
+#define assert(exp) ((exp) || (_assert(#exp , __FILE__ , __LINE__) , 0) )
+
+#define SN_ASSERT(expr, msg) \
+	assert(msg)
+
+#else
+
 #define SN_ASSERT(expr, msg) \
 	assert(expr && msg)
+
+#endif
+
 
 #define SN_STATIC_ASSERT(cond) \
 	((void)sizeof(char[1 - 2 * !!(cond)]))

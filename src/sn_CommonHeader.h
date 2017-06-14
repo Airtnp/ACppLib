@@ -116,6 +116,7 @@ for detail: https://gcc.gnu.org/onlinedocs/libstdc++/ext/pb_ds/
 // #define SN_ENABLE_STACK_WALKER
 // #define SN_ENABLE_TEMPORARY_UNAVAILABLE
 // #define SN_ENABLE_SUSPICIOUS_IMPLEMENTATION
+// #define SN_ENABLE_SELF_ASSERT
 
 
 template <typename T>

@@ -1299,7 +1299,7 @@ namespace sn_Exception {
         };
 #elif defined(__linux__)
 
-        #define PRINT_DEBUG
+#define PRINT_DEBUG
         class StackWalker {
             static void callstack(int sig) {
                 void *array[10];

@@ -212,6 +212,40 @@ namespace sn_TypeTraits {
 	template<template<typename...> class _gOp, typename... _types>
 	struct is_decomposable<_gOp<_types...>> : std::true_type {};
 
+	template <typename T, typename ... V>
+	/* inline */ constexpr auto is_brace_constructible_(T*)
+		-> decltype(T{std::declval<V>()...}, std::true_type{}) {
+		return {};
+	}
+
+	template <typename T, typename ... V>
+	/* inline */ constexpr std::false_type is_brace_constructible_(...) {
+		return {};
+	}
+
+	template <typename T, typename ... V>
+	/* inline */ constexpr auto is_brace_constructible()
+		-> decltype(is_brace_constructible_<T, V...>(nullptr)) {
+		return {};
+	}
+
+	template <typename T, typename ... V>
+	/* inline */ constexpr auto is_paren_constructible_(T*)
+		-> decltype(T(std::declval<V>()...), std::true_type{}) {
+		return {};
+	}
+
+	template <typename T, typename ... V>
+	/* inline */ constexpr std::false_type is_paren_constructible_(...) {
+		return {};
+	}
+
+	template <typename T, typename ... V>
+	/* inline */ constexpr auto is_paren_constructible()
+		-> decltype(is_paren_constructible_<T, V...>(nullptr)) {
+		return {};
+	}
+
 	enum class type_qualifier {
 		value,
 		const_value,
