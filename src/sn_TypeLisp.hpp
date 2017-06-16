@@ -432,6 +432,17 @@ namespace sn_TypeLisp {
 	};
 */
 
+	template <typename T>
+	struct TypeId {};
+
+	template <template <typename ...> typename TL, typename ...Ts>
+	struct TypeId<TL<Ts...>> {
+		using type = TL<Ts...>;
+	};
+
+	template <typename T>
+	using TypeId_t = typename TypeId<T>::type;
+
 	template <bool B, typename T, typename F>
 	struct TypeCond {};
 
@@ -663,6 +674,34 @@ namespace sn_TypeLisp {
 
 	template <bool Statement, typename T1, typename T2>
 	using TypeIf_t = typename TypeIf<Statement, T1, T2>::type;
+
+	template <typename ...TLs>
+	struct TypeConcat {};
+
+	template <typename H, typename ...Ls>
+	struct TypeConcat<H, Ls...> {
+		using type = TypeAppend_t<
+							TypeId_t<H>,
+							typename TypeConcat<Ls...>::type
+						>;
+	};
+
+	template <typename L>
+	struct TypeConcat<L> {
+		using type = TypeId_t<L>;
+	};
+
+	template <typename ...Ts>
+	using TypeConcat_t = typename TypeConcat<Ts...>::type;
+
+	/*
+		This is a good idea to simplify, but a bad idea regarding ADL
+
+		template <template <typename ...> TL, typename ... Ts, typename ... Us>
+        constexpr auto operator|(TL<Ts...>, TL<Us...>) {
+            return TL<Ts..., Us...>{};
+        }
+	*/
 
 }
 
