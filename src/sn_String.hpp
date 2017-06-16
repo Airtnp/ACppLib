@@ -210,8 +210,8 @@ namespace sn_String {
 	}
 
 	namespace constexpr_string {
-		//ref : https://github.com/mclow/string_view/blob/master/include/experimental/string_view
-		//another_impl(not const, support append): http://stackoverflow.com/a/15912824
+		// ref : https://github.com/mclow/string_view/blob/master/include/experimental/string_view
+		// another_impl(not const, support append): http://stackoverflow.com/a/15912824
 		class string_view {
 		private:
 			const char* m_str;
@@ -268,8 +268,8 @@ namespace sn_String {
 
 			constexpr string_view substr(const std::size_t pos, const std::size_t len = npos) const {
 				return string_view(data() + pos, len);
-				// Laji VS2015 ?
-				//pos > size() ? throw std::out_of_range("string_view:substr") : ((m_sz - pos > len) ? (return string_view(data() + pos, len)) : (return string_view(data() + pos, m_sz - pos)));
+				// Laji VS2015 constexpr ?
+				// pos > size() ? throw std::out_of_range("string_view:substr") : ((m_sz - pos > len) ? (return string_view(data() + pos, len)) : (return string_view(data() + pos, m_sz - pos)));
 			}
 
 			// VS2015 doesn't support fully Cpp14-constexpr

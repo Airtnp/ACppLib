@@ -633,7 +633,7 @@ namespace sn_Builtin {
 
 		template <typename T>
 		struct CtrlBlkBase {
-			explicit CtrlBlkBase(observer_ptr<T> t) : m_t(t) {}
+			explicit CtrlBlkBase(T* t) : m_t(t) {}
 
 			// /* type-erased deleter */ deleter;
 			// size_t shared_ref_count_;
@@ -667,6 +667,7 @@ namespace sn_Builtin {
 				return m_t; 
 			}
 		private:
+			// prevent extra copy / performance problem
 			shared_ptr(CtrlBlk<T, true> *cb) : m_ctrl_blk(cb), m_t(m_ctrl_blk->m_t) {}
 			CtrlBlkBase<T>* m_ctrl_blk;
 			T* m_t;

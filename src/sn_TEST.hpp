@@ -11,7 +11,8 @@ namespace sn_TEST {
 
 void _assert(char *msg , char *file , unsigned int line){
     char buf[1024] ;
-    sprintf(buf , "assertion fail:\n%s\nin file:\n%s\non line:\n%d" , msg , file , line);
+    // or SN_LOG_ERROR << ...
+	sprintf(buf , "assertion fail:\n%s\nin file:\n%s\non line:\n%d" , msg , file , line);
 #ifdef SN_ENABLE_WINDOWS_API
 	::MessageBox(NULL , buf , "assertion failure" , MB_OK);
 #endif
