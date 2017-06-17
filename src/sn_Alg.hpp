@@ -128,6 +128,14 @@ namespace sn_Alg {
 			return x;
 		}
 
+		inline long long binary_exp(long long x, long long y) {
+			if (y <= 0) return 1;
+			if (y % 2 == 0)
+				return binary_exp(x * x, y / 2);
+			else
+				return x * binary_exp(x, y - 1);
+		}
+
 	}
 
 	namespace graph {

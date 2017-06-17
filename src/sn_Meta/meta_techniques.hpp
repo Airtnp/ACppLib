@@ -153,3 +153,13 @@ namespace sn_Meta {
         return R{}; \
     } \
 }
+
+    template <typename T>
+    struct Id {};
+
+    template <typename C, typename ...Ts>
+    struct Id<C<Ts...>> {
+        using type = C<Ts...>;
+    };
+
+}

@@ -96,7 +96,7 @@ for detail: https://gcc.gnu.org/onlinedocs/libstdc++/ext/pb_ds/
 	#include <tchar.h>
 	#pragma comment(lib, "version.lib")
 	#endif
-#else
+#elif defined(__linux__)
 #include <fcntl.h>
 	#ifdef SN_ENABLE_STACK_WALKER
         #include <signal.h>
@@ -108,6 +108,10 @@ for detail: https://gcc.gnu.org/onlinedocs/libstdc++/ext/pb_ds/
         #include <string.h>
         #include <unistd.h>
 	#endif
+	#ifdef SN_ENABLE_FILE_MAP
+		#include <unistd.h>
+		#include <sys/mman.h>
+	#endif
 #endif
 
 // Some feature switch
@@ -117,6 +121,7 @@ for detail: https://gcc.gnu.org/onlinedocs/libstdc++/ext/pb_ds/
 // #define SN_ENABLE_TEMPORARY_UNAVAILABLE
 // #define SN_ENABLE_SUSPICIOUS_IMPLEMENTATION
 // #define SN_ENABLE_SELF_ASSERT
+// #define SN_ENABLE_FILE_MAP
 
 
 template <typename T>
