@@ -50,6 +50,40 @@ namespace sn_Meta {
             constexpr iterator begin() { return &m_data[0]; }
             constexpr iterator end() { return &m_data[N]; }
         };
+
+        template <typename T, typename ...Names>
+        struct static_map {
+        private:
+            template <typename Name>
+            struct element {
+                using name = Name;
+                explicit element(T v) : value(v) {}
+                T value;
+            };
+        public:
+            template <typename ...Args>
+            static_map(Args&&... args)
+                : m_elements(std::make_tuple(elements<Args>(std::forward<Args>(args)...)) {
+                    static_assert(sizeof...(Names) == sizeof...(Args), "Not match.");
+            }
+
+            template <typename Name>
+            decltype(auto) get() const {
+                return std::get<element<Name>>(m_elements).value;
+            }
+
+            template <typename Name>
+            void set(const T& v) {
+                std::get<element<Name>>(m_elements).value = v;
+            }
+
+            template <typename Name>
+            void set(T&& v) {
+                std::get<element<Name>>(m_elements).value = std::move_if_noexcept(v);
+            }
+        private:
+            std::tuple<element<Names>...> m_elements;
+        };
     }
 
 }
