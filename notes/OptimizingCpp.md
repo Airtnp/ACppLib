@@ -19,3 +19,24 @@
 * + STL Alg -> back_inserter
 * In C language and also in C++, such variables and functions may be declared static. Though, in modern C++, the use of static global variables and functions is not recommended, and should be replaced by variables and functions declared in an anonymous namespace.
 * + [ref](https://stackoverflow.com/questions/4422507/superiority-of-unnamed-namespace-over-static)
+* N-place cache
+* + static map
+* small range sort -> counting sort O(N+M)
+* first N -> partial_sort/nth_element
+* To empty a vector<T> x object without deallocating its memory, use the statement `x.resize(0);`
+* To empty it and deallocate its memory, use the statement `vector<T>().swap(x);`
+* For every copyable concrete class T which, directly or indirectly, owns some dynamic memory, redefine the appropriate swap functions.
+* If you have to perform boolean operations on a set of bits, put those bits in an unsigned int object, and use bitwise operators on it.
+* + The bitwise operators (&, |, ˆ, <<, and >>) are translated in single fast instructions, and operate on all the bits of a register in a single instruction.
+* Exploit non-standard routines to round floating point numbers to integer numbers.
+```c++
+#if defined(__unix__) || defined(__GNUC__)
+    // For 32-bit Linux, with Gnu/AT&T syntax
+    __asm ("fldl %1 \n fistpl %0 " : "=m"(n) : "m"(x) : "memory" );
+#else
+    // For 32-bit Windows, with Intel/MASM syntax
+    __asm fld qword ptr x;
+    __asm fistp dword ptr n;
+#endif 
+```
+* 

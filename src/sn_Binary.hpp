@@ -6,6 +6,8 @@
 #include "sn_Stream.hpp"
 #include "sn_Log.hpp"
 
+// TODO: add ia32/x86-64 decoder
+// ref: https://github.com/DankRank/dovzhyna/
 namespace sn_Binary {
 	//ref: https://github.com/akemimadoka/NatsuLib
 	//TODO: add constexpr judge ref: http://stackoverflow.com/questions/1001307/detecting-endianness-programmatically-in-a-c-program
