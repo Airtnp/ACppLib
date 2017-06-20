@@ -1,4 +1,3 @@
-#ifdef SN_YINYANG_PUZZLE
 #include <queue>
 #include <iostream>
 // #include <cxxabi.h>
@@ -122,5 +121,3 @@ int main() {
 		cf.call();
 	}
 }
-
-#endif
