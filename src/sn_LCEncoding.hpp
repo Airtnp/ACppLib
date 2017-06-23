@@ -117,8 +117,8 @@ namespace sn_LCEncoding {
 	
 	namespace Church {
 		using Nonsense = Literal<Zero>;
-		enum { F, T };
-		using ID = Lambda<T, Reference<T>>;
+		enum { F, T, X, M, N, G, H, U };
+		using ID = Lambda<X, Reference<X>>;
 		template <typename FX, typename X>
 		// lambda .f 
 		//		lambda .x 
@@ -176,11 +176,11 @@ namespace sn_LCEncoding {
 		
 		// inc/pred/mult/sub is simple size_t operation
 		template <std::size_t N, typename FX, typename X>
-		struct ChurchSuccValue {
+		struct ChurchNSuccValue {
 			using value = typename ChurchNValue<N + 1, FX, X>::value;
 		};
 		template <std::size_t N, typename FX, typename X>
-		using ChurchSucc = typename ChurchSuccValue<N, FX, X>::value;
+		using ChurchNSucc = typename ChurchNSuccValue<N, FX, X>::value;
 
 		template <typename FX, typename X>
 		struct ChurchTValue {
@@ -248,6 +248,192 @@ namespace sn_LCEncoding {
 		template <typename T>
 		using ChurchN = typename ChurchNImpl<0, T>::value;
 		
+		// n f x = f^n x
+
+		// succ = \n -> f x -> f (n f x)
+		using ChurchSucc = VarLambda<
+								VarList<N>,
+								VarLambda<
+									VarList<F, X>,
+									Application<
+										Reference<F>,
+										Application<
+											Reference<N>,
+											ValList<
+												Reference<F>,
+												Reference<X>
+											>
+										>
+									>
+								>
+							>;
+
+		// f^(m+n) x = f^m (f^n x)
+		// plus = \m n -> \f x -> m f (n f x)
+		using ChurchPlus = VarLambda<
+								VarList<M, N>,
+								VarLambda<
+									VarList<F, X>,
+									Application<
+										Reference<M>,
+										ValList<
+											Reference<F>,
+											Application<
+												Reference<N>,
+												ValList<
+													Reference<F>,
+													Reference<X>
+												>
+											>
+										>
+									>
+								>
+							>;
+
+		// f^(mn) x = (f^n)^m x
+		// m (n f) x
+		// mult = \m n -> \f x -> m (n f) x (\m n -> \f x -> m (\y -> n f y) x)
+		using ChurchMult = VarLambda<
+								VarList<M, N>,
+								VarLambda<
+									VarList<F, X>
+									Application<
+										Reference<M>,
+										ValList<
+											VarLambda<
+												VarList<V1>,
+												Application<
+													Reference<N>,
+													ValList<
+														Reference<F>,
+														Reference<V1>
+													>
+												>
+											>,
+											Reference<X>
+										>
+									>
+								>
+							>;
+
+		// n m x = m^n x = f^(m^n) x
+		// \m n -> \f x -> (\f' -> m n f') f x
+		using ChurchExp = VarLambda<
+								VarList<M, N>,
+								VarLambda<
+									VarList<F, X>,
+									Application<
+										Application<
+											VarLambda<
+												VarList<V1>,
+												Application<
+													Reference<M>,
+													ValList<
+														Reference<N>,
+														Reference<V1>
+													>
+												>
+											>,
+											ValList<
+												Reference<F>
+											>
+										>,
+										Reference<X>
+									>
+								>
+							>;
+
+		// pred = \n -> \f x -> n (\g h -> h (g f)) (\u -> x) (\u -> u)
+		
+		// x is predefined or curried
+		// value = \v -> \h -> h v
+		// inc = \g h -> h (g f)
+		// init = \h h x
+		// const = \u x
+
+		// init = value v
+		// inc init = value (f v)
+		// n inc init = value (f^n x) = value (n f x)
+		// inc (value v) = value (f v)
+		// extract (value v) = v
+		// samesum = \n -> \f x extract (n inc init)
+		// 				= \n -> \f x extract (value (n f x))
+		//					= \n -> \f x -> n f x
+		//						= \n n
+
+		// inc const = value (f x)
+		// inc (inc const) = value (f (f x))
+		// n inc const = value (f^(n-1) x) = value ((n-1) f x)
+		// pred    = \n -> \f x extract (n inc const)
+		//				= \n -> \f x extract value ((n-1) f x)
+		//					= \n -> \f x -> (n-1) f x
+		//						= \n n-1
+
+		// template parameter is free variables
+		template <typename T>
+		using ChurchPredConst = VarLambda<
+									VarList<X>,
+									T
+								>;
+
+		template <typename F>
+		using ChurchPredInc = VarLambda<
+									VarList<G, H>,
+									Application<
+										Reference<H>,
+										Application<
+											Reference<G>,
+											F
+										>
+									>
+								>;
+
+		using ChurchPredInit = VarLambda<
+									VarList<V1>,
+									Reference<V1>
+								>;
+
+		// Just pretend we have curry implementation
+		using ChurchPred = VarLambda<
+								VarList<N>,
+								VarLambda<
+									VarList<F, X>,
+									Application<
+										Application<
+											Reference<N>,
+											ValList<
+												ChurchPredInc<Reference<F>>,
+												ChurchPredConst<Reference<X>>
+											>
+										>,
+										ChurchPredInit
+									>
+								>
+							>;
+
+		// m - n
+		// minus = \m n -> \f x -> ((n pred) m) f x
+		using ChurchMinus = VarLambda<
+								VarList<M, N>,
+								VarLambda<
+									VarList<F, X>,
+									Application<
+										Application<
+											Reference<N>,
+											ValList<
+												ChurchPred,
+												Reference<M>
+											>
+										>
+										ValList<
+											Reference<F>,
+											Reference<X>
+										>
+									>
+								>
+							>;
+										
+
 		using ChurchTrue = VarLambda<
 								VarList<V1, V2>, 
 								Reference<V1>

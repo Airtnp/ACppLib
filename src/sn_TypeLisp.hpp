@@ -493,9 +493,9 @@ namespace sn_TypeLisp {
 
 	template <template <typename ...> typename TL, typename H, typename ...T>
 	struct TypeLength<TL<H, T...>> {
-		// or directly
-		// constexpr static const std::size_t value = sizeof...(T) + 1; 
-		constexpr static const std::size_t value = 1 + TypeLength<TL<T...>>::value;
+		constexpr static const std::size_t value = sizeof...(T) + 1; 
+		// old-style
+		// constexpr static const std::size_t value = 1 + TypeLength<TL<T...>>::value;
 	};
 
 	template <template <typename ...> typename TL, std::size_t N>
@@ -702,6 +702,29 @@ namespace sn_TypeLisp {
             return TL<Ts..., Us...>{};
         }
 	*/
+
+	template <typename T, std::size_t N, std::size_t M, bool V1 = (N == 0), bool V2 = (M == 0)>
+	struct TypeSlice {};
+
+	template <template <typename ...> typename TL, typename T, typename ...Ts, std::size_t N, std::size_t M>
+	struct TypeSlice<TL<T, Ts...>, N, M, false, false> {
+		static_assert(M <= sizeof...(Ts), "Index out of bound");
+		static_assert(M >= N, "Back slicing is not implemented");
+		using type = typename TypeSlice<TL<Ts...>, N-1, M-1>::type;
+	};
+
+	template <template <typename ...> typename TL, typename T, typename ...Ts, std::size_t M>
+	struct TypeSlice<TL<T, Ts...>, 0, M, true, false> {
+		using type = typename TypeAppend<TL<T>, typename TypeSlice<TL<Ts...>, 0, M-1>::type>::type;
+	};
+
+	template <template <typename ...> typename TL, typename ...Ts>
+	struct TypeSlice<TL<Ts...>, 0, 0, true, true> {
+		using type = TL<>;
+	};
+
+	template <typename T, std::size_t N, std::size_t M>
+	using TypeSlice_t = typename TypeSlice<T, N, M>::type;
 
 }
 

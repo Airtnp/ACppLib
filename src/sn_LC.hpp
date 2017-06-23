@@ -9,6 +9,7 @@
 // TODO: look at MK/lambda-calculus
 // TODO: add more fix combinators f(fix(f)) = fix(f)
 // TODO: add call/cc (implement eval/apply/if/... in CPS style with continuation)
+// TODO: add full currying support (auto curry without Curry struct)
 namespace sn_LC {
 	struct Zero {
 		enum { value = 0, };
@@ -314,6 +315,11 @@ namespace sn_LC {
 	template <std::size_t ...I, typename Body, typename Env, typename ...Args>
 	struct Apply<Closure<VarLambda<VarList<I...>, Body>, Env>, ValList<Args...>> {
 		using result = typename Eval<Body, typename VarBinding<VarList<I...>, ValList<Args...>, Env>::result>::result;
+	};
+
+	template <std::size_t I, typename Body, typename Env, typename T>
+	struct Apply<Closure<VarLambda<VarList<I>, Body>, Env>, T> {
+		using result = typename Eval<Body, typename VarBinding<VarList<I>, ValList<T>, Env>::result>::result;
 	};
 
 	/*
