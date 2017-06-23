@@ -6,8 +6,8 @@
 #include <string>
 
 
-const std::string text    = "aabababaabbaaabababaaabaabbabbbbabbaabbabaababababababbabba";
-const std::string pattern = "ababbabba";
+const std::string text    = "aabababaabbaaababababbbbabbaabbabaabababababbababbabbaa";
+const std::string pattern = "bbababbabba";
 //const std::string text    = "aaaa__aa__aaa___aaaa_____aaaaa_____aaaaaa_____aaaaaaaa_____aa_______aa";
 //const std::string pattern = "__aa_______";
 //const std::string text    = "MANPANAMPNAM";
@@ -37,7 +37,7 @@ namespace MCF {
 			ashBcrTable[uIndex] = static_cast<short>(nMaxBcrShift);
 		}
 		for(std::ptrdiff_t nBcrShift = nMaxBcrShift - 1; nBcrShift > 0; --nBcrShift){
-			const auto chGoodChar = itPatternBegin[nPatternLength - (nBcrShift + 1)];
+			const auto chGoodChar = itPatternBegin[nPatternLength - nBcrShift - 1];
 			ashBcrTable[static_cast<std::make_unsigned_t<decltype(chGoodChar)>>(chGoodChar) % kBcrTableSize] = static_cast<short>(nBcrShift);
 		}
 
@@ -47,19 +47,24 @@ namespace MCF {
 		__attribute__((__aligned__(64))) short ashGsrTable[kGsrTableSize];
 		const std::ptrdiff_t nMaxGsrShift = (nPatternLength <= kGsrTableSize) ? nPatternLength : kGsrTableSize;
 		std::ptrdiff_t nGsrCandidateLength = 0;
-		const auto chCandidateBack = itPatternBegin[nPatternLength - 1];
 		ashGsrTable[0] = 1;
 		for(std::ptrdiff_t nTestIndex = 1; nTestIndex < nMaxGsrShift; ++nTestIndex){
-			const auto chTest = itPatternBegin[nPatternLength - (nTestIndex + 1)];
-			const auto chCandidateFront = itPatternBegin[nPatternLength - (nGsrCandidateLength + 1)];
-			if(chTest != chCandidateFront){
-				nGsrCandidateLength = (chTest == chCandidateBack) ? 0 : -1;
+			const auto chTest = itPatternBegin[nPatternLength - nTestIndex - 1];
+			for(;;){
+				const auto chCandidateFront = itPatternBegin[nPatternLength - nGsrCandidateLength - 1];
+				if(chTest == chCandidateFront){
+					++nGsrCandidateLength;
+					break;
+				}
+				if(nGsrCandidateLength == 0){
+					break;
+				}
+				nGsrCandidateLength -= ashGsrTable[nGsrCandidateLength - 1];
 			}
-			ashGsrTable[nTestIndex] = static_cast<short>(nTestIndex - nGsrCandidateLength);
-			++nGsrCandidateLength;
+			ashGsrTable[nTestIndex] = static_cast<short>(nTestIndex - nGsrCandidateLength + 1);
 		}
-		ashGsrTable[0] = 0;
 		std::ptrdiff_t nGsrLastOffset = 1;
+		ashGsrTable[0] = 0;
 		for(std::ptrdiff_t nTestIndex = 1; nTestIndex < nMaxGsrShift; ++nTestIndex){
 			const std::ptrdiff_t nGsrOffset = ashGsrTable[nTestIndex];
 			ashGsrTable[nTestIndex] = static_cast<short>(nMaxGsrShift - nGsrCandidateLength);
@@ -71,8 +76,8 @@ namespace MCF {
 					}
 					ashGsrTable[nWriteIndex] = static_cast<short>(nGsrShift);
 				}
-				nGsrLastOffset = nGsrOffset;
 			}
+			nGsrLastOffset = nGsrOffset;
 		}
 std::cerr <<"gsr table: ";
 for(int i = 0; i < nMaxGsrShift; ++i){
@@ -98,7 +103,7 @@ std::cerr <<" -- not found" <<std::endl;
 				const auto chPattern = itPatternBegin[nTestIndex];
 				if(chText != chPattern){
 std::cerr <<"  ! " <<std::setw(static_cast<int>(nOffset + nTestIndex)) <<"" <<"^" <<" mismatch" <<std::endl;
-					const auto nSuffixLength = nPatternLength - (nTestIndex + 1);
+					const auto nSuffixLength = nPatternLength - nTestIndex - 1;
 					const std::ptrdiff_t nBcrShift = ashBcrTable[static_cast<std::make_unsigned_t<decltype(chLast)>>(chLast) % kBcrTableSize];
 					const std::ptrdiff_t nGsrShift = (nSuffixLength < nMaxGsrShift) ? ashGsrTable[nSuffixLength] : 1;
 					if(nBcrShift > nGsrShift){
@@ -114,7 +119,7 @@ std::cerr <<" -- bailing out at " <<nTestIndex <<", bcr = " <<nBcrShift <<", gsr
 					break;
 				}
 				if(nTestIndex == nKnownMatchEnd){
-std::cerr <<"  @ " <<std::setw(static_cast<int>(nOffset + nKnownMatchBegin)) <<"" <<std::setw(static_cast<int>(nKnownMatchEnd - nKnownMatchBegin)) <<std::setfill('<') <<"" <<std::setfill(' ') <<" good suffix" <<std::endl;
+std::cerr <<"  @ " <<std::setw(static_cast<int>(nOffset + nKnownMatchBegin)) <<"" <<std::setw(static_cast<int>(nKnownMatchEnd - nKnownMatchBegin)) <<std::setfill('<') <<"" <<std::setfill(' ') <<" skipped" <<std::endl;
 					nTestIndex = nKnownMatchBegin;
 				}
 				if(nTestIndex <= 0){

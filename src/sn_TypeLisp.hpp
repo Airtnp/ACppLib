@@ -703,6 +703,33 @@ namespace sn_TypeLisp {
         }
 	*/
 
+	template <typename T, typename U>
+	struct TypePair {};
+
+	template <template <typename ...> typename TL, typename ...Ts, typename ...Us>
+	struct TypePair<TL<Ts...>, TL<Us...>> {
+		using type = TL<TL<Ts...>, TL<Us...>>;
+		using left = TL<Ts...>;
+		using right = TL<Us...>;
+	};
+
+	template <typename T, typename U>
+	using TypePair_t = typename TypePair<T, U>::type;
+
+	template <typename ...TLs>
+	struct TypeTuple {};
+
+	template <template <typename ...> typename TL, typename ...Ts, typename ...TLs>
+	struct TypeTuple<TL<Ts...>, TLs...> {
+		using type = TL<TL<Ts...>, TLs...>;
+		template <std::size_t N>
+		using type_n = TypeAt_t<type, N>;
+	};
+
+	template <typename ...TLs>
+	using TypeTuple_t = typename TypeTuple<TLs...>::type;
+
+	// or std::enable_if_t SFINAE
 	template <typename T, std::size_t N, std::size_t M, bool V1 = (N == 0), bool V2 = (M == 0)>
 	struct TypeSlice {};
 
@@ -725,6 +752,28 @@ namespace sn_TypeLisp {
 
 	template <typename T, std::size_t N, std::size_t M>
 	using TypeSlice_t = typename TypeSlice<T, N, M>::type;
+
+	template <typename T, std::size_t N, bool V = (N == 0)>
+	struct TypeSplit {};
+
+	template <template <typename ...> typename TL, typename T, typename ...Ts, std::size_t N>
+	struct TypeSplit<TL<T, Ts...>, N, false> {
+		static_assert(N <= sizeof...(Ts), "Index out of bound");
+		using left = TypeAppend_t<TL<T>, typename TypeSplit<TL<Ts...>, N-1>::left>;
+		using right = typename TypeSplit<TL<Ts...>, N-1>::right;
+	};
+
+	template <template <typename ...> typename TL, typename ...Ts>
+	struct TypeSplit<TL<Ts...>, 0, true> {
+		using left = TL<>;
+		using right = TL<Ts...>;
+	};
+
+	// or use intermediate to reduce one template expansion
+	template <typename T, std::size_t N>
+	using TypeSplit_t = TypePair_t<typename TypeSplit<T, N>::left, typename TypeSplit<T, N>::right>;
+
+
 
 }
 
