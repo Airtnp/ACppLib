@@ -6,7 +6,7 @@ namespace sn_Assist {
 		template <typename T>
 		std::string demangle_type() {
 			using TR = typename std::decay<T>::type;
-			std::unique_ptr<char, void(*)(void*)> own;
+			std::unique_ptr<char, void(*)(void*)> own
 				(
 			#ifndef _MSC_VER
 				abi::__cxa_demangle(typeid(TR).name(), nullptr, nullptr, nullptr),
