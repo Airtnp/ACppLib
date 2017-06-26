@@ -104,6 +104,16 @@ namespace sn_TypeLisp {
         using type = TypeTrue;
     };
 
+	template <template <typename ...> typename TL>
+	struct TypeEq<TL<>, TypeNil<>> {
+		using type = TypeTrue;
+	};
+
+	template <template <typename ...> typename TL>
+	struct TypeEq<TypeNil<>, TL<>> {
+		using type = TypeTrue;
+	};
+
 	template <typename T, typename U>
 	using TypeEq_t = typename TypeEq<T, U>::type;
 
@@ -114,6 +124,16 @@ namespace sn_TypeLisp {
 
     template <typename T>
 	struct TypeEqv<T, T> {
+		using type = TypeTrue;
+	};
+
+	template <template <typename ...> typename TL>
+	struct TypeEqv<TL<>, TypeNil<>> {
+		using type = TypeTrue;
+	};
+
+	template <template <typename ...> typename TL>
+	struct TypeEqv<TypeNil<>, TL<>> {
 		using type = TypeTrue;
 	};
 
