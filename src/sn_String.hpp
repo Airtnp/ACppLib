@@ -61,7 +61,7 @@ namespace sn_String {
 		}
 	}
 	namespace splitter {
-				using std::vector;
+		using std::vector;
 		using std::size_t;
 		struct split_option {
 			enum empty_t { empty_remain, empty_discard };
