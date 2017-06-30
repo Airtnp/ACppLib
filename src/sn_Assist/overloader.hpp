@@ -18,7 +18,9 @@ namespace sn_Assist {
 		// ref: https://www.zhihu.com/question/37202431
 		// ref: http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0051r2.pdf
 		// In C++1z, you can straightly
-		// class F : P... 		
+		// class F : P...
+		// using P::operator()... 
+		// ref: http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0195r2.html		
 		template <typename F, typename...Args>
 		struct func_overload_impl : F, func_overload_impl<Args...> {
 			using F::operator();
