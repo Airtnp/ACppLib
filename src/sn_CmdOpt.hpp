@@ -106,7 +106,7 @@ namespace sn_CmdOpt {
             if (!(is >> value)) {
                 throw OptionParseException(str, ParseError::ArgumentTypeIncorrect);
             }
-            if (is.rdbuf() -> in_avail() != 0) {
+            if (is.rdbuf() -> in_avail() != 0) {  // or tellg() != -1
                 throw OptionParseException(str, ParseError::ArgumentTypeIncorrect);
             }
         }

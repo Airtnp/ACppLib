@@ -15,60 +15,52 @@ namespace sn_Type {
 		enum class byte : unsigned char {};
 
 		template <class T, class = std::enable_if_t<std::is_integral<T>::value>>
-		inline constexpr byte& operator<<=(byte& b, T shift) noexcept
-		{
+		inline constexpr byte& operator<<=(byte& b, T shift) noexcept {
 			return b = byte(static_cast<unsigned char>(b) << shift);
 		}
 
 		template <class T, class = std::enable_if_t<std::is_integral<T>::value>>
-		inline constexpr byte operator<<(byte b, T shift) noexcept
-		{
+		inline constexpr byte operator<<(byte b, T shift) noexcept {
 			return byte(static_cast<unsigned char>(b) << shift);
 		}
 
 		template <class T, class = std::enable_if_t<std::is_integral<T>::value>>
-		inline constexpr byte& operator>>=(byte& b, T shift) noexcept
-		{
+		inline constexpr byte& operator>>=(byte& b, T shift) noexcept {
 			return b = byte(static_cast<unsigned char>(b) >> shift);
 		}
 
 		template <class T, class = std::enable_if_t<std::is_integral<T>::value>>
-		inline constexpr byte operator >> (byte b, T shift) noexcept
-		{
+		inline constexpr byte operator >> (byte b, T shift) noexcept {
 			return byte(static_cast<unsigned char>(b) >> shift);
 		}
 
-		inline constexpr byte& operator|=(byte& l, byte r) noexcept
-		{
+		inline constexpr byte& operator|=(byte& l, byte r) noexcept {
 			return l = byte(static_cast<unsigned char>(l) | static_cast<unsigned char>(r));
 		}
 
-		inline constexpr byte operator|(byte l, byte r) noexcept
-		{
+		inline constexpr byte operator|(byte l, byte r) noexcept {
 			return byte(static_cast<unsigned char>(l) | static_cast<unsigned char>(r));
 		}
 
-		inline constexpr byte& operator&=(byte& l, byte r) noexcept
-		{
+		inline constexpr byte& operator&=(byte& l, byte r) noexcept {
 			return l = byte(static_cast<unsigned char>(l) & static_cast<unsigned char>(r));
 		}
 
-		inline constexpr byte operator&(byte l, byte r) noexcept
-		{
+		inline constexpr byte operator&(byte l, byte r) noexcept {
 			return byte(static_cast<unsigned char>(l) & static_cast<unsigned char>(r));
 		}
 
-		inline constexpr byte& operator^=(byte& l, byte r) noexcept
-		{
+		inline constexpr byte& operator^=(byte& l, byte r) noexcept {
 			return l = byte(static_cast<unsigned char>(l) ^ static_cast<unsigned char>(r));
 		}
 
-		inline constexpr byte operator^(byte l, byte r) noexcept
-		{
+		inline constexpr byte operator^(byte l, byte r) noexcept {
 			return byte(static_cast<unsigned char>(l) ^ static_cast<unsigned char>(r));
 		}
 
-		inline constexpr byte operator~(byte b) noexcept { return byte(~static_cast<unsigned char>(b)); }
+		inline constexpr byte operator~(byte b) noexcept {
+			return byte(~static_cast<unsigned char>(b)); 
+		}
 
 	}
 	namespace nil {
@@ -325,24 +317,6 @@ namespace sn_Type {
 
 			bool m_isInit;
 			data_t m_data;
-		};
-	}
-
-	namespace singleton {
-		//CRTP singleton (or just inherit)
-		template <typename T>
-		class Singleton {
-		public:
-			static T& get_instance() {
-				static T instance;
-				return instance;
-			}
-		protected:
-			Singleton() {}
-			~Singleton() {}
-		public:
-			Singleton(const Singleton&) = delete;
-			Singleton& operator=(const Singleton&) = delete;
 		};
 	}
 
