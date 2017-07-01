@@ -104,7 +104,9 @@ namespace sn_Assist {
 #define SN_HAS_MEMBER_VALUE(Type, member_name) \
 	sn_has_member_##member_name<Type>::value
 
-
+	/*
+		However, struct T { void func() & {} }; cannot use std::declval<T>().func()
+	*/
 #define SN_HAS_MEMBER_FUNCTION(func_name) \
 	template <typename C, typename R, typename V = std::void_t<>, typename... Args> \
 	struct sn_has_member_function_##func_name : std::false_type {}; \
@@ -121,39 +123,39 @@ namespace sn_Assist {
 
 		/*
 		#define SN_HAS_MEMBER_FUNCTION(func_name) \
-		template <typename C, typename R, typename V = std::void_t<>, typename... Args> \
-		struct sn_has_member_function_##func_name : std::false_type {}; \
-		template <typename C, typename R, typename... Args> \
-		struct sn_has_member_function_##func_name<C, R(Args...), \
-		std::void_t< \
-		decltype(std::declval<C>().##func_name(std::declval<Args>()...)) \
-		>, \
-		Args...> : std::true_type {};
+			template <typename C, typename R, typename V = std::void_t<>, typename... Args> \
+			struct sn_has_member_function_##func_name : std::false_type {}; \
+			template <typename C, typename R, typename... Args> \
+			struct sn_has_member_function_##func_name<C, R(Args...), \
+				std::void_t< \
+					decltype(std::declval<C>().##func_name(std::declval<Args>()...)) \
+				>, \
+			Args...> : std::true_type {};
 		*/
 
 		/*
 		#define sn_has_member_function(func_name) \
-		template <typename, typename T> \
-		struct sn_has_member_function_##func_name { \
-		}; \
-		template <typename C, typename R, typename... Args> \
-		struct sn_has_member_function_##func_name<C, R(Args...)> { \
-		template <typename T> \
-		static constexpr auto check(T*) \
-		-> typename std::is_same<decltype(std::declval<T>().##func_name(std::declval<Args>()...)), R>::type; \
-		\
-		template <typename> \
-		static constexpr auto check(...) \
-		-> std::false_type; \
-		\
-		using type = decltype(check<C>(nullptr)); \
-		};
+			template <typename, typename T> \
+			struct sn_has_member_function_##func_name { \
+			}; \
+			template <typename C, typename R, typename... Args> \
+			struct sn_has_member_function_##func_name<C, R(Args...)> { \
+				template <typename T> \
+				static constexpr auto check(T*) \
+					-> typename std::is_same<decltype(std::declval<T>().##func_name(std::declval<Args>()...)), R>::type; \
+			\
+				template <typename> \
+				static constexpr auto check(...) \
+					-> std::false_type; \
+			\
+				using type = decltype(check<C>(nullptr)); \
+			};
 		*/
 
 		/*
 		Old-style
 
-		#define CREATE_MEMBER_DETECTOR(X)                                                   	\
+		#define CREATE_MEMBER_FUNCTION_DETECTOR(X)                                                   	\
 			template<typename T> class Detect_##X {                                             \
 				struct Fallback { int X; };                                                     \
 				struct Derived : T, Fallback { };                                               \
