@@ -411,31 +411,71 @@ namespace sn_Function {
 	}
 
 	namespace template_currying {
-		template <template <typename ...TArgs> typename Op, typename ...Args>
-		struct TemplateCurrying {
+		
+		/*
+			Usage:
+				template <typename ...LArgs>
+				using AC = TypeCurry_t<Op, Args...>;
+				
+				using T = AC<Args...>;
+
+			Or more general:
+				template <typename ...LArgs>
+				using T = typename TypeCurryProxy<LArgs...>::template type<Op, Args...>;
+		*/
+
+
+		template <template <typename ...TArgs> typename Op, typename ...FArgs>
+		struct TypeCurry {
 			/*
-			template <typename ...LArgs>
-			struct LTemplate {
-				using type = Op<Args..., LArgs...>;
-			};
-            template <typename ...LArgs>
-            using type = typename LTemplate<LArgs...>::type;
+				template <typename ...LArgs>
+				struct LTemplate {
+					using type = Op<Args..., LArgs...>;
+				};
+				template <typename ...LArgs>
+				using type = typename LTemplate<LArgs...>::type;
 			*/
 			template <typename ...LArgs>
-			using type = Op<Args..., LArgs...>;
+			using type = Op<FArgs..., LArgs...>;
 		};
 
 		template <typename ...LArgs>
-		template <template <typename ...TArgs> typename Op, typename ...Args>
-		using TPC = typename TemplateCurrying<Op, Args...>::template type<LArgs...>;
+		struct TypeCurryProxy {
+			template <template <typename ...TArgs> typename Op, typename ...FArgs>
+			using type = typename TypeCurry<Op, FArgs...>::template type<LArgs...>;    
+		};
 
-		/*
-		Usage:
+#ifdef __GNUC__
 			template <typename ...LArgs>
-			using AC = TPC<Op, Args...>;
-			
-			using T = AC<Args...>;
-		*/
+			template <template <typename ...TArgs> typename Op, typename ...FArgs>
+			using TypeCurry_t = typename TypeCurry<Op, FArgs...>::template     type<LArgs...>;
+#endif
+
+
+		// wrapper
+		template <template <typename ...> typename Op>
+		struct TypeLazy {
+			template <typename ...Ts>
+			struct Lazy {
+				using lazy = TypeTrue;
+				template <typename ...Ts_>
+				using type = Op<Ts_...>;
+			};
+			template <typename ...Ts>
+			using type = Lazy<Ts...>;
+		};
+
+		template <typename ...Ts>
+		struct TypeLazyProxy {
+			template <template <typename ...> typename Op>
+			using type = typename TypeCurry<Op>::template type<Ts...>;    
+		};
+
+#ifdef __GNUC__
+			template <typename ...Ts>
+			template <template <typename ...> typename Op>
+			using TypeLazy_t = typename TypeLazy<Op>::template type<Ts...>;
+#endif
 
 	}
 

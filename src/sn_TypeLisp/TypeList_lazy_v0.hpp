@@ -3,6 +3,8 @@
 
 #include <cstddef>
 
+// TODO: now the defintion seems ill-formed
+// ref: https://stackoverflow.com/questions/36997351/using-a-template-before-its-specialized?rq=1
 // define all in lazy mode
 namespace sn_TypeLisp {
     template <typename ...Ts>
@@ -27,7 +29,7 @@ namespace sn_TypeLisp {
     struct TypeNil {};
 
 
-#ifndef __clang__
+#ifdef __GNUC__
 
     /*
     Usage:
@@ -35,6 +37,10 @@ namespace sn_TypeLisp {
         using AC = TypeCurry_t<Op, Args...>;
         
         using T = AC<Args...>;
+
+    Or more general:
+        template <typename ...LArgs>
+        using T = typename TypeCurryProxy<LArgs...>::template type<Op, Args...>;
     */
 
 
@@ -44,9 +50,22 @@ namespace sn_TypeLisp {
         using type = Op<FArgs..., LArgs...>;
     };
 
+    template <typename ...LArgs>
+    struct TypeCurryProxy {
+        template <template <typename ...TArgs> typename Op, typename ...FArgs>
+        using type = typename TypeCurry<Op, FArgs...>::template type<LArgs...>;    
+    };
+
+    /*
+        template <typename ...LArgs>
+        template <template <typename ...TArgs> typename Op, typename ...FArgs>
+        using TypeCurry_t = typename TypeCurry<Op, FArgs...>::template     type<LArgs...>;
+    */
+
+
     // wrapper
     template <template <typename ...> typename Op>
-    struct TypeLazyWrapper {
+    struct TypeLazy {
         template <typename ...Ts>
         struct Lazy {
             using lazy = TypeTrue;
@@ -58,8 +77,16 @@ namespace sn_TypeLisp {
     };
 
     template <typename ...Ts>
-    template <template <typename ...> typename Op>
-    using TypeLazy = typename TypeLazyWrapper<Op>::template type<Ts...>;
+    struct TypeLazyProxy {
+        template <template <typename ...> typename Op>
+        using type = typename TypeCurry<Op>::template type<Ts...>;    
+    };
+
+    /*
+        template <typename ...Ts>
+        template <template <typename ...> typename Op>
+        using TypeLazy_t = typename TypeLazy<Op>::template type<Ts...>;
+    */
 
 #endif
 
@@ -422,6 +449,9 @@ namespace sn_TypeLisp {
     // Or:
     // template <typename ...Ts>
     // using TypeAppendL = TypeLazy<TypeAppend>;
+    // Or:
+    // template <typename ...Ts>
+    // using TypeAppendL = typename TypeLazyProxy<Ts...>::template type<TypeAppend>;
     template <typename T, typename N>
     struct TypeTakeL {
         using lazy = TypeTrue;
