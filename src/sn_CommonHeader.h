@@ -122,6 +122,7 @@ for detail: https://gcc.gnu.org/onlinedocs/libstdc++/ext/pb_ds/
 // #define SN_ENABLE_SUSPICIOUS_IMPLEMENTATION
 // #define SN_ENABLE_SELF_ASSERT
 // #define SN_ENABLE_FILE_MAP
+// #define SN_ENABLE_TYPELIST_LAZY
 
 
 template <typename T>

@@ -32,6 +32,7 @@ namespace sn_TypeLisp {
 		constexpr static const bool value = true;
 	};
 
+#ifndef __clang__
     template <template <typename ...TArgs> typename Op, typename ...FArgs>
     struct TypeCurry {
         template <typename ...LArgs>
@@ -41,6 +42,7 @@ namespace sn_TypeLisp {
     template <typename ...LArgs>
     template <template <typename ...TArgs> typename Op, typename ...FArgs>
     using TypeCurry_t = typename TypeCurry<Op, FArgs...>::template type<LArgs...>;
+#endif
 
     /*
     Usage:
@@ -49,6 +51,11 @@ namespace sn_TypeLisp {
         
         using T = AC<Args...>;
     */
+
+	template <int N>
+	struct TypeNumber {
+        static constexpr const int value = N; // sugar
+    };
 
     // Lisp: quote/atom/eq/car/cdr/cons/cond
 
@@ -246,7 +253,7 @@ namespace sn_TypeLisp {
 
     template <template <typename ...> typename TL, typename ...Ts, typename ...Us>
     struct TypeCons<TL<Ts...>, TL<Us...>> {
-        using type = TL<TL<Ts...>, TL<Us...>>;
+        using type = TL<Ts..., Us...>;
     };
 
     template <typename T, typename U>
@@ -262,7 +269,8 @@ namespace sn_TypeLisp {
 
 	template <template <typename ...> typename TL, typename H, typename ...T>
 	struct TypeLength<TL<H, T...>> {
-		constexpr static const std::size_t value = sizeof...(T) + 1; 
+		// using type = TypeNumber<sizeof...(T) + 1>;
+        constexpr static const std::size_t value = sizeof...(T) + 1; 
 		// old-style
 		// constexpr static const std::size_t value = 1 + TypeLength<TL<T...>>::value;
 	};
@@ -358,7 +366,7 @@ namespace sn_TypeLisp {
 
 	template <template <typename ...> typename TL, typename H, typename ...T, std::size_t N>
 	struct TypeDrop<TL<H, T...>, N> {
-		using type = typename TypeTake<TL<T...>, N-1>::type;
+		using type = typename TypeDrop<TL<T...>, N-1>::type;
 	};
 
 	template <template <typename ...> typename TL, typename ...T>
@@ -374,7 +382,7 @@ namespace sn_TypeLisp {
 
 	template <template <typename ...> typename TL, typename H, typename ...T, template <typename> class Op>
 	struct TypeTakeWhile<TL<H, T...>, Op> {
-		using type = TypeCond_t<typename Op<H>::value,
+		using type = TypeCond_t<typename Op<H>::type,
                                     typename TypeAppend<H, typename TypeTakeWhile<TL<T...>, Op>::type>::type,
                                     TL<H, T...>
                                 >;
@@ -408,6 +416,22 @@ namespace sn_TypeLisp {
 	using TypeDropWhile_t = typename TypeDropWhile<T, Op>::type;
 
 	template <typename T, template <typename> class Op>
+	struct TypeMap {};
+
+	template <template <typename ...> typename TL, typename H, typename ...T, template <typename> typename Op>
+	struct TypeMap<TL<H, T...>, Op> {
+		using type = typename TypeAppend<typename Op<H>::type, typename TypeMap<TL<T...>, Op>::type>::type;
+	};
+
+	template <template <typename ...> typename TL, template <typename> typename Op>
+	struct TypeMap<TL<>, Op> {
+		using type = TL<>;
+	};
+
+	template <typename T, template <typename> class Op>
+	using TypeMap_t = typename TypeMap<T, Op>::type;
+
+	template <typename T, template <typename> class Op>
 	struct TypeFilter {};
 
 	template <template <typename ...> typename TL, typename H, typename ...T, template <typename> typename Op>
@@ -418,8 +442,8 @@ namespace sn_TypeLisp {
                                 >;
 	};
 
-	template <template <typename ...> typename TL, typename ...T, template <typename> typename Op>
-	struct TypeFilter<TL<T...>, Op> {
+	template <template <typename ...> typename TL, template <typename> typename Op>
+	struct TypeFilter<TL<>, Op> {
 		using type = TL<>;
 	};
 
