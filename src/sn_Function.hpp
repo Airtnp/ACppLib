@@ -445,6 +445,8 @@ namespace sn_Function {
 			using type = typename TypeCurry<Op, FArgs...>::template type<LArgs...>;    
 		};
 
+// No, standard forbids this
+// ref: https://www.zhihu.com/question/61944238
 #ifdef __GNUC__
 			template <typename ...LArgs>
 			template <template <typename ...TArgs> typename Op, typename ...FArgs>
