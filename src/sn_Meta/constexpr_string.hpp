@@ -102,12 +102,19 @@ namespace sn_Meta {
 			return make_string_impl(str, std::make_index_sequence<N - 1>{});
 		}
 
-		template <char ...str>
-		constexpr string<str...> operator "" _sn() {
-			return string<str...>{};
+		// wtf, this only works for number literals (floating points)
+		/*
+			template <char ...str>
+			constexpr string<str...> operator "" _sn() {
+				return string<str...>{};
+			}
+		*/
+
+		inline constexpr auto operator "" _sn(const char* str, std::size_t len) {
+			return make_string_impl(str, std::make_index_sequence<N - 1>{});
 		}
 
-		inline string_view operator "" _snsv(const char* str, std::size_t len) {
+		inline constexpr string_view operator "" _snsv(const char* str, std::size_t len) {
 			return string_view(str, len);
 		}
 
