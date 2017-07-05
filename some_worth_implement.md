@@ -110,3 +110,6 @@
 
 ## Expression Templates
 * [yap](https://github.com/tzlaine/yap)
+
+## LLVM ADT
+* [ADT](https://github.com/llvm-mirror/llvm/tree/d35f86ef8f14f9cdea6859b22615bbeddaa023fc/include/llvm/ADT)
