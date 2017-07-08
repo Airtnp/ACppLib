@@ -7,35 +7,48 @@ namespace sn_Assist {
     // TODO: ref: https://github.com/lhmouse/MCF/blob/master/MCF/src/Function/Bind.hpp
     namespace sn_bind {
 
+        template <typename F, typename ...Args>
+        struct Binder;
+
         template<std::size_t I>
-        struct Placeholder {
+        struct placeholder {
             inline static const constexpr auto value = I;
         };
 
         template<typename T>
-        struct IsPlaceholder : std::false_type {};
+        struct is_placeholder : std::false_type {};
 
         template<std::size_t I>
-        struct IsPlaceholder<Placeholder<I>> : std::true_type {};
+        struct is_placeholder<placeholder<I>> : std::true_type {};
 
         template<typename T>
-        struct IsReferenceWrapper : std::false_type {};
+        struct is_reference_wrapper : std::false_type {};
 
         template<typename T>
-        struct IsReferenceWrapper<std::reference_wrapper<T>> : std::true_type {};
+        struct is_reference_wrapper<std::reference_wrapper<T>> : std::true_type {};
+
+        template <typename T>
+        struct is_binder : std::false_type {};
+
+        template <typename F, typename ...Args>
+        struct is_binder<Binder<F, Args...>> : std::true_type {};
 
         template<std::size_t I, typename... Args, typename... UArgs>
         decltype(auto) bind_map(std::tuple<Args...>& args, [[maybe_unused]] std::tuple<UArgs...>& uargs)
         {
             [[maybe_unused]] auto& arg = std::get<I>(args);
-            using Type = std::tuple_element_t<I, std::tuple<Args...>>;
-            using DecayedType = std::decay_t<Type>;
+            using type_t = std::tuple_element_t<I, std::tuple<Args...>>;
+            using decayed_t = std::decay_t<type_t>;
             
-            if constexpr (IsPlaceholder<DecayedType>::value) {
+            // 
+            if constexpr (is_placeholder<decayed_t>::value) {
                 return (std::get<DecayedType::value>(uargs));
             }
-            else if constexpr (IsReferenceWrapper<DecayedType>::value) {
+            else if constexpr (is_reference_wrapper<decayed_t>::value) {
                 return arg.get();
+            }
+            else if constexpr (is_binder<decayed_t>::value) {
+                return std::invoke(arg);
             }
             else {
                 return arg;
@@ -65,8 +78,8 @@ namespace sn_Assist {
             return {{std::forward<Args>(args)...}, std::forward<F>(f)};
         }
 
-        inline static constexpr const auto _1 = Placeholder<0>{};
-        inline static constexpr const auto _2 = Placeholder<1>{};
+        inline static constexpr const auto _1 = placeholder<0>{};
+        inline static constexpr const auto _2 = placeholder<1>{};
     }
 #endif
  
