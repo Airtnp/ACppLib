@@ -86,6 +86,7 @@
 * pystring
 * [fmt](https://github.com/fmtlib/fmt)
 * [rethinking-string](https://github.com/vmware/rethinking-strings)
+* [pystring](https://github.com/imageworks/pystring/blob/master/pystring.cpp)
 
 ## Conversion rank
 * constexpr calculate of conversion rank
