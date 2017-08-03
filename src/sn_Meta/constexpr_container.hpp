@@ -84,6 +84,40 @@ namespace sn_Meta {
         private:
             std::tuple<element<Names>...> m_elements;
         };
+
+        template <typename T, std::size_t ...Dimensions>
+        struct static_multi_array {
+            constexpr const T& M_access() const { return M_data; }
+            T M_data;
+        };
+
+        template <typename T, std::size_t first, std::size_t ...rest>
+        struct static_multi_array<T, first, rest...> {
+            template <typename ...Args>
+            constexpr const T& M_access(std::size_t first_idx, Args&&... rest_idxs) const {
+                return M_arr[first_idx].M_access(rest_idxs...);
+            }
+            static_multi_array<T, rest...> M_arr[first];
+        };
+
+        template <typename T, std::size_t ...Dimensions>
+        struct static_multi_access_array;
+
+        template <typename T, std::size_t first, std::size_t ...rest>
+        struct static_multi_access_array<T, first, rest...> {
+            constexpr const T& operator[](std::size_t idx) const {
+                return M_arr[idx];
+            }
+            static_multi_access_array<T, rest...> M_arr[first];
+        };
+
+        template <typename T, std::size_t first>
+        struct static_multi_access_array<T, first> {
+            constexpr const T& operator[](std::size_t idx) const { 
+                return M_arr[idx]; 
+            }
+            T M_arr[first];
+        };
     }
 
 }

@@ -1,18 +1,20 @@
 #include "../sn_CommonHeader.h"
 
-
-
 namespace sn_Exception {
 
 #if defined(__linux__) && defined(__clang__)
 
     // ref: https://monoinfinito.wordpress.com/series/exception-handling-in-c/
     // ref: https://github.com/nicolasbrailo/cpp_exception_handling_abi/tree/master/abi_v12
+    // ref: http://libcxxabi.llvm.org/spec.html
     namespace exception_abi {
         const size_t exception_buff_size = 255;
         char exception_buff[exception_buff_size];
         
+        // all cxa_abc should be __cxa_abc according to llvm spec
+
         extern "C" {
+            // __cxa_allocate_exception gcc
             void* cxa_allocate_exception(size_t thrown_size) {
                 if (thrown_size > exception_buff_size)
                     printf("Exception Buffer Overflow");
@@ -43,6 +45,7 @@ namespace sn_Exception {
                 __Unwind_Exception unwindHeader;
             };
 
+            // __cxa_throw
             void cxa_throw(void* thrown_exception, std::type_info* tinfo, void (*dest)(void*)) {
                 cxa_exception* header = ((cxa_exception*) thrown_exception - 1);
                 // We need to save the type info in the exception header _Unwind_ will
@@ -384,7 +387,7 @@ namespace sn_Exception {
                 uintptr_t func_start = _Unwind_GetRegionStart(context);
 
                 // Get a pointer to the type_info of the exception being thrown
-                __cxa_exception *exception_header =(__cxa_exception*)(unwind_exception+1)-1;
+                cxa_exception *exception_header =(cxa_exception*)(unwind_exception+1)-1;
                 std::type_info *thrown_exception_type = exception_header->exceptionType;
 
                 // Get a pointer to the raw memory address of the LSDA

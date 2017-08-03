@@ -2,6 +2,7 @@
 
 namespace sn_Assist {
 
+	// TODO: decltype() 一下， 左值引用或者绑定到函数的引用或者函数是 lvalue，非函数类型的右值引用是 xvalue，剩下的是 prvalue。
 	namespace sn_demangle {
 		template <typename T>
 		std::string demangle_type() {
