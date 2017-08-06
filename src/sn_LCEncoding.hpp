@@ -563,7 +563,9 @@ namespace sn_LCEncoding {
 									Reference<N>
 								>
 							>;
-		// case(n)(a)(f) -> a (if n == 0) | f (if n == succ(....(0))
+		// case(n)(a)(f) -> a (if n == 0) | f (if n == succ(\forall x. x))
+		// a: default value, f: operation
+		// pattern matching
 		using ScottCase = VarLambda<
 								VarList<N, X, Y>,
 								Application<

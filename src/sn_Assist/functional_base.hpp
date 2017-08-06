@@ -3,10 +3,10 @@
 namespace sn_Assist {
     namespace sn_functional_base {
 		template <typename T>
-		class less_than {
+		struct less_than {
 			
 			bool operator<=(const T& rhs) {
-				return static_cast<T*>(this)->operator<(rhs) || static_cast<T*>(this)->operator=(rhs);
+				return static_cast<T*>(this)->operator<(rhs) || static_cast<T*>(this)->operator==(rhs);
 			}
 
 			bool operator>(const T& rhs) {
@@ -14,11 +14,11 @@ namespace sn_Assist {
 			}
 
 			bool operator>=(const T& rhs) {
-				return !static_cast<T*>(this)->operator<(rhs) || static_cast<T*>(this)->operator=(rhs);
+				return !static_cast<T*>(this)->operator<(rhs) || static_cast<T*>(this)->operator==(rhs);
 			}
 
 			bool operator!=(const T& rhs) {
-				return !static_cast<T*>(this)->operator=(rhs);
+				return !static_cast<T*>(this)->operator==(rhs);
 			}
 
 		};
