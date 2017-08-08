@@ -6,7 +6,8 @@
 #include "sn_Macro.hpp"
 
 
-//TODO: add FFT/NTT multiplication
+// TODO: add FFT/NTT multiplication
+// TODO: add template <char...> operator
 namespace sn_Decimal {
 
 	
