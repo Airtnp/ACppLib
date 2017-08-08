@@ -4,8 +4,8 @@
 #include "../sn_CommonHeader.h"
 
 namespace sn_Binary {
-    //ref: https://github.com/akemimadoka/NatsuLib
-	//TODO: add constexpr judge ref: http://stackoverflow.com/questions/1001307/detecting-endianness-programmatically-in-a-c-program
+    // ref: https://github.com/akemimadoka/NatsuLib
+	// TODO: add constexpr judge ref: http://stackoverflow.com/questions/1001307/detecting-endianness-programmatically-in-a-c-program
 	//							ref: https://codereview.stackexchange.com/questions/45675/checking-endianness-at-compile-time
 	namespace Endian {
 		enum class ByteEndian {
