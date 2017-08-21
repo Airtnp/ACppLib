@@ -1,7 +1,7 @@
 #ifndef SN_REGEX_D_H
 #define SN_REGEX_D_H
 
-#include "../sn_CommonHeader.h"
+#include "sn_CommonHeader.h"
 
 // ref : Cheukyin/CodeSnippet/blob/master/PL/Regex
 // Brzozowski's derivative

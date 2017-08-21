@@ -3,6 +3,8 @@
 
 #include "sn_CommonHeader.h"
 
+// TODO: add color support
+// ref: https://github.com/Alinshans/redbud/blob/master/redbud/io/color.h
 namespace sn_StdStream {
 	namespace manipulator {
 		template <class CharT, class Traits>

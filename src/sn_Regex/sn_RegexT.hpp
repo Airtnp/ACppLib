@@ -1,7 +1,7 @@
 #ifndef SN_REGEX_T_H
 #define SN_REGEX_T_H
 
-#include "../sn_CommonHeader.h"
+#include "sn_CommonHeader.h"
 
 // ref: https://gist.github.com/timshen91/f6a3f040e5b5b0685b2a
 // Compare to parserc/type-calculus

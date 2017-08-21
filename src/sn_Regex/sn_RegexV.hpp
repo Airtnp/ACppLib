@@ -1,7 +1,7 @@
 #ifndef SN_REGEX_V_H
 #define SN_REGEX_V_H
 
-#include "../sn_CommonHeader.h"
+#include "sn_CommonHeader.h"
 
 // ref: Ninputer/VBF
 // Totally pass-by-value... unlike C#, it's hard to manager reference
