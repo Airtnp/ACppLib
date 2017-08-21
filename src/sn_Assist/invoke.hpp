@@ -1,6 +1,12 @@
+#ifndef SN_ASSIST_INVOKE_H
+#define SN_ASSIST_INVOKE_H
+
 #include "../sn_CommonHeader.h"
 
 namespace sn_Assist {
+
+	// TODO: ref: https://github.com/lhmouse/MCF/blob/master/MCF/src/Function/Invoke.hpp
+	// FIX: void return type/auto detect class object/base class
     namespace sn_invoke {
 		template <typename F, typename ...Args>
 		auto invoke(F&& fn, Args&&... args) noexcept(noexcept(std::forward<F>(fn)(std::forward<Args>(args)...))) {
@@ -80,3 +86,5 @@ namespace sn_Assist {
 		SN_INVOKE_GEN(const volatile &&)
 	}
 }
+
+#endif

@@ -2,16 +2,24 @@
 #define SN_CONSTEXPR_CONTROL_H
 
 #include <cstddef>
+#include <type_traits>
 
-namespace sn_constexpr {
+namespace sn_Meta {
     // ref: https://github.com/SuperV1234/cppcon2016
     namespace control {
-        template <bool T>
-        using bool_constant = std::integral_constant<bool, T>; // directly use bool_constant in c++17
-        template <int T>
-        using int_constant = std::integral_constant<int, T>;
-        template <std::size_t T>
-        using size_constant = std::integral_constant<std::size_t, T>;
+        template <bool b>
+        using bool_constant = std::integral_constant<bool, b>; // directly use bool_constant in c++17
+        template <bool b>
+        constexpr static auto bool_value = bool_constant<b>{};
+        template <int I>
+        using int_constant = std::integral_constant<int, I>;
+        template <std::size_t I>
+        using size_constant = std::integral_constant<std::size_t, I>;
+        template <char c>
+        struct char_constant : std::integral_constant<char, c> {};
+        template <char c>
+        constexpr static auto char_value = char_constant<c>{};
+
 
         template <typename F>
         auto static_if(F) noexcept;
@@ -204,6 +212,100 @@ namespace sn_constexpr {
                         })(step, std::forward<decltype(xs)>(xs)...);
                 };
             };
+        }
+
+        template <typename T, T b1, T b2>
+        constexpr bool_constant<b1 == b2> operator==(std::integral_constant<T, b1>, std::integral_constant<T, b2>) {
+            return {};
+        }
+        
+        template <typename T, T b1, T b2>
+        constexpr bool_constant<b1 != b2> operator!=(std::integral_constant<T, b1>, std::integral_constant<T, b2>) {
+            return {};
+        }
+        
+        template <typename T, T b1, T b2>
+        constexpr bool_constant<b1 && b2> operator&&(std::integral_constant<T, b1>, std::integral_constant<T, b2>) {
+            return {};
+        }
+    
+        template <typename T, T b1, T b2>
+        constexpr bool_constant<b1 || b2> operator||(std::integral_constant<T, b1>, std::integral_constant<T, b2>) {
+            return {};
+        }
+    
+        template <typename T, T b1, T b2>
+        constexpr bool_constant<(b1 > b2)> operator>(std::integral_constant<T, b1>, std::integral_constant<T, b2>) {
+            return {};
+        }
+    
+        template <typename T, T b1, T b2>
+        constexpr bool_constant<(b1 < b2)> operator<(std::integral_constant<T, b1>, std::integral_constant<T, b2>) {
+            return {};
+        }
+    
+        template <typename T, T b1, T b2>
+        constexpr bool_constant<(b1 >= b2)> operator>=(std::integral_constant<T, b1>, std::integral_constant<T, b2>) {
+            return {};
+        }
+    
+        template <typename T, T b1, T b2>
+        constexpr bool_constant<(b1 <= b2)> operator<=(std::integral_constant<T, b1>, std::integral_constant<T, b2>) {
+            return {};
+        }
+        
+        template <bool v, typename T1, typename T2>
+        struct cond_impl {
+            T1 m_t1;
+            T2 m_t2;
+            constexpr cond_impl(bool v, T1&& a, T2&& b) : m_t1(a), m_t2(b) {}
+            constexpr T1 value() { return m_t1; }
+        };
+
+        template <typename T1, typename T2>
+        struct cond_impl<false, T1, T2> {
+            T1 m_t1;
+            T2 m_t2;
+            constexpr cond_impl(bool v, T1&& a, T2&& b) : m_t1(a), m_t2(b) {}
+            constexpr T2 value() { return m_t2; }
+        };
+
+        template <bool v, typename T1, typename T2>
+        struct cond_impl {
+            T1 m_t1;
+            T2 m_t2;
+            constexpr cond_impl(T1&& a, T2&& b) : m_t1(a), m_t2(b) {}
+            constexpr T1 value() { return m_t1; }
+        };
+
+        template <typename T1, typename T2>
+        struct cond_impl<false, T1, T2> {
+            T1 m_t1;
+            T2 m_t2;
+            constexpr cond_impl(T1 a, T2 b) : m_t1(a), m_t2(b) {}
+            constexpr T2 value() { return m_t2; }
+        };
+
+        template <bool v, typename T1, typename T2>
+        constexpr decltype(auto) cond(bool_constant<v>, T1 a, T2 b) {
+#if defined(SN_ENABLE_CPP_17)
+            if constexpr (v) {
+                return a;
+            } else {
+                return b;
+            }
+#else
+            return cond_impl<v, T1, T2>{a, b}.value();
+#endif
+        }
+
+        template <typename Cur, typename Cond, typename Iter>
+        constexpr decltype(auto) iter(Cur i, Cond c, Iter e) {
+            return cond(
+                bool_constant<c(i)::value>, 
+                iter(e(i), c, e),
+                i
+            );
         }
     }
 }

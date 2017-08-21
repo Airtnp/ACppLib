@@ -5,6 +5,9 @@
 #include "sn_Log.hpp"
 #include "sn_StdStream.hpp"
 
+// TODO: add test frame
+// ref: https://github.com/Alinshans/MyTinySTL/blob/master/Test/test.h
+// random generator for testing (support manual design)
 namespace sn_TEST {
 
 #ifdef SN_ENABLE_SELF_ASSERT
@@ -188,9 +191,9 @@ void _assert(char *msg , char *file , unsigned int line){
 		// std::cout << "---\n";
 	}
 
-	namespace error {
+	namespace expect {
 		template <class T, class E = std::error_condition>
-		class expected {
+		class Expected {
 		private:
 			T t_;
 			E e_;
@@ -199,10 +202,10 @@ void _assert(char *msg , char *file , unsigned int line){
 			using value_type = T;
 			using error_type = E;
 
-			constexpr expected(const T& t) : t_(t), has_v(true) {}
-			constexpr expected(T&& t) : t_(std::move(t)), has_v(true) {}
-			constexpr expected(const E& e) : e_(e), has_v(false) {}
-			constexpr expected(E&& e) : e_(std::move(e)), has_v(false) {}
+			constexpr Expected(const T& t) : t_(t), has_v(true) {}
+			constexpr Expected(T&& t) : t_(std::move(t)), has_v(true) {}
+			constexpr Expected(const E& e) : e_(e), has_v(false) {}
+			constexpr Expected(E&& e) : e_(std::move(e)), has_v(false) {}
 			
 			constexpr T& value() {
 				if (has_v) {

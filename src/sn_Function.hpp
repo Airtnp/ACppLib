@@ -1253,6 +1253,20 @@ namespace sn_Function {
 			});
 		*/
 
+		auto YL = [](auto f) { return 
+						[](auto x) { 
+							return x (x); 
+						}
+					}(
+						[=](auto y) { return 
+							f (
+								[=](auto a) { return 
+									(y(y))(a); 
+								}
+							);
+						}
+					);
+
 	}
 
 #ifdef SN_ENABLE_CPP17_EXPERIMENTAL
