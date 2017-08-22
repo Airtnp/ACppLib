@@ -46,6 +46,9 @@
 * [parser](https://github.com/lefticus/constexpr_all_the_things/blob/master/src/include/cx_parser.h)
 * [petra](https://github.com/jacquelinekay/petra)
 * + compile-time-result -> runtime-access (set jump table)
+* [mpllib](https://github.com/sabel83/mpllibs/)
+* + MetaMonad
+* + 
 
 ## Test
 * [catch](https://github.com/philsquared/Catch)
@@ -117,3 +120,4 @@
 
 ## MemTrack
 * [implementation](http://www.almostinfinite.com/memtrack.html)
+
