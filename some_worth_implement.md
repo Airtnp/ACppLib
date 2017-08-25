@@ -121,3 +121,5 @@
 ## MemTrack
 * [implementation](http://www.almostinfinite.com/memtrack.html)
 
+## Compatibility
+* fix __attribute__ vs __declspec Config
