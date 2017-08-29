@@ -38,11 +38,11 @@ namespace sn_Assist {
 
 #define SN_INVOKE_GEN(SUFFIX) \
 		template <typename R, typename C, typename ...Args> \
-		auto invoke(R(C::*ptr_fn)(Args...) SUFFIX, C* p, Args&&... args) noexcept(noexcept(p->ptr_fn(std::forward<Args>(args)...))) { \
+		constexpr auto invoke(R(C::*ptr_fn)(Args...) SUFFIX, C* p, Args&&... args) noexcept(noexcept(p->ptr_fn(std::forward<Args>(args)...))) { \
 			return p->*ptr_fn(std::forward<Args>(args)...); \
 		} \
 		template <typename R, typename C, typename ...Args> \
-		auto invoke(R(C::*ptr_fn)(Args...) SUFFIX, C&& c, Args&&... args) noexcept(noexcept(std::forward<C>(c).ptr_fn(std::forward<Args>(args)...))) { \
+		constexpr auto invoke(R(C::*ptr_fn)(Args...) SUFFIX, C&& c, Args&&... args) noexcept(noexcept(std::forward<C>(c).ptr_fn(std::forward<Args>(args)...))) { \
 			return std::forward<C>(c).*ptr_fn(std::forward<Args>(args)...); \
 		} \
 
@@ -50,11 +50,11 @@ namespace sn_Assist {
 
 #define SN_INVOKE_GEN_2(SUFFIX) \
 		template <typename R, typename ...Args> \
-		auto invoke(R(&fn)(Args...) SUFFIX, Args&&... args) noexcept(noexcept(fn(std::forward<Args>(args)...))) { \
+		constexpr auto invoke(R(&fn)(Args...) SUFFIX, Args&&... args) noexcept(noexcept(fn(std::forward<Args>(args)...))) { \
 			return fn(std::forward<Args>(args)...); \
 		} \
 		template <typename R, typename ...Args> \
-		auto invoke(R(*fn)(Args...) SUFFIX, Args&&... args) noexcept(noexcept(fn(std::forward<Args>(args)...))) { \
+		constexpr auto invoke(R(*fn)(Args...) SUFFIX, Args&&... args) noexcept(noexcept(fn(std::forward<Args>(args)...))) { \
 			return fn(std::forward<Args>(args)...); \
 		} \
 
