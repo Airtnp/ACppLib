@@ -4,6 +4,20 @@
 #include "../sn_CommonHeader.h"
 
 namespace sn_TypeTraits {
+
+	template <bool v>
+	struct bool_constant_dispatch {
+		using type = std::true_type;
+	};
+
+	template <>
+	struct bool_constant_dispatch<false> {
+		using type = std::false_type;
+	};
+
+	template <bool v>
+	using bcd_t = typename bool_constant_dispatch<v>::type;
+
     struct is_functor_impl {
         template <typename T>
         static std::true_type check(decltype(&T::operator())*);
@@ -125,4 +139,7 @@ namespace sn_TypeTraits {
     template <typename ...Args>
     using common_type_t = typename common_type<Args...>::type;
 
+	template <typename T, typename It>
+	using is_iterator = bcd_t<std::is_same<T, std::decay_t<decltype(*std::declval<It>())>>::value>;
+	
 }

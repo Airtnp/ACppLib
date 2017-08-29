@@ -9,29 +9,32 @@ namespace sn_Assist {
 	// FIX: void return type/auto detect class object/base class
     namespace sn_invoke {
 		template <typename F, typename ...Args>
-		auto invoke(F&& fn, Args&&... args) noexcept(noexcept(std::forward<F>(fn)(std::forward<Args>(args)...))) {
+		constexpr auto invoke(F&& fn, Args&&... args) noexcept(noexcept(std::forward<F>(fn)(std::forward<Args>(args)...)))
+			-> decltype(std::forward<F>(fn)(std::forward<Args>(args)...)) {
 			return std::forward<F>(fn)(std::forward<Args>(args)...);
 		}
 
 		template <typename R, typename C, typename ...Args>
-		auto invoke(R(C::*ptr_fn)(Args...), C* p, Args&&... args) noexcept(noexcept(p->ptr_fn(std::forward<Args>(args)...))) {
+		constexpr auto invoke(R(C::*ptr_fn)(Args...), C* p, Args&&... args) noexcept(noexcept(p->ptr_fn(std::forward<Args>(args)...))) {
 			return p->*ptr_fn(std::forward<Args>(args)...);
 		}
 
 		template <typename R, typename C, typename ...Args>
-		auto invoke(R(C::*ptr_fn)(Args...), C&& c, Args&&... args) noexcept(noexcept(std::forward<C>(c).ptr_fn(std::forward<Args>(args)...))) {
+		constexpr auto invoke(R(C::*ptr_fn)(Args...), C&& c, Args&&... args) noexcept(noexcept(std::forward<C>(c).ptr_fn(std::forward<Args>(args)...))) {
 				return std::forward<C>(c).*ptr_fn(std::forward<Args>(args)...);
 		}
 
 		template <typename R, typename ...Args>
-		auto invoke(R(&fn)(Args...), Args&&... args) noexcept(noexcept(fn(std::forward<Args>(args)...))) {
+		constexpr auto invoke(R(&fn)(Args...), Args&&... args) noexcept(noexcept(fn(std::forward<Args>(args)...))) {
 			return fn(std::forward<Args>(args)...);
 		}
 
 		template <typename R, typename ...Args>
-		auto invoke(R(*fn)(Args...), Args&&... args) noexcept(noexcept(fn(std::forward<Args>(args)...))) {
+		constexpr auto invoke(R(*fn)(Args...), Args&&... args) noexcept(noexcept(fn(std::forward<Args>(args)...))) {
 			return fn(std::forward<Args>(args)...);
 		}
+
+#define SN_INVOKE_EMPTY_ARGUMENT
 
 #define SN_INVOKE_GEN(SUFFIX) \
 		template <typename R, typename C, typename ...Args> \
@@ -55,7 +58,7 @@ namespace sn_Assist {
 			return fn(std::forward<Args>(args)...); \
 		} \
 
-		SN_INVOKE_GEN_2(SN_EMPTY_ARGUMENT)
+		SN_INVOKE_GEN_2(SN_INVOKE_EMPTY_ARGUMENT)
 		SN_INVOKE_GEN_2(&)
 		SN_INVOKE_GEN_2(&&)
 		SN_INVOKE_GEN_2(const)
