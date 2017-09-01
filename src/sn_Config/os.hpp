@@ -15,12 +15,14 @@ namespace sn_Config {
 
 typedef sn_Config::os::windows64 sn_platform_type;
 #define SN_CONFIG_OS_WIN64
+#define SN_CONFIG_OS_WIN
 #define SN_CONFIG_OS_REPL "windows64"
 
 #elif defined(_WIN32)
 
 typedef sn_Config::os::windows32 sn_platform_type;
 #define SN_CONFIG_OS_WIN32
+#define SN_CONFIG_OS_WIN
 #define SN_CONFIG_OS_REPL "windows32"
 
 #elif defined(__APPLE__) && defined(__MACH__)

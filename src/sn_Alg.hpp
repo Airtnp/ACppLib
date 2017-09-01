@@ -71,11 +71,14 @@ namespace sn_Alg {
 			int cnt = 0;
 			char c[15];
 			while (x) {
-				c[++cnt] = (x % 10) + 48;
+				++cnt;
+				c[cnt] = (x % 10) + 48;
 				x /= 10;
 			}
-			while (cnt)
-				putchar(c[cnt--]);
+			while (cnt) {
+				putchar(c[cnt]);
+				--cnt;
+			}
 			putchar('\n');
 		}
 
@@ -85,20 +88,31 @@ namespace sn_Alg {
 
 		//For some other algs, ref: http://graphics.stanford.edu/~seander/bithacks.html
 		//For linux bitops, ref: https://code.woboq.org/linux/linux/arch/x86/include/asm/bitops.h.html
-		inline int lowbit(const int& x) {
-			return x & (-x);  //or ((x-1) xor x) and x)
+		inline int lowbit(const unsigned long long& x) {
+			return x & (-x);  // or ((x-1) ^ x) & x) or 1 << __builtin_ctz(x);
 		}
 
-		inline int remove_lowbit(const int& x) {
-			return x & (x - 1);  //or x ^= lowbit(x)
+		inline int remove_lowbit(const unsigned long long& x) {
+			return x & (x - 1);  // or x ^= lowbit(x)
 		}
 
-		//__builtin_cnz
-		inline int count_zeros(int x) {
+		//__builtin_clz
+		inline int count_leading_zeros(unsigned long long x) {
 			int count;
 			while (x) {
 				count++;
 				x ^= lowbit(x);
+			}
+			return count;
+		}
+
+		// __builtin_ctz
+		inline int count_trailing_zeros(unsigned long long x) {
+			int count;
+			unsigned long long l = lowbit(x);
+			while (x) {
+				count++;
+				x /= 2;
 			}
 			return count;
 		}

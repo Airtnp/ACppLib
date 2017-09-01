@@ -4,6 +4,7 @@
 #include "sn_CommonHeader.h"
 #include "sn_Log.hpp"
 #include "sn_StdStream.hpp"
+#include "sn_Config.hpp"
 
 // TODO: add test frame
 // ref: https://github.com/Alinshans/MyTinySTL/blob/master/Test/test.h
@@ -142,7 +143,7 @@ void _assert(char *msg , char *file , unsigned int line){
 			}
 		};
 
-#ifdef _WIN32
+#if defined(SN_CONFIG_OS_WIN)
 		// #include <windows.h>
 		struct windows_clock_time_traits {
 			using time_type = ULONGLONG;
@@ -159,7 +160,7 @@ void _assert(char *msg , char *file , unsigned int line){
 			}
 		};
 		using platform_clock_traits = windows_clock_time_traits;
-#elif defined(__APPLE__)
+#elif defined(SN_CONFIG_OS_MACOSX)
 		// #include <sys/time.h>
 		struct macosx_clock_time_traits {
 			using time_type = uint64_t;
@@ -174,6 +175,20 @@ void _assert(char *msg , char *file , unsigned int line){
 			}
 		};
 		using platform_clock_traits = macosx_clock_time_traits;
+#elif defined(SN_CONFIG_OS_LINUX)
+		// #include <sys/resource.h>
+		// #include <sys/time.h>
+		// rusage.ru_utime.tv_sec/tv_usec
+		struct linux_clock_time_traits {
+			using time_type = struct rusage;
+			using difference_type = struct rusage;
+			static time_type get_time(rusage* res) {
+				return getrusage(RUSAGE_SELF, &res);
+			}
+			static time_type get_freq() {
+				return 1e7;
+			}
+		};
 #endif
 	}
 
