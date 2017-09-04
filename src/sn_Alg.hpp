@@ -26,9 +26,16 @@ namespace sn_Alg {
 		}
 
 		unsigned long long get_clock_cycle() {
-			unsigned long long ret;
+			unsigned long long ret, tickl, tickh;
 #if defined (__GNUC__)
+
+#if defined (SN_CONFIG_OS_i386)
 			__asm__ __volatile__("rdtsc\n\t": "=A" (ret) : );
+#elif defined (SN_CONFIG_OS_X86_64)
+			__asm__ __volatile__("rdtsc\n\t": "=a"(tickl), "=d"(tickh));
+			ret = (static_cast<unsigned long long>(tickh) << 32) | tickl
+#endif
+
 #else
 			ret = __rdtsc();
 			/*For another option : untested, better specify bits
