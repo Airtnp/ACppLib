@@ -9,12 +9,29 @@
 #include "sn_Macro.hpp"
 #include "sn_TypeTraits.hpp"
 
-// Yes, it failed in VS2015! Simply ICE!
-// Yes, it failed in Clang3.9! Illegal Instruction!
-// Yes, it succeeded in gcc6.3!
+// FIXME: it failed in VS2015, Simply ICE.
+// FIXME: it failed in Clang3.9, Illegal Instruction.
+// it succeeded in gcc6.3.
 // TODO: runtime match ref : https://github.com/solodon4/Mach7/tree/master/code
 // TODO: Cpp1z allows template deduction guide explicit template<...> C<...> -> C<p...> (Naturally type match)
 // TODO: Now the mathced function cannot do partial closure -> Add one Curry Wrapper to FuncTypeWrapper
+// TODO: Add data constructors
+// TODO: Integrate typeclass from notes
+/*
+	Usage:
+		// q :: (Eq int) => int -> char -> int
+		// q int x, char y  x + y
+		// q int x          x
+		template <typename T>
+		auto q_tem = F |= ( R<lib::Ord<T>> | R<lib::Eq(T, T)> >>= Ty<T> >= Ty<char> >= Ty<int>;
+		auto q_def = q_tem<int>;
+		auto q_fun = Switch<int, char, int>{}
+					| Case<S<int, char, int>, int, char>{}.assign([](int a, char b) -> int { return a + b; })
+					| Case<S<int, char, int>, int>{}.assign([](int a){ return make_func(&test2); });
+		q_def = q_fun;
+		std::cout << q_def(q_fun, 1)('2');
+*/
+
 namespace sn_PM {
 	using sn_TypeLisp::TypeList;
 	using sn_Assist::sn_require::Require;
@@ -23,9 +40,9 @@ namespace sn_PM {
 	using sn_Type::any::Any;
 	using sn_Function::function::Func;
 	using sn_Function::make_func;
-	using sn_Function::make_curry;
-	using sn_Function::make_single_curry;
-	using sn_Function::make_multi_curry;
+	// using sn_Function::make_curry;
+	// using sn_Function::make_single_curry;
+	// using sn_Function::make_multi_curry;
 
 #ifndef _MSC_VER
 	namespace pattern {
@@ -602,6 +619,7 @@ namespace sn_PM {
 			return T(std::tuple_cat(r.m_tuple, std::make_tuple(c.m_func)));
 		}
 
+		// Switch-Case can served as anonymous Data Constructors
 
 	}
 
@@ -1045,6 +1063,7 @@ namespace sn_PM {
 			return { filter(std::forward<Args>(args))... };
 		}
 
+// forward_as_tuple by reference(lazy)
 #define Inspect(...) \
 	{ \
 		auto tp = std::forward_as_tuple(MACRO_EXPAND(__VA_ARGS__)); \
