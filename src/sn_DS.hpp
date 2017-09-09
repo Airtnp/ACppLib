@@ -29,7 +29,7 @@ namespace sn_DS {
 	}
 
 	namespace basic {
-		//Ë³Ğò±í£º ¹¹Ôì/²åÈë/À©Õ¹/ËÑË÷£¨¶ş·Ö£©/±éÀú/É¾³ı
+		//Ë³ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½/ï¿½ï¿½ï¿½ï¿½/ï¿½ï¿½Õ¹/ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö£ï¿½/ï¿½ï¿½ï¿½ï¿½/É¾ï¿½ï¿½
 		template <typename T>
 		class vector {
 		private:
@@ -103,7 +103,7 @@ namespace sn_DS {
 			}
 		};
 
-		//µ¥ÏòÁ´±í£º ²åÈë/·­×ª/É¾³ı
+		//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½/ï¿½ï¿½×ª/É¾ï¿½ï¿½
 		template <typename T>
 		class node {
 		public:
@@ -191,7 +191,7 @@ namespace sn_DS {
 			}
 		};
 
-		//¶ÓÁĞ: ²åÈë/É¾³ı
+		//ï¿½ï¿½ï¿½ï¿½: ï¿½ï¿½ï¿½ï¿½/É¾ï¿½ï¿½
 		template <typename T>
 		class queue {
 		private:
@@ -248,7 +248,7 @@ namespace sn_DS {
 
 		};
 
-		//Õ»: ½øÕ»/³öÕ»
+		//Õ»: ï¿½ï¿½Õ»/ï¿½ï¿½Õ»
 		template<class T> 
 		class stack {
 		private:
@@ -293,7 +293,7 @@ namespace sn_DS {
 
 		};
 
-		//¹şÏ£±í: ²åÈë/²éÕÒ/ÖØ½¨  -- use hash_policy and conflict resolution to rewrite
+		//ï¿½ï¿½Ï£ï¿½ï¿½: ï¿½ï¿½ï¿½ï¿½/ï¿½ï¿½ï¿½ï¿½/ï¿½Ø½ï¿½  -- use hash_policy and conflict resolution to rewrite
 		class hash_table {
 		private:
 			string *elem;
@@ -372,7 +372,7 @@ namespace sn_DS {
 
 		};
 
-		//¶ş²æÊ÷: Ç°Ğò/ÖĞĞò/ºóĞò
+		//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½: Ç°ï¿½ï¿½/ï¿½ï¿½ï¿½ï¿½/ï¿½ï¿½ï¿½ï¿½
 		template <typename T>
 		class bin_node {
 		public:
@@ -447,7 +447,7 @@ namespace sn_DS {
 			}
 		};
 
-		//¶ş²æÅÅĞòÊ÷
+		//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 		template <typename T>
 		class bin_sort_node {
 		public:
@@ -597,7 +597,7 @@ namespace sn_DS {
 			}
 		};
 
-		//¶Ñ£¨Ğ¡¸ù£©
+		// å°æ ¹å †
 		template <typename T>
 		class heap {
 		private:
@@ -649,7 +649,7 @@ namespace sn_DS {
 			}
 		};
 
-		//²¢²é¼¯
+		// å¹¶æŸ¥é›†
 		class disjoint_set {
 		private:
 			int *father, *rank;
