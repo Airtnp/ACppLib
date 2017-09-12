@@ -62,32 +62,103 @@ namespace sn_Alg {
 			return x >= m ? x - m : x;
 		}
 
-		inline void read_int(int& x) {
+		inline char getchar_adj() {
+#if defined(__POSIX__)
+			return static_cast<char>(getchar_unlocked());
+#else
+			return static_cast<char>(getchar());
+#endif
+		}
+
+		inline void putchar_adj(char c) {
+#if defined(__POSIX__)
+			static_cast<char>(putchar_unlocked(c));
+#else
+			static_cast<char>(putchar(c));
+#endif
+		}
+			
+					
+
+		inline void read_szt(size_t& x) {
 			//or use fread(input, 1 << 31, stdin)
-			char c = getchar(); x = 0;
-			while (c < '0' || c > '9')
-				c = getchar();
+
+			char c = getchar_adj(); x = 0;
+			while (c < '0' || c > '9') {
+				c = getchar_adj();
+			}
 			while (c <= '9' && c >= '0') {
 				x = x * 10 + c - 48;
-				c = getchar();
+				c = getchar_adj();
+			}
+			return fg;
+		}
+		
+		inline void read_int(int& x) {
+			//or use fread(input, 1 << 31, stdin)
+			char c = getchar_adj(); x = 0; short f = 1;
+			while (c < '0' || c > '9') {
+				if (c == '-') f = -1;
+				c = getchar_adj();
+			}
+			while (c <= '9' && c >= '0') {
+				x = x * 10 + c - 48;
+				c = getchar_adj();
+			}
+			x *= f;
+		}
+
+		inline bool read_int_eof(int& x) {
+			//or use fread(input, 1 << 31, stdin)
+			char c = getchar_adj(); x = 0; short f = 1;
+			if (c == EOF) return false;
+			while (c < '0' || c > '9') {
+				if (c == '-') f = -1;
+				c = getchar_adj();
+				if (c == EOF) return false;        
+			}
+			while (c <= '9' && c >= '0') {
+				x = x * 10 + c - 48;
+				c = getchar_adj();
+			}
+			x *= f;
+			return true;
+		}
+		
+		inline void write_szt(size_t x) {
+			//or use fwrite(output, 1, strlen(output), stdout)
+			int cnt = 0;
+			char c[15];
+			while (x) {
+				++cnt;
+				c[cnt] = static_cast<char>((x % 10) + 48);
+				x /= 10;
+			}
+			while (cnt) {
+				putchar_adj(c[cnt]);
+				--cnt;
 			}
 		}
 
 		inline void write_int(int x) {
 			//or use fwrite(output, 1, strlen(output), stdout)
 			int cnt = 0;
-			char c[15];
+			char c[16];
 			while (x) {
 				++cnt;
-				c[cnt] = (x % 10) + 48;
+				c[cnt] = static_cast<char>((x % 10) + 48);
 				x /= 10;
 			}
+			if (x < 0) {
+				c[15] = '-';
+				++cnt;
+			}			
 			while (cnt) {
 				putchar(c[cnt]);
 				--cnt;
 			}
-			putchar('\n');
 		}
+
 
 	}
 
