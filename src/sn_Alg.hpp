@@ -72,23 +72,41 @@ namespace sn_Alg {
 
 		inline void putchar_adj(char c) {
 #if defined(__POSIX__)
-			static_cast<char>(putchar_unlocked(c));
+			putchar_unlocked(c);
 #else
-			static_cast<char>(putchar(c));
+			putchar(c);
 #endif
 		}
 			
-					
+		inline void fread_adj(void *data, size_t size, size_t count, FILE *stream) {
+#if defined(__POSIX__)
+			fread_unlocked(data, size, count, stream);
+#else
+			fread(data, size, count, stream);
+#endif
+		}
+
+		constexpr const static size_t SN_ALG_FREAD_BUFFER_SIZE = 1000;
+		char sn_alg_fread_buf[SN_ALG_FREAD_BUFFER_SIZE];
+		char* sn_alg_fread_s = sn_alg_fread_buf + SN_ALG_FREAD_BUFFER_SIZE;
+		
+		inline char getc_fread(void) {
+			if (sn_alg_fread_s >= sn_alg_fread_buf + SN_ALG_FREAD_BUFFER_SIZE) {
+				fread_unlocked(sn_alg_fread_buf, sizeof(char), SN_ALG_FREAD_BUFFER_SIZE, stdin);
+				sn_alg_fread_s = sn_alg_fread_buf;
+			}
+			return *(sn_alg_fread_s++);
+		}
 
 		inline void read_szt(size_t& x) {
 			//or use fread(input, 1 << 31, stdin)
 
-			char c = getchar_adj(); x = 0;
+			/*register*/ char c = getchar_adj(); x = 0;
 			while (c < '0' || c > '9') {
 				c = getchar_adj();
 			}
 			while (c <= '9' && c >= '0') {
-				x = x * 10 + c - 48;
+				x = (x << 3) + (x << 1) + c - 48;
 				c = getchar_adj();
 			}
 			return fg;
@@ -96,13 +114,13 @@ namespace sn_Alg {
 		
 		inline void read_int(int& x) {
 			//or use fread(input, 1 << 31, stdin)
-			char c = getchar_adj(); x = 0; short f = 1;
+			/*register*/ char c = getchar_adj(); x = 0; short f = 1;
 			while (c < '0' || c > '9') {
 				if (c == '-') f = -1;
 				c = getchar_adj();
 			}
 			while (c <= '9' && c >= '0') {
-				x = x * 10 + c - 48;
+				x = (x << 3) + (x << 1) + c - 48;
 				c = getchar_adj();
 			}
 			x *= f;
@@ -110,7 +128,7 @@ namespace sn_Alg {
 
 		inline bool read_int_eof(int& x) {
 			//or use fread(input, 1 << 31, stdin)
-			char c = getchar_adj(); x = 0; short f = 1;
+			/*register*/ char c = getchar_adj(); x = 0; short f = 1;
 			if (c == EOF) return false;
 			while (c < '0' || c > '9') {
 				if (c == '-') f = -1;
@@ -118,12 +136,58 @@ namespace sn_Alg {
 				if (c == EOF) return false;        
 			}
 			while (c <= '9' && c >= '0') {
-				x = x * 10 + c - 48;
+				x = (x << 3) + (x << 1) + c - 48;
 				c = getchar_adj();
 			}
 			x *= f;
 			return true;
 		}
+		
+		inline void read_szt_f(size_t& x) {
+			//or use fread(input, 1 << 31, stdin)
+
+			/*register*/ char c = getc_fread(); x = 0;
+			while (c < '0' || c > '9') {
+				c = getc_fread();
+			}
+			while (c <= '9' && c >= '0') {
+				x = (x << 3) + (x << 1) + c - 48;
+				c = getc_fread();
+			}
+			return fg;
+		}
+		
+		inline void read_int_f(int& x) {
+			//or use fread(input, 1 << 31, stdin)
+			/*register*/ char c = getc_fread(); x = 0; short f = 1;
+			while (c < '0' || c > '9') {
+				if (c == '-') f = -1;
+				c = getc_fread();
+			}
+			while (c <= '9' && c >= '0') {
+				x = (x << 3) + (x << 1) + c - 48;
+				c = getc_fread();
+			}
+			x *= f;
+		}
+
+		inline bool read_int_eof_f(int& x) {
+			//or use fread(input, 1 << 31, stdin)
+			/*register*/ char c = getc_fread(); x = 0; short f = 1;
+			if (feof_unlocked(stdin)) return false;
+			while (c < '0' || c > '9') {
+				if (c == '-') f = -1;
+				c = getc_fread();
+				if (c == EOF) return false;        
+			}
+			while (c <= '9' && c >= '0') {
+				x = (x << 3) + (x << 1) + c - 48;
+				c = getc_fread();
+			}
+			x *= f;
+			return true;
+		}
+
 		
 		inline void write_szt(size_t x) {
 			//or use fwrite(output, 1, strlen(output), stdout)
