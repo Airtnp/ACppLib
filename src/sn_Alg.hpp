@@ -89,10 +89,11 @@ namespace sn_Alg {
 		constexpr const static size_t SN_ALG_FREAD_BUFFER_SIZE = 1000;
 		char sn_alg_fread_buf[SN_ALG_FREAD_BUFFER_SIZE];
 		char* sn_alg_fread_s = sn_alg_fread_buf + SN_ALG_FREAD_BUFFER_SIZE;
-		
+		size_t sn_alg_fread_sz = SN_ALG_FREAD_BUFFER_SIZE;
+
 		inline char getc_fread(void) {
 			if (sn_alg_fread_s >= sn_alg_fread_buf + SN_ALG_FREAD_BUFFER_SIZE) {
-				fread_unlocked(sn_alg_fread_buf, sizeof(char), SN_ALG_FREAD_BUFFER_SIZE, stdin);
+				sn_alg_fread_sz = fread_unlocked(sn_alg_fread_buf, sizeof(char), SN_ALG_FREAD_BUFFER_SIZE, stdin);
 				sn_alg_fread_s = sn_alg_fread_buf;
 			}
 			return *(sn_alg_fread_s++);
@@ -102,10 +103,10 @@ namespace sn_Alg {
 			//or use fread(input, 1 << 31, stdin)
 
 			/*register*/ char c = getchar_adj(); x = 0;
-			while (c < '0' || c > '9') {
+			while (!isdigit(c)) {
 				c = getchar_adj();
 			}
-			while (c <= '9' && c >= '0') {
+			while (isdigit(c)) {
 				x = (x << 3) + (x << 1) + c - 48;
 				c = getchar_adj();
 			}
@@ -115,11 +116,11 @@ namespace sn_Alg {
 		inline void read_int(int& x) {
 			//or use fread(input, 1 << 31, stdin)
 			/*register*/ char c = getchar_adj(); x = 0; short f = 1;
-			while (c < '0' || c > '9') {
+			while (!isdigit(c)) {
 				if (c == '-') f = -1;
 				c = getchar_adj();
 			}
-			while (c <= '9' && c >= '0') {
+			while (isdigit(c)) {
 				x = (x << 3) + (x << 1) + c - 48;
 				c = getchar_adj();
 			}
@@ -130,12 +131,12 @@ namespace sn_Alg {
 			//or use fread(input, 1 << 31, stdin)
 			/*register*/ char c = getchar_adj(); x = 0; short f = 1;
 			if (c == EOF) return false;
-			while (c < '0' || c > '9') {
+			while (!isdigit(c)) {
 				if (c == '-') f = -1;
 				c = getchar_adj();
 				if (c == EOF) return false;        
 			}
-			while (c <= '9' && c >= '0') {
+			while (isdigit(c)) {
 				x = (x << 3) + (x << 1) + c - 48;
 				c = getchar_adj();
 			}
@@ -147,10 +148,10 @@ namespace sn_Alg {
 			//or use fread(input, 1 << 31, stdin)
 
 			/*register*/ char c = getc_fread(); x = 0;
-			while (c < '0' || c > '9') {
+			while (!isdigit(c)) {
 				c = getc_fread();
 			}
-			while (c <= '9' && c >= '0') {
+			while (isdigit(c)) {
 				x = (x << 3) + (x << 1) + c - 48;
 				c = getc_fread();
 			}
@@ -160,11 +161,11 @@ namespace sn_Alg {
 		inline void read_int_f(int& x) {
 			//or use fread(input, 1 << 31, stdin)
 			/*register*/ char c = getc_fread(); x = 0; short f = 1;
-			while (c < '0' || c > '9') {
+			while (!isdigit(c)) {
 				if (c == '-') f = -1;
 				c = getc_fread();
 			}
-			while (c <= '9' && c >= '0') {
+			while (isdigit(c)) {
 				x = (x << 3) + (x << 1) + c - 48;
 				c = getc_fread();
 			}
@@ -174,13 +175,13 @@ namespace sn_Alg {
 		inline bool read_int_eof_f(int& x) {
 			//or use fread(input, 1 << 31, stdin)
 			/*register*/ char c = getc_fread(); x = 0; short f = 1;
-			if (feof_unlocked(stdin)) return false;
-			while (c < '0' || c > '9') {
+			if (sn_alg_fread_s > sn_alg_fread_buf + sn_alg_fread_sz) return false;
+			while (!isdigit(c)) {
 				if (c == '-') f = -1;
 				c = getc_fread();
-				if (c == EOF) return false;        
+				if (sn_alg_fread_s > sn_alg_fread_buf + sn_alg_fread_sz) return false;        
 			}
-			while (c <= '9' && c >= '0') {
+			while (isdigit(c)) {
 				x = (x << 3) + (x << 1) + c - 48;
 				c = getc_fread();
 			}
