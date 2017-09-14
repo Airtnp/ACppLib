@@ -1009,6 +1009,27 @@ namespace sn_Stream {
 		};
 
 	}
+
+	// @ref: https://www.zhihu.com/question/49272859
+	// #include <sys/stat.h>
+	// #include <sys/mman.h>
+	class BufferedInputStream {
+		char* buf, *p;
+		int file_sz;
+	public:
+		void init() {
+			int fd = fileno(stdin);
+			struct stat sb;
+			fstat(fd, &sb);
+			file_sz = sb.st_size;
+			buf = reinterpret_cast<char*>(mmap(0, size, PROT_READ, MAP_PRIVATE, fd, 0));
+			p = buf;
+		}
+
+		char next() {
+			return (p == buf + file_sz || *p == EOF) ? EOF : *p++;
+		}
+	};
 }
 
 
