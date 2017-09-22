@@ -8,6 +8,8 @@
 TODO: (easy)
 dij/a* 背包dp prim kruskal floyd
 rotate n-th permutation
+boore-morse voting
+2d closest pair
 */
 
 // ref: https://github.com/Sd-Invol/shoka/tree/master/CodeLibrary

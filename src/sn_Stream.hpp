@@ -1016,18 +1016,43 @@ namespace sn_Stream {
 	class BufferedInputStream {
 		char* buf, *p;
 		int file_sz;
+		constexpr static const size_t PREFETCH_WORD = 32;
 	public:
-		void init() {
+		BufferedInputStream() {
 			int fd = fileno(stdin);
 			struct stat sb;
 			fstat(fd, &sb);
 			file_sz = sb.st_size;
 			buf = reinterpret_cast<char*>(mmap(0, size, PROT_READ, MAP_PRIVATE, fd, 0));
 			p = buf;
+			madvise((void*)buf, file_sz, MADV_WILLNEED || MADV_SEQUENTIAL);
+		}
+
+		~BufferedInputStream() {
+			madvise((void*)buf, file_sz, MADV_DONTNEED);
+			// munmap(buf, file_sz);
 		}
 
 		char next() {
-			return (p == buf + file_sz || *p == EOF) ? EOF : *p++;
+			return (p == buf + file_sz || *p == EOF) ? '\0' : *p++;
+		}
+
+		void readline(char* line, size_t sz) {
+			size_t cnt = 0;
+			line[cnt] = EOF;
+			while (__builtin_expect(cnt < sz && line[cnt], 1)) {
+#if defined(__GNUC__)
+				// if (__builtin_expect((cnt % 16) == 0), 0) {
+				if (!(cnt % 16)) {
+					__builtin_prefetch(&line[cnt + PREFETCH_WORD], 1, 1);
+				}
+#endif
+				line[cnt] = next();
+				line[cnt + 1] = next();
+				line[cnt + 2] = next();
+				line[cnt + 3] = next();
+				cnt += 4;
+			}
 		}
 	};
 }

@@ -8,7 +8,8 @@
 #include "sn_TypeTraits.hpp"
 #include "sn_Builtin.hpp"
 
-//TODO: add concepts required by C++1z
+// @TODO: add concepts required by C++1z
+// @TODO: 重写Any (SuperSodaSea)
 namespace sn_Type {
 
 	namespace byte_t {
