@@ -257,6 +257,20 @@ Usage:
 // #define SN_EVAL_5(...) SN_EVAL_6(SN_EVAL_6(SN_EVAL_6(__VA_ARGS__)))
 #define SN_EVAL_5(...) MACRO_EXPAND(__VA_ARGS__)
 
+#define SN_STRIPPATH(s)\
+(sizeof(s) > 11 && (s)[sizeof(s)-12] == '/' ? (s) + sizeof(s) - 11 : \
+sizeof(s) > 10 && (s)[sizeof(s)-11] == '/' ? (s) + sizeof(s) - 10 : \
+sizeof(s) > 9 && (s)[sizeof(s)-10] == '/' ? (s) + sizeof(s) - 9 : \
+sizeof(s) > 8 && (s)[sizeof(s)-9] == '/' ? (s) + sizeof(s) - 8 : \
+sizeof(s) > 7 && (s)[sizeof(s)-8] == '/' ? (s) + sizeof(s) - 7 : \
+sizeof(s) > 6 && (s)[sizeof(s)-7] == '/' ? (s) + sizeof(s) - 6 : \
+sizeof(s) > 5 && (s)[sizeof(s)-6] == '/' ? (s) + sizeof(s) - 5 : \
+sizeof(s) > 4 && (s)[sizeof(s)-5] == '/' ? (s) + sizeof(s) - 4 : \
+sizeof(s) > 3 && (s)[sizeof(s)-4] == '/' ? (s) + sizeof(s) - 3 : \
+sizeof(s) > 2 && (s)[sizeof(s)-3] == '/' ? (s) + sizeof(s) - 2 : (s))
+
+#define SN_BASEFILE SN_STRIPPATH(__FILE__)
+
 
 #define SN_MAKE_LAMBDA(args, ret_type, body) \
 	class ANONYMOUS_VARIABLE(LAMBDA) { \
