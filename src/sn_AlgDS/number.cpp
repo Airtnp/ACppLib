@@ -7,6 +7,33 @@ using namespace std;
 
 namespace number {
     
+    int get_max(int* a,int l){
+        // assert(l%4==0);
+        // assert(sse4);
+        int ret,tmp[4];
+        __asm__ __volatile__ (
+            "\txorps %%xmm0, %%xmm0\n"
+            "LP4:\n"
+            "\tpmaxsd (%1), %%xmm0\n"
+            "\taddl $16, %1\n"
+            "\tsubl $4, %2\n"
+            "\tjnz LP4\n"
+            "\tmovdqu %%xmm0, (%3)\n"
+            "\tmovl (%3), %%eax\n"
+            "\tcmpl 4(%3), %%eax\n"
+            "\tcmovll 4(%3), %%eax\n"
+            "\tcmpl 8(%3), %%eax\n"
+            "\tcmovll 8(%3), %%eax\n"
+            "\tcmpl 12(%3), %%eax\n"
+            "\tcmovll 12(%3), %%eax\n"
+            "\tmovl %%eax, %0\n"
+            :"=m"(ret)
+            :"r"(a),"r"(l),"r"(tmp)
+            :"%eax"
+        );
+        return ret;
+    }        
+
     namespace prime {
 
         constexpr size_t PRIME_LIMIT = 10000;

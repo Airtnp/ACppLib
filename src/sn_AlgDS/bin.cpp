@@ -37,9 +37,9 @@ namespace binary {
         return count;
     }
 
-    //For detail, see http://www.matrix67.com/blog/archives/264 
-    //divide and conquer 11001100 -> 11001100 -> 00110011 -> 00001100
-    //For __builtin_popcount, get popcount table, see http://www.xuebuyuan.com/828691.html
+    // For detail, see http://www.matrix67.com/blog/archives/264 
+    // divide and conquer 11001100 -> 11001100 -> 00110011 -> 00001100
+    // For __builtin_popcount, get popcount table, see http://www.xuebuyuan.com/828691.html
     inline unsigned long long count_bits(unsigned long long x) {
         x = (x & 0x5555555555555555LL) + ((x & 0xAAAAAAAAAAAAAAAALL) >> 1);
         x = (x & 0x3333333333333333LL) + ((x & 0xCCCCCCCCCCCCCCCCLL) >> 2);
@@ -50,8 +50,8 @@ namespace binary {
         return x;
     }
 
-    //divide cand conquer 11001100 -> 11001100 -> 00110011 -> 00110011
-    //For table-lookup, see http://stackoverflow.com/questions/2602823/in-c-c-whats-the-simplest-way-to-reverse-the-order-of-bits-in-a-byte
+    // divide and conquer 11001100 -> 11001100 -> 00110011 -> 00110011
+    // For table-lookup, see http://stackoverflow.com/questions/2602823/in-c-c-whats-the-simplest-way-to-reverse-the-order-of-bits-in-a-byte
     inline long long reverse_bits(unsigned long long x) {
         x = ( (x >> 1)  & 0x5555555555555555LL) + ( (x << 1)  & 0xAAAAAAAAAAAAAAAALL);
         x = ( (x >> 2)  & 0x3333333333333333LL) + ( (x << 2)  & 0xCCCCCCCCCCCCCCCCLL);
@@ -62,6 +62,8 @@ namespace binary {
         return x;
     }
 
+    // __builtin_parity get number of 1 odd/even
+
     inline long long binary_exp(long long x, long long y) {
         if (y <= 0) return 1;
         if (y % 2 == 0)
@@ -70,6 +72,32 @@ namespace binary {
             return x * binary_exp(x, y - 1);
     }
 
+    inline bool get_k_bit(long long x, long long k) {
+        return (x >> k) & 1;
+    }
+
+    inline bool set_k_bit(long long x, bool k_set) {
+        if (k_set == 0)
+            return (x &= ~(1 << k));
+        else
+            return (x |= 1 << k);
+    }
+
+    inline bool and_all(long long x) {
+        return !(x & (x - 1)) && x;
+    }
+
+    inline bool adj_true(long long x) {
+        return (x >> 1) & x;
+    }
+
+    inline bool adj_true_3(long long x) {
+        return (x >> 2) & (x >> 1) & x;
+    }
+
+    inline int bin_average(int x, int y) {
+        return (x & y) + ((x ^ y) >> 1);
+    }
 }
 
 

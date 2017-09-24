@@ -67,31 +67,35 @@ void _assert(char *msg , char *file , unsigned int line){
 		// std::chrono::system_clock::now()
 		// and
 		// static_cast<double>(std::chrono::duration_cast<std::chrono::nanoseconds>(diff).count());
-		template <typename T>
+		template <typename ClockT = std::chrono::high_resolution_clock>
 		struct profile {
-			static std::chrono::time_point<std::chrono::steady_clock> t;
-			static std::chrono::time_point<std::chrono::steady_clock> s;
+			static std::chrono::time_point<ClockT> t;
+			static std::chrono::time_point<ClockT> s;
+			
 			static void start() {
-				s = std::chrono::high_resolution_clock::now();
+				s = ClockT::now();
 			}
 			static void finish() {
-				const auto u = std::chrono::high_resolution_clock::now();
+				const auto u = ClockT::now();
 				t += u - s;
 				s = u;
 			}
+
 			static void reset() {
-				t = 0;
+				t = std::chrono::system_clock::from_time_t(0);
 			}
+
 			static std::chrono::nanoseconds report() {
 				return std::chrono::duration_cast<std::chrono::nanoseconds>(t.time_since_epoch());
 			}
 
 		};
 
-		template <typename T>
-		std::chrono::time_point<std::chrono::steady_clock> profile<T>::t{ 1 };
-		template <typename T>
-		std::chrono::time_point<std::chrono::steady_clock> profile<T>::s;
+		template <typename ClockT>
+		std::chrono::time_point<ClockT> profile::t{0};
+
+		template <typename ClockT>
+		std::chrono::time_point<ClockT> profile::s;
 
 		template <typename Traits>
 		class basic_timer {

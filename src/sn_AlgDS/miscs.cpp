@@ -216,6 +216,37 @@ namespace misc {
         }
     }
 
+    inline unsigned int log2(unsigned int x) {
+        unsigned int ret;
+        __asm__ __volatile__(
+            "brsl %1, %%eax"
+            :"=a"(ret)
+            :"m"(x)
+        );
+        return ret;
+    }
+
+    // calculate a * b mod m
+    inline int mul_mod(int a, int b, int m) {
+        int ret;
+        __asm__ __volatile__(
+            "tmull %%ebx\n" \
+            "tdivl %%ecx\n"
+            :"=d"(ret)
+            :"a"(a)
+            ,"b"(b)
+            "c"(m)
+        );
+        return ret;
+    }
+
+    inline long long mul_mod_ll(long long a, long long b, long long m) {
+        long long d = static_cast<long long>(floor(a * static_cast<double>(b) / m + 0.5));
+        long long ret = a * b - d * m; // UB
+        if (ret < 0) ret += m;
+        return ret;
+    }
+
 
 }
 
