@@ -95,6 +95,23 @@ namespace number {
             return sum_prime[2 * sqrt_n];
         }
 
+        // http://www.cnblogs.com/jackiesteed/articles/2019910.html
+        unsigned int pollard_rho(unsigned int n) {
+            unsigned int x = 2;
+            unsigned int y = 2;
+            unsigned int d = 1;
+            auto f = [n](unsigned int v) { return (v ^ 2 + 1) % n; };
+            while (d == 1) {
+                x = f(x);
+                y = f(x); // f(f(y))
+                d = gcd(abs(x - y), n);
+            }
+            if (d == n)
+                return 0;
+            else
+                return d;
+        }
+
     }
 
     namespace gcd {
