@@ -142,4 +142,26 @@ namespace sn_TypeTraits {
 	template <typename T, typename It>
 	using is_iterator = bcd_t<std::is_same<T, std::decay_t<decltype(*std::declval<It>())>>::value>;
 	
+	namespace detail {
+		template <typename B, typename D>
+		struct Host {
+			operator B*() const;
+			operator D*() const;
+		};
+	}
+
+	// @ref: https://stackoverflow.com/questions/2910979/how-does-is-base-of-work
+	// Complex overload resolution. Actually if B is base of D, 3/4 will cause same result for 1/2==2
+	// Another implementation
+	// @ref: http://en.cppreference.com/w/cpp/types/is_base_of
+	template <typename B, typename D>
+	struct is_base_of {
+		using Accept_t = int;
+		using Reject_t = char;
+		template <typename T>
+		static Accept_t check(D*, T);
+		static Reject_t check(B*, int);
+
+		constexpr static const bool value = sizeof(check(detail::Host<B, D>{}, int{})) == sizeof(Accept_t);
+	};
 }
