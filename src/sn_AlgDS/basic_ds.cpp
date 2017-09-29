@@ -101,7 +101,6 @@ namespace basic {
         }
     };
 
-    //�������� ����/��ת/ɾ��
     template <typename T>
     class node {
     public:
@@ -189,7 +188,6 @@ namespace basic {
         }
     };
 
-    //����: ����/ɾ��
     template <typename T>
     class queue {
     private:
@@ -246,7 +244,6 @@ namespace basic {
 
     };
 
-    //ջ: ��ջ/��ջ
     template<class T> 
     class stack {
     private:
@@ -291,7 +288,7 @@ namespace basic {
 
     };
 
-    //��ϣ��: ����/����/�ؽ�  -- use hash_policy and conflict resolution to rewrite
+    // @TODO: use hash_policy and conflict resolution to rewrite
     class hash_table {
     private:
         string *elem;
@@ -370,7 +367,6 @@ namespace basic {
 
     };
 
-    //������: ǰ��/����/����
     template <typename T>
     class bin_node {
     public:
@@ -445,7 +441,6 @@ namespace basic {
         }
     };
 
-    //����������
     template <typename T>
     class bin_sort_node {
     public:
@@ -623,20 +618,22 @@ namespace basic {
         int top() {
             return data[0];
         }
+        // Only apply to parent increases
         void update(int pos, int n) {
             int lchild = 2 * pos + 1, rchild = 2 * pos + 2;
-            int max_value = pos;
-            if (lchild < n && data[lchild] < data[max_value]) {
-                max_value = lchild;
+            int min_value = pos;
+            if (lchild < n && data[lchild] < data[min_value]) {
+                min_value = lchild;
             }
-            if (rchild < n && data[rchild] < data[max_value]) {
-                max_value = rchild;
+            if (rchild < n && data[rchild] < data[min_value]) {
+                min_value = rchild;
             }
-            if (max_value != pos) {
-                swap(data[pos], data[max_value]);
-                update(max_value, n);
+            if (min_value != pos) {
+                swap(data[pos], data[min_value]);
+                update(min_value, n);
             }
         }
+        // pop min
         void pop() {
             swap(data[0], data[size - 1]);
             size--;
@@ -686,8 +683,7 @@ namespace basic {
     };
 
 
-    //T is like make_pair(vertex_index, some data) T(0) = null
-
+    // @Note: T is like make_pair(vertex_index, some data) T(0) = null
     template <typename T>
     using graph_node = pair<int, T>;
 
@@ -775,6 +771,7 @@ namespace basic {
         bool* data;
         const int size;
         bitvec(int size_, bool dfl = false): size(size_) {
+            // The bool is aligned in 1 byte
             data = new bool[size];
             memset(data, dfl, size);
         }
