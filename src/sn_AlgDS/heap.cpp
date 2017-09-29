@@ -133,6 +133,19 @@ namespace heap {
             update(m_root->left_child(), upd);
             return res;
         }
+
+        void destroy(TN* node) {
+            if (node == nullptr) return;
+            if (node->left_child() != nullptr)
+                destroy(node->left_child());
+            if (node->right_child() != nullptr)
+                destroy(node->right_child());
+            delete node;
+        }
+
+        ~BinaryHeap() {
+            destroy(m_root);
+        }
     };
 }
 
