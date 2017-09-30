@@ -8,28 +8,25 @@ namespace heap {
     // left-child right sibling
     template <typename T>
     class LCRSBinaryTreeNode {
-        TreeNode* m_parent = nullptr;
-        TreeNode* m_left = nullptr; // child
-        TreeNode* m_right = nullptr; // sibling;
+        LCRSBinaryTreeNode* m_parent = nullptr;
+        LCRSBinaryTreeNode* m_prev = nullptr;
+        LCRSBinaryTreeNode* m_left = nullptr; // child
+        LCRSBinaryTreeNode* m_right = nullptr; // sibling;
         T m_value = T{};
     public:
-        TreeNode() noexcept {}
-        TreeNode(TreeNode* p, TreeNode* l, TreeNode* r, const T& v) noexcept :
-            m_parent{p},
-            m_left{l},
-            m_right{r}, m_value{v} {}
-        TreeNode(const T& v) noexcept : m_value{v} {}
-        TreeNode(T&& v) noexcept : m_value{std::move(v)} {}
+        LCRSBinaryTreeNode() noexcept {}
+        LCRSBinaryTreeNode(const T& v) noexcept : m_value{v} {}
+        LCRSBinaryTreeNode(T&& v) noexcept : m_value{std::move(v)} {}
         
-        TreeNode*& left_child() noexcept {
+        LCRSBinaryTreeNode*& left_child() noexcept {
             return m_left;
         }
 
-        TreeNode*& right_child() noexcept {
+        LCRSBinaryTreeNode*& right_child() noexcept {
             return m_left->sibling();
         }
 
-        TreeNode*& kth_child(size_t k) noexcept {
+        LCRSBinaryTreeNode*& kth_child(size_t k) noexcept {
             TreeNode* res = m_left;
             while (k != 0 && res != nullptr) {
                 res = res->sibling();
@@ -38,11 +35,15 @@ namespace heap {
             return res;
         }
 
-        TreeNode*& sibling() noexcept {
+        LCRSBinaryTreeNode*& sibling() noexcept {
             return m_right;
         }
 
-        TreeNode*& parent() noexcept {
+        LCRSBinaryTreeNode*& previous() noexcept {
+            return m_prev;
+        }
+
+        LCRSBinaryTreeNode*& parent() noexcept {
             return m_parent;
         }
         
@@ -132,6 +133,161 @@ namespace heap {
             }
             update(m_root->left_child(), upd);
             return res;
+        }
+
+        void destroy(TN* node) {
+            if (node == nullptr) return;
+            if (node->left_child() != nullptr)
+                destroy(node->left_child());
+            if (node->right_child() != nullptr)
+                destroy(node->right_child());
+            delete node;
+        }
+
+        ~BinaryHeap() {
+            destroy(m_root);
+        }
+    };
+
+    template <typename T, typename TN = LCRSBinaryTreeNode<T>, typename ComparePolicy = MinPolicy<T>>
+    class PairingHeap {
+        TN* m_root = nullptr;
+        size_t m_sz = 0;
+    public:
+        PairingHeap() : m_root{new TN} {}
+
+        PairingHeap(const T& v) : m_root{new TN{v}} {}
+
+        bool is_empty() noexcept {
+            return m_sz == 0;
+        }
+
+        size_t size() noexcept {
+            return m_sz;
+        }
+
+        T top() noexcept {
+            return m_root->value();
+        }
+
+        void merge(TN* other_root) noexcept {
+            T max = top();
+            if (ComparePolicy::compare(max, other_root->top())) {
+                TN* rest = m_root->left_child();
+                other_root->sibling() = rest;
+                m_root->left_child() = other_root;
+            } else {
+                TN* rest = other_root->left_child();
+                m_root->sibling() = rest;
+                other_root->left_child() = m_root;
+                m_root = other_root;
+            }
+        }
+
+        TN* merge(TN* root, TN* other_root) noexcept {
+            T max = root->top();
+            if (ComparePolicy::compare(max, other_root->top())) {
+                TN* rest = root->left_child();
+                other_root->sibling() = rest;
+                root->left_child() = other_root;
+            } else {
+                TN* rest = other_root->left_child();
+                root->sibling() = rest;
+                other_root->left_child() = root;
+                root = other_root;
+            }
+            return root;
+        }
+
+        void insert(const T& v) {
+            TN* new_heap = new TN{v};
+            merge(new_heap);
+        }
+
+        // If we have parent -> we can directly change parent left_child
+        void update(TN* node, const T& v) {
+            TN* new_heap = new TN{v};
+            new_heap->left_child() = node->left_child();
+            
+            TN* new_left = node->sibling();
+            // A copy
+            node->value() = new_left->value();
+            node->sibling() = new_left->sibling();
+            node->left_child() = new_left->left_child();
+
+            delete new_left;
+            merge(new_heap);
+        }
+
+        T pop() {
+            std::list<TN*> ns;
+            TN* cur = m_root->left_child();
+            while (cur != nullptr) {
+                ns.push_back(cur);
+                cur = cur->sibling();
+            }
+            T res = m_root->value();
+            delete m_root;
+            std::list<TN*> nns;
+            while (ns.size() >= 2) {
+                TN* tn1 = ns.pop_front();
+                TN* tn2 = ns.pop_front();
+                nns.push_back(merge(tn1, tn2));
+            }
+            if (ns.size() == 1)
+                nns.push_back(ns.pop_front());
+            while (nns.size() != 1) {
+                TN* tn1 = nns.pop_back();
+                TN* tn2 = nns.pop_back();
+                nns.push_back(merge(tn1, tn2));
+            }
+            m_root = nns.pop_back();
+            return res;
+        }
+
+        TN* pop(TN* root) {
+            std::list<TN*> ns;
+            TN* cur = root->left_child();
+            while (cur != nullptr) {
+                ns.push_back(cur);
+                cur = cur->sibling();
+            }
+            T res = root->value();
+            delete m_root;
+            std::list<TN*> nns;
+            while (ns.size() >= 2) {
+                TN* tn1 = ns.pop_front();
+                TN* tn2 = ns.pop_front();
+                nns.push_back(merge(tn1, tn2));
+            }
+            if (ns.size() == 1)
+                nns.push_back(ns.pop_front());
+            while (nns.size() != 1) {
+                TN* tn1 = nns.pop_back();
+                TN* tn2 = nns.pop_back();
+                nns.push_back(merge(tn1, tn2));
+            }
+            return nns.pop_back();
+        }
+
+        T remove(TN* node) {
+            if (node == m_root) {
+                return pop();
+            } else {
+                TN* new_heap = new TN{node->value()};
+                new_heap->left_child() = node->left_child();
+                
+                TN* new_left = node->sibling();
+                // A copy
+                node->value() = new_left->value();
+                node->sibling() = new_left->sibling();
+                node->left_child() = new_left->left_child();
+    
+                delete new_left;
+
+                TN* adjusted_new_heap = pop(new_heap);
+                merge(adjusted_new_heap);
+            }
         }
 
         void destroy(TN* node) {
