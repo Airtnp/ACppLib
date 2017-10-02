@@ -211,7 +211,7 @@ namespace misc {
             ++cnt;
         }			
         while (cnt) {
-            putchar(c[cnt]);
+            putchar_adj(c[cnt]);
             --cnt;
         }
     }

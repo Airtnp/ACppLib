@@ -294,12 +294,12 @@ namespace heap {
             if (node == nullptr) return;
             if (node->left_child() != nullptr)
                 destroy(node->left_child());
-            if (node->right_child() != nullptr)
-                destroy(node->right_child());
+            if (node->sibling() != nullptr)
+                destroy(node->sibling());
             delete node;
         }
 
-        ~BinaryHeap() {
+        ~PairingHeap() {
             destroy(m_root);
         }
     };
