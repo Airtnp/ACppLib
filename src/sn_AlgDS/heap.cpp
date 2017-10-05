@@ -308,7 +308,7 @@ namespace heap {
     void adjust_heap(int arr[], size_t sz, size_t parent) {
         size_t left = idx * 2;
         size_t right = idx * 2 + 1;
-        size_t large = parent;
+        size_t large = arr[parent];
         while (left < sz || right <sz) {
             if (left < sz && arr[parent] < arr[left]) {
                 large = left;
@@ -316,7 +316,7 @@ namespace heap {
             if (right < sz && arr[parent] < arr[right]) {
                 large = right;
             }
-            if (large != parent) {
+            if (large != arr[parent]) {
                 std::swap(arr[parent], arr[large]);
                 parent = large;
                 left = parent * 2;
@@ -329,7 +329,7 @@ namespace heap {
 
     void make_heap(int arr[], size_t sz) {
         size_t last_non_leaf = sz / 2 - 1;
-        for (size_t i = last_non_leaf; i >=0; --i) {
+        for (size_t i = last_non_leaf; i-- >0;) {
             adjust_heap(arr, sz, i);
         }
     }
