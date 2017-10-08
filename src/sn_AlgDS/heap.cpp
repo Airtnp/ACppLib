@@ -351,6 +351,14 @@ namespace heap {
             else
                 return (m_medianLow + m_medianLarge) / 2;
         }
+
+        bool empty() {
+            return m_sz == 0;
+        }
+    
+        size_t size() {
+            return m_sz;
+        }
     
         void insert(const T& value) {
             if (m_sz == 0) {
@@ -358,7 +366,6 @@ namespace heap {
                 ++m_sz;
                 return;
             }
-            ++m_sz;
             if (m_sz % 2) {
                 if (value > this->median()) {
                     m_greater.push(value);
@@ -384,6 +391,7 @@ namespace heap {
                     m_medianLow = value;
                 }
             }
+            ++m_sz;            
         }
     }; 
 }
