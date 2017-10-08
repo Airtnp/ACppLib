@@ -308,7 +308,7 @@ namespace heap {
     void adjust_heap(int arr[], size_t sz, size_t parent) {
         size_t left = idx * 2;
         size_t right = idx * 2 + 1;
-        size_t large = arr[parent];
+        size_t large = parent;
         while (left < sz || right <sz) {
             if (left < sz && arr[parent] < arr[left]) {
                 large = left;
@@ -316,7 +316,7 @@ namespace heap {
             if (right < sz && arr[parent] < arr[right]) {
                 large = right;
             }
-            if (large != arr[parent]) {
+            if (large != parent) {
                 std::swap(arr[parent], arr[large]);
                 parent = large;
                 left = parent * 2;
@@ -333,6 +333,59 @@ namespace heap {
             adjust_heap(arr, sz, i);
         }
     }
+
+    template <typename T>
+    class MinMaxHeap {
+        std::priority_queue<T, std::vector<T>, std::less<T>> m_less;
+        // use std::unary_negate / decltype(std::not_fn(C)) before 17
+        std::priority_queue<T, std::vector<T>, std::greater<T>> m_greater;
+        size_t m_sz;
+        T m_medianLarge;
+        T m_medianLow;
+    public:
+        MinMaxHeap() : m_sz{0}, m_medianLarge{T{}}, m_medianLow{T{}} {}
+    
+        T median() {
+            if (m_sz % 2)
+                return m_medianLow;
+            else
+                return (m_medianLow + m_medianLarge) / 2;
+        }
+    
+        void insert(const T& value) {
+            if (m_sz == 0) {
+                m_medianLow = value;
+                ++m_sz;
+                return;
+            }
+            ++m_sz;
+            if (m_sz % 2) {
+                if (value > this->median()) {
+                    m_greater.push(value);
+                    m_medianLarge = m_greater.top();
+                    m_greater.pop();
+                } else {
+                    m_less.push(value);
+                    m_medianLarge = m_medianLow;
+                    m_medianLow = m_less.top();
+                    m_less.pop();
+                }
+            } else {
+                if (value >= m_medianLarge) {
+                    m_greater.push(value);
+                    m_less.push(m_medianLow);
+                    m_medianLow = m_medianLarge;
+                } else if (value <= m_medianLow) {
+                    m_less.push(value);
+                    m_greater.push(m_medianLarge);
+                } else {
+                    m_less.push(m_medianLow);
+                    m_greater.push(m_medianLarge);
+                    m_medianLow = value;
+                }
+            }
+        }
+    }; 
 }
 
 
