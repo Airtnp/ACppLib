@@ -250,7 +250,7 @@ namespace sn_LCEncoding {
 		
 		// n f x = f^n x
 
-		// succ = \n -> f x -> f (n f x)
+		// succ = \n -> \f x -> f (n f x)
 		using ChurchSucc = VarLambda<
 								VarList<N>,
 								VarLambda<
