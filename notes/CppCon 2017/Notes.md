@@ -1035,4 +1035,222 @@ constexpr int fn(int n, tag t = runtime()) {
 * + Caveats (functions with vague linkage that need to be defined in header):
 * + - Template functions (unless explicitly specialized)
 * + - Functions with the inline keyword - just remove it
-* 
+* LTCG
+
+## When 1ms counts
+* low latency
+* slowpath removal
+* template=based (compile-time) configuration
+* prefer lambda
+* reuse object instead of deallocating
+* delete from another thread
+* no exception for control flow
+* pre templates to branches
+* multi-thread (not do it)
+* + synchronization via locking is expensive
+* + lock free requires lock at hardware level
+* + complex to implement correctly
+* + easy for accident
+* + must use
+* + - keep shared data to absolute minimum
+* + - consider passing copies rather than sharing
+* + - share -> consider not use synchronization
+* hash
+* + hybrid of chainning and open addressing
+* + - predictable cache access patterns
+* + - prefetched candidate hash values
+* ((always_inline))
+* keep cache hot
+* + don't share L3 (disable all but 1 core) (or lock the cache)
+* + multi cores -> check neighbours (noisy neighbours should moved to difference physical CPU)
+* placement new slightly inefficient (gcc < 7.1 without -std=c++17)
+* + gcc/clang low version do null-pointer check on memory
+* SSO
+* + avoid allocation with (gcc > 5.1 or < 15 chars | clang if < 22 chars>)
+* + However ABI compatible linux distribution will using old COW string
+* static local variable initialization
+* + atomic init (even binary single-threaded)
+* [inplace-function](https://github.com/WG21-SG14/SG14/blob/master/SG14/inplace_function.h) over std::function (may copy and allocate)
+* std::pow may be slow (transcendental)
+
+## DLLS
+* dynamic link library
+* + contains code data
+* + can be loaded dynamically at runtime (defer load functionality)
+* + can be shared or reused by multiple programs (reduce disk/memory usage)
+* + benefits
+* + - componentization via DLLs
+* + - improved service ability (hotfix, patching)
+* + - improve maintain ability
+* + disadvantages
+* + - complicated software distribution
+* + - increase potential for incompatibilities
+* + - impossible to optimize code across DLL boundaries (indirect)
+* Build a DLL
+* + `cl /c && link /DLL /NOENTRY /EXPORT:foo`
+```c++
+#include <Windows.h>
+#include <stdio.h>
+int main() {
+    HMODULE const HelloDLL = LoadLibraryExW(L"Hello.dll", nullptr, 0);
+    // char const* __cdecl foo()
+    using foo_t = char const* (__cdecl*)();
+    foo_t const foo = reinterpret_cast<foo_t>(
+        GetProcAddress(HelloDLL, "foo")
+    );
+    puts(foo());
+    FreeLibrary(HelloDLL);
+}
+```
+* Inside a DLL
+* + DOS Stub: Valid DOS program
+* + - offset 3C = offset of PE Signature
+* + PE Signtature: "PE\0\0"
+* + COFF File Header: Common file header
+* + - machine type
+* + - number of sections
+* + - time date stamp
+* + - size of optional header
+* + - characteristics (Executable / Application can handle large address / DLL)
+* + "Optional" Header: image-specific file headers
+* + - magic (PE32+)
+* + - entry point
+* + - image base
+* + - section alignment
+* + - file alignment
+* + - size of image
+* + - size of headers
+* + - DLL characteristics (High Entropy Virtual Address / Dynamic base / NX compatible)
+* + - number of directories
+* + - RVAs
+* + - - RVA of export directory
+* + - - RVA of import directory
+* + - - RVA of resource directory
+* + - - RVA of exception directory
+* + - - RVA of debug directory
+* + - - more empty directories
+* + Section Headers: contain information about "sections" in the DLL
+* + Sections 0-N: contains the actual code/data/resources in the DLL
+* + - .text
+* + - - virtual size
+* + - - virtual address
+* + - - size of raw data
+* + - - file pointer to raw data
+* + - - flags (Code / Execute Read / Initialized Data / Read Only)
+* + - .rdata
+* RVA: relative virtual address
+* + offset from the beginning of the DLL
+* + address in memory = DLL Base Address + RVA
+* Implicit Linking and Import
+* + explicit: LoadLibraryExW/GetProcAddress
+* + implicit: by compile option (.lib)
+* Specifying Exports
+* + `/EXPORT:Out, PRIVATE=Rename`
+* + `.def` + `/DEF:x.def`
+* + `__declspec(dllexport)`
+* + `#pragma comment(linker, "/export:foo")`
+* Load process
+* + - find dll
+* + - map dll to memory
+* + - load dll that depends
+* + - bind import from dependents
+* + - call entry point to let dll initialized itself
+* + DLLs are Reference Counted
+* Path to load
+* + same name: return first one
+* + known: system path
+* + search order
+* + - directory from which the application loaded
+* + - system `\System32` | `\SysWOW64`
+* + - 16bit system directory `\System`
+* + - Windows directory `\Windows`
+* + - current directory
+* + - PATH listed in `%PATH%`
+* + Customize
+* + - DLL Redirection (`.local`)
+* + - Side-by-Side Components
+* + - `%PATH%`
+* + - `AddDllDirectory`
+* + - `LoadLibraryEx` Flags
+* + - - LOAD_WITH_ALTERED_SEARCH_PATH/LOAD_LIBRARY_SEARCH_XXX
+* + - WIndows Store / UWAs are different
+* Mapping the DLL into memory
+* + different alignment on disk (FAT sector) and memory (page size)
+* + sections must be page-aligned in memory
+* + Loader
+* + - open DLL file and read image size
+* + - allocate a continguous, page-aligned block of memory of that size
+* + - copy the contents of each section into the appropriate aread of that block of memory
+* Relocation
+* + Pointer = Pointer - PreferredBaseAddress + ActualBaseAddress
+* Load Dependencies and Binding Imports
+* + for each DLL dependency
+* + - load the DLL...
+* Initializing the DLL
+* + `BOOL WINAPI DllMain(HINSTANCE instance, DWORD reason, LPVOID reserved)`
+* + - `instance` handle to the DLL, same as return from `LoadLibrary`
+* + - `reason`why calling entry point
+* + - - `DLL_PROCESS_ATTACH`
+* + - - `DLL_PROCESS_DETACH`
+* + - - `DLL_THREAD_ATTACH`
+* + - - `DLL_THREAD_DETACH`
+* + - `reserved`
+* + - - process-attach: null if DLL loaded via `LoadLibrary`; non-null if implicit
+* + - - process-detach: null if DLL loaded via `FreeLibrary`; non-null if process terminating
+* + - call to `DllMain` are synchronized by a global lock, called the Loader Lock
+* + Best practice
+* + - do as little as possible in your entry point
+* + - be careful when calling into other DLLs from your entry point
+* + - do not synchronize with other threads from your entry point
+* Diagnosing DLL Load Failures
+* + `gflags /i x.exe +sls`
+* `__declspec(dllimport)` -> can be inlined without direction
+* Exporting Data
+* + `/export:var,DATA`
+* + `__declspec(dllimport)` is forced for data imports
+* + or your can `GetProcAddress`
+* 共享节
+* Delay Loading
+* + `/DELAYLOAD:x.dll delayimp.lib`
+* + load by need
+* + generate `__imp_load_foo()`
+* + call `__tailMerge_DllWithEntryPoint_dll(&__impl_foo)`
+* + - push parameter registers onto the stack
+* + - call `__delayLoadHelper2`
+* + - - `HANDLE DllWithEntryPointHandle = LoadLibrary(DllWithEntryPoint.dll)`
+* + - - `__imp_foo = GetProcAddress(DllWithEntryPointHandle, "foo")`
+* + - pop parameter registers back off of the stack
+* + - jump to `__imp_foo` (transfer control to the now-imported function)
+* + - raise SEH if failed
+* C++ and DLL
+* + global variable -> use `__DllMainCRTStartup` to construct
+* + `__DllMainCRTStartup`
+* + - C Runtime(CRT) provides an entry point
+* + - handles initialization of C/C++ language feature
+* + - At `DLL_PROCESS_ATTACH`
+* + - - If CRT is statically linked into the DLL, initializes the statically linked CRT
+* + - - Initializes security cookies and other run-time check support
+* + - - Runs constructors for global variables
+* + - - Initializes `atexit()` support within the DLL
+* + - - calls user-defined `DllMain` if one is defined
+* + - At `DLL_PROCESS_DETACH`
+* + - - call `atexit()`-registed functions
+* + - - runs destructors for global variables
+* + - - If CRT is statically linked into the DLL, shuts down the statically linked CRT
+* + Exporting C++ functions/classes ?
+* + - don't (mangling/ABI)
+* + - extern "C"
+* Threads and TLS
+* + remeber `DLL_THREAD_ATTACH/DETACH`
+* + TLS var that zero-init works fine
+* + TLS var that can be statically-init work fine
+* + TLS var that requires dynamic initialization
+* + - `thread_local unsigned int y = GetCurrentThreadId()`
+* + - only correctly initialized for
+* + - - thread that loaded the DLL
+* + - - any threads after the DLL is loaded
+* + - for threads before DLL is loaded -> zero-init
+* Avoiding DLL Hell
+* + UWP/ Centeniial App Package
+* + Maintain API/ABI Stability
+* + Breaking change -> rename the DLL
