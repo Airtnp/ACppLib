@@ -420,19 +420,619 @@ slist<Tp>& slist<Tp>::operator=(slist&& other) {
 
 template <typenameTp>
 slist<Tp>::slist(constslist& other, allocator_typea)
-: slist(a) {
+    : slist(a) {
     operator=(other);
 }
 
 template <typenameTp>
 slist<Tp>::slist(slist&& other)
-: slist(other.get_allocator()) {
+    : slist(other.get_allocator()) {
     operator=(std::move(other));
 }
 
 template <typenameTp>
 slist<Tp>::slist(slist&& other, allocator_typea)
-: slist(a) {
+    : slist(a) {
     operator=(std::move(other));
 }
 ```
+
+## Build C++ Modules
+```c++
+export module hello.core;
+export
+{
+    enum class volume {quiet, normal, loud};
+    void say_hello (const char*, volume);
+}
+
+export namespace hello
+{
+    enum class volume {quiet, normal, loud};
+    void say (const char*, volume);
+}
+namespace hello
+{
+    void impl (const char*, volume); // Not exported.
+}
+
+// hello.extra interface
+//
+export module hello.extra;
+import hello.core; // Exports say_hello().
+// hello.extra implementation
+//
+module hello.extra;
+say_hello (”World”); // Ok.
+
+// re-export
+export module hello;
+export
+{
+    import hello.core;
+    import hello.basic;
+    import hello.extra;
+}
+
+// hello.mxx
+export module hello;
+export void say_hello (const char* name);
+// hello.cxx
+#include <iostream>
+module hello;
+void say_hello (const char* n)
+{
+    std::cout << ”Hello, ” << n << ’!’ << std::endl;
+}
+// driver.cxx
+import hello;
+int main () { say_hello (”Modules”); }
+```
+
+* interface template
+```
+<header includes>
+export module <name>; // Start of module purview.
+<module imports>
+<special header includes> // Config, export, etc.
+export
+{
+    <module interface>
+}
+<inline/template includes>
+
+#ifndef __cpp_modules
+#pragma once
+#endif
+// C includes, if any.
+
+#ifndef __cpp_lib_modules
+    <std includes>
+#endif
+
+// Other includes, if any.
+#ifdef __cpp_modules
+export module <name>;
+#ifdef __cpp_lib_modules
+    <std imports>
+#endif
+#endif
+```
+* implementation template
+```
+<header includes>
+module <name>; // Start of module purview.
+<extra module imports> // Only additional to interface.
+<module implementation>
+
+#ifndef __cpp_modules
+#include <module interface file>
+#endif
+
+// C includes, if any.
+#ifndef __cpp_lib_modules
+    <std includes>
+    <extra std includes>
+#endif
+
+// Other includes, if any
+#ifdef __cpp_modules
+    module <name>;
+#ifdef __cpp_lib_modules
+    <extra std imports> // Only additional to interface.
+#endif
+#endif
+```
+* consumer
+```
+#ifdef __cpp_modules
+import hello;
+#else
+#include <libhello/hello.mxx>
+#endif
+```
+
+## Persistent Cpp
+```c++
+struct entry {
+    persistent_ptr<entry> next;
+    p<int> value;
+};
+
+void push(pool_base& pool, int value) {
+    transaction::exec_tx(pool, [this]{
+        auto n = make_persistent<entry>(value, nullptr); // persistent_ptr
+        if (head == nullptr) {
+            head = tail = n;
+        } else {
+            tail->next = n;
+            tail = n;
+        }
+    });
+}
+
+int pop(pool_base& pool) {
+    transaction::exec_tx(pool, [this]{
+        if (head == nullptr) {
+            throw runtime_error("Nothing to pop");
+        } 
+        auto res = head->value;
+        auto tmp_entry = head->next;
+        delete_persistent<entry>(head);
+        head = tmp_entry;
+        if (head == nullptr)
+            tail = nullptr;
+        return ret;
+    });
+}
+```
+
+## Coroutine
+```c++
+
+int result = hard_work();
+co_return result;
+// ----->
+using promise_type =
+    coroutine_traits<lazy<int>>::promise_type;
+{
+    promise_type p;
+    auto r = p.get_return_object();
+    co_await p.initial_suspend();
+    try {
+        int result = hard_work();
+        p.return_value(result);
+        goto final_suspend;
+    } catch (...) {
+        p.unhandled_exception();
+    }
+final_suspend:
+    co_await p.final_suspend();
+destroy:
+}
+
+auto y = co_await x;
+// ----->
+auto h = coroutine_handle<P>::from_promise(p);
+auto a = p.await_transform(x); // optional
+auto e = operator co_await(a); // optional
+if (!e.await_ready()) {
+    // suspended
+    e.await_suspend(h);     
+    if (/* still suspended */) {
+        // return to caller
+resume:
+    }
+// resumed
+}
+auto y = e.await_resume();
+
+auto y = co_yield x;
+// ----->
+auto h = coroutine_handle<P>::from_promise(p);
+auto a = p.yield_value(x);
+auto e = operator co_await(a); // optional
+if (!e.await_ready()) {
+    // suspended
+    e.await_suspend(h);
+    if (/* still suspended */) {
+    // return to caller
+resume:
+    }
+// resumed
+}
+auto y = e.await_resume();
+
+for co_await (auto x : xs) {
+    use(x);
+}
+// ----->
+{
+    auto __end = xs.end();
+    for (auto __begin = co_await xs.begin();
+        __begin != __end;
+        co_await ++__begin) {
+        auto x = *__begin;
+        use(x);
+    }
+}
+
+template <typename Promise>
+struct coroutine_handle {
+    constexpr explicit
+    operator bool() const noexcept;
+    Promise& promise() const;
+
+    static coroutine_handle
+        from_promise(Promise&);
+
+    void resume();
+    void destroy();
+};
+
+template <typename T>
+struct lazy_promise;
+
+template <typename T>
+class lazy {
+private:
+    using handle_type =
+    stdx::coroutine_handle<lazy_promise<T>>;
+    lazy(lazy_promise<T>& p)
+        : h(handle_type::from_promise(p)) {}
+    
+    handle_type h;
+    std::optional<T> value;
+    
+    friend lazy_promise<T>;
+public:
+    T get() {
+        if (!value) {
+            h.promise().dest = &value;
+            h.resume();
+            h = {};
+        }
+        return *value;
+    }
+    ~lazy() {
+        if (h) h.destroy();
+    }
+};
+
+template <typename T>
+struct lazy_promise {
+    std::optional<T>* dest;
+    
+    auto get_return_object() {
+        return lazy<T>(*this); 
+    }
+    
+    auto initial_suspend() {
+        return stdx::suspend_always{}; 
+    }
+    
+    void return_value(T x) {
+        *dest = std::move(x); 
+    }
+    
+    void unhandled_exception() {}
+    
+    auto final_suspend() {
+        return stdx::suspend_never{}; 
+    }
+};
+
+template <typename T, typename... Args>
+struct coroutine_traits<lazy<T>, Args...> {
+    using promise_type = lazy_promise<T>;
+};
+```
+* prime generator
+```c++
+task<void> async_print_primes() {
+    for co_await (auto x : async_primes()) {
+        print(x);
+        if (x > 100) break;
+    }
+}
+
+task<bool> is_prime_async(int);
+
+async_generator<int> async_primes() {
+    for (int x = 0; ; ++x)
+        if (co_await is_prime_async(x))
+            co_yield x;
+}
+```
+* `optional<T>`
+```c++
+template <typename T, typename... Args>
+struct coroutine_traits<optional<T>, Args...> { // UB!
+    using promise_type = optional_promise<T>;
+};
+
+template <typename T>
+struct optional_promise {
+    template <typename U>
+    auto await_transform(optional<U> e) {
+        return optional_awaitable<U>{move(e)};
+    }
+};
+
+template <typename U>
+struct optional_awaitable {
+    optional<U> o;
+    auto await_ready() { return o.has_value(); }
+    auto await_resume() { return o.value(); }
+    template <typename T>
+    void await_suspend(coroutine_handle<maybe_promise<T>> h) {
+        h.promise().data->emplace(nullopt);
+        h.destroy();
+    }
+};
+```
+* callable
+```c++
+template <typename Ret,
+typename... Args>
+class func {
+    template <typename F>
+    static func create(F f) {
+        co_yield f;
+    }
+    Ret operator()(Args… args) {
+        h.promise().args = {args…};
+        h.resume();
+        return h.promise().ret;
+    }
+};
+
+template <typename Ret,
+typename... Args>
+struct func_promise() {
+    tuple<Args…> args;
+    Ret ret;
+    template <typename F>
+    void yield_value(F f) {
+        ret = apply(f, args);
+    }
+};
+```
+
+## Implement `dynamic_cast`
+```c++
+void *truly_dynamic_to_mdo(void *p) {
+    uint64_t *vptr =
+        *reinterpret_cast<uint64_t **>(p);
+    uint64_t mdoffset = vptr[-2];
+    void *adjusted_this =
+        static_cast<char *>(p) + mdoffset;
+    return adjusted_this;
+}
+
+type_info& dynamic_typeid(void *p)
+{
+    return *(*reinterpret_cast<type_info ***>(p))[-1];
+}
+
+template<class To, class From>
+To *truly_dynamic_from_base_to_derived(From *p) {
+    void *mdo = truly_dynamic_to_mdo(p);
+    const type_info& ti = dynamic_typeid(mdo);
+    int offset = (char *)p - (char *)mdo;
+    if (ti == From) {
+        return nullptr;
+    } else if (ti == To && ti.isPublicBaseOfMe(offset, From)) {
+        return (To *)(mdo);
+    } else if (void *so = ti.maybeFromHasAPublicChildOfTypeTo(
+                                mdo, offset, From, To)) {
+        return (To *)(so);
+    } else if (ti.isPublicBaseOfMe(offset, From)) {
+        return (To *)(ti.castToBase(mdo, To));
+    }
+    return nullptr;
+}
+
+template<class To, class From>
+To *truly_dynamic_between_unrelated_classes(From *p) {
+    if constexpr (is_final_v<To> || is_final_v<From>) {
+        return nullptr;
+    }
+    void *mdo = truly_dynamic_to_mdo(p);
+    const type_info& ti = dynamic_typeid(mdo);
+    int offset = (char *)p - (char *)mdo;
+    if (ti == From) {
+        return nullptr;
+    } else if (ti == To) {
+        return (To *)(mdo);
+    } else if (ti.isPublicBaseOfMe(offset, From)) {
+        return (To *)(ti.castToBase(mdo, To));
+    }
+    return nullptr;
+}
+
+template<class P, class From, class To = remove_pointer_t<P>>
+To *dynamicast(From *p) {
+    if constexpr (is_same_v<From, To>) {
+        return p;
+    } else if constexpr (is_base_of_v<To, From>) {
+        return (To *)(p);
+    } else if constexpr (is_void_v<To>) {
+        return truly_dynamic_to_mdo(p);
+    } else if constexpr (is_base_of_v<From, To>) {
+        return truly_dynamic_from_base_to_derived<To>(p);
+    } else {
+        return truly_dynamic_between_unrelated_classes<To>(p);
+    }
+}
+```
+
+## Function default arguments (DFA)
+> Expressions that are evaluated when there are fewer provided arguments to a function call than the number of parameters specified in the function definition.
+
+> Default function arguments can not...
+● appear in operator functions (except operator())
+● appear in a position where there is already a visible DFA
+● appear in a position where all parameters to the right do not have effective DFAs
+● appear in out-of-class definitions of member functions of class templates
+● appear in a friend declaration, unless that declaration is the only one in the translation unit and is an in-class friend function definition
+● appear in declarations of
+○ pointers or references to functions
+○ type alias declarations
+● appear in requires expressions (concepts)
+● appear in explicitly defaulted member functions
+● appear in user-defined literal declarations/definitions
+● be provided for the first parameter of special member functions
+● be provided for the first parameter of an initializer_list constructor
+● be provided for the size_t parameter of allocation functions (i.e. new)
+● be provided for a parameter pack
+● be used to deduce a template type-parameter
+● differ for an inline function defined in multiple translation units
+
+> Default argument expressions can not contain...
+● a lambda that captures (by-value or by-reference and implicit or explicit does not matter)
+● a function-local variable unless in an unevaluated context
+● the this keyword
+● non-static class members (with few exceptions)
+● previously declared parameter names unless in an unevaluated context (but they are in scope!)
+
+* replacement: overloading
+* + ambiguous lookup
+
+> Names in a DFA are bound at declaration, but evaluated at use
+```c++
+namespace N {
+    string fn(string s = b) { return s; } // valid!
+    string b = "bar";
+}
+```
+
+> DFAs can be provided across multiple declarations of the same function
+The first declaration in a scope hides any previously provided DFAs
+```c++
+auto fn(string s, bool b = true) {
+    return b ? s : "";
+}
+auto fn (string s = "foo", bool b); // Now fn() is valid! non-overlap
+{
+    auto fn(string, bool); // Now fn() and fn("foo") no longer valid
+}
+```
+
+> Restrictions on DFAs across multiple declarations
+For each parameter for function F, there may be only a single declaration that provides a DFA.
+● A parameter P that has a DFA in a declaration for function F, is allowed only if there are visible DFAs for all following parameters for function F.
+● Within scope S, the first declaration for function F hides any previously visible DFAs for function F within scope S. 
+● For function F, called within scope S, the effective DFAs for F are the union of all visible DFAs at the call-site.
+
+> DFAs on base member functions are visible unless you hide them with your own member function declarations but you can unhide them with `using` declarations in the class definition
+```c++
+struct Base { auto fn(string s = "foo") { return s; }};
+struct D_1 : Base {
+    void fn(char);
+    using Base::fn;
+};
+
+struct D_2 : Base {
+    using Base::fn;
+    auto fn(string s = "bar") { return s + "!!!" }
+};
+```
+
+* virtual member function do not inherit whether it has default argument, but if you declare both of them, it will call on the static type
+
+> function default argument template
+For a function template (and presumably a member function of a class template), DFAs are not always completely parsed until the template has been called in a way that requires the DFA.
+
+```c++
+void my_assert(
+    bool test, const char* reason, 
+    std::source_location loc = std::source_location::current()) {
+    if (!test) {
+        std::cout << "Assertion failed: " << loc.file_name << ":"
+                  << loc.line << ":" << loc.column << ": "
+                  << "in function " << loc.function_name >> ": "
+                  << reason << '\n';
+    }
+}
+
+enum class tag { complietime, runtime };
+tag runtime() { return tag::runtime }
+int identity(int n) { return n; }
+
+constexpr int fn(int n, tag t = runtime()) {
+    return (t == tag::runtime) ? identity(n) : n * n;
+}
+```
+
+## From Secure to GPU
+* secure_allocator
+* + allocation: locks memory (cannot be swapped out) (mlock+madvise/VirtualLock)
+* + deallocation: wipes memory before freeing (OPENSSL_cleanse, RtlSecureZeroMemory, etc)
+
+## ThinLTO
+* Monolithic LTO
+* + Link all bitcode to one single module
+* + Removes module optimization boundaries via Cross-Module Optimization (CMO)
+* + Most of benifit comes from cross-module inlining
+* + Binary Size: inherent dead=stripping and auto hidden visibility via internalization
+* + Single source improvements because global variables can be internalized (better alias analysis, etc.).
+* + slow / not friendly with incremental build / memory hungry
+* ThinLTO
+* + parallel / incremental / memory lean
+* + Phase1 Compile: fully-parallel frontend-processing + initial optimization
+* + - extra per-function summary information
+* + - - includes local reference/call graph
+* + - - includes module hash (for incremental)
+* + Phase2 Thin Link: Link only the summary info in a giant index: thin-link
+* + - includes full reference/call graph to enable inter-procedural analysis (IPA)
+* + - no need to parse the IR
+* + - serial phase (but fast)
+* + Phase3 ThinLTO Backends: parallel inter-procedural transformation based on the analysis results
+* + - includes cross-module function importing (dropped after inlining)
+* + - fully-parallel
+* + - Distributed can be inserted on Phase3
+* + - hash per job input and use .o cache system for output of Phase2 to do incremental
+* + Integration with Bazel
+* + Optimization
+* + - analysis during Thin Link
+* + - - full call/reference graph from summaries
+* + - - results recorded in the index (e.g. linkage type changes)
+* + - transformation during parallel backends
+* + - - applies results of whole program analysis performed during Thin Link
+* + - - independently applied in each backend
+* + WPA (weak linkage resolution)
+* + - dead global pruning
+* + - Linker identifies external reference to getGlobalOption()
+* + - Compute reachability to externally referenced nodes in index
+* + - Prune unreachable nodes from the graph
+* + - Enabler for better subsequent analysis
+* + - + Option can be internalized and later constant folded.
+* + - + The function-importing will generate a smaller list save CPU cycles!
+* + PGO (profile guided optimization)
+* + - More likely to inline small cold function without profile data
+* + - With profile data, call hotness is known
+* + - - Annotate edges in thin link graph with hotness
+* + - - Import hot calls more aggressively to match inlining heuristics
+* + - Inline hot calls more aggressively for better optimization of hot pat
+* + - More likely to import small cold function without profile data
+* + - - Reduce compile time by avoiding needless importing
+* + - Indirect Call Promotion
+* + - - The summary records hot indirect call targets as regular calls (speculative)
+* + - - Hot indirect call targets imported, available for promotion & inlining
+* GCC WHOPR
+* + WPA (serial) makes IPA and inlining decision, rewrites partitioned IR
+* + - Comparable Phase 2: Thin Link
+* + LTRANS (parallel) Parallel backends performing inlining within each partition, plus usual optimizations and code generation
+* + - Comparable Phase 3: ThinkLTO
+* Advise
+* + Common advice: Put definitions of small functions in headers (using inline keyword to avoid ODR errors)
+* + - Enables inlining into callers
+* + - Compile and possibly codegen in every #include-ing translation unit
+* + With ThinLTO: Function definitions can stay in implementation file (caveats)
+* + - Compile one copy (to IR), and codegen one copy (to object)
+* + - Imported and optimized only where needed
+* + Caveats (functions with vague linkage that need to be defined in header):
+* + - Template functions (unless explicitly specialized)
+* + - Functions with the inline keyword - just remove it
+* 
