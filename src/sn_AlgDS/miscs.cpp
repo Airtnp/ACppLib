@@ -216,6 +216,7 @@ namespace misc {
         }
     }
 
+    // https://linux.die.net/man/3/ffsll
     inline unsigned int log2(unsigned int x) {
         unsigned int ret;
         __asm__ __volatile__(

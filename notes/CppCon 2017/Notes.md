@@ -4,6 +4,15 @@
 
 ### folly::Synchronized (develop)
 ```c++
+void doubleValues(Synchronized<vector<int>>& vec) {
+    auto locked = vec.wlock();
+    for (int& n : *locked) { // iterator lock the loop
+        n *= 2;
+    }
+}
+```
+
+```c++
 class Counter {
 public:
     void add(int n) {

@@ -23,7 +23,7 @@
 		// q int x, char y  x + y
 		// q int x          x
 		template <typename T>
-		auto q_tem = F |= ( R<lib::Ord<T>> | R<lib::Eq(T, T)> >>= Ty<T> >= Ty<char> >= Ty<int>;
+		auto q_tem = F |= ( R<lib::Ord<T>> | R<lib::Eq(T, T)> ) >>= Ty<T> >= Ty<char> >= Ty<int>;
 		auto q_def = q_tem<int>;
 		auto q_fun = Switch<int, char, int>{}
 					| Case<S<int, char, int>, int, char>{}.assign([](int a, char b) -> int { return a + b; })

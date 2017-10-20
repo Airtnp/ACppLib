@@ -10,7 +10,7 @@ namespace sn_Thread {
         public:
             explicit WorkQueue(int numWorkers = -1) {
                 if (numWorkers < 1) {
-                    numWorkers = std::thread::hardware_concurrency() + 1;
+                    numWorkers = std::thread::hardware_concurrency() - 1;
                 }
                 while (numWorkers--) {
                     m_workers.emplace_back(std::thread(&WorkQueue::do_work, this));
@@ -99,8 +99,20 @@ namespace sn_Thread {
                 return std::move(future);
             }
 
+            template <typename F, typename ...Args>
+            auto submit(F&& func, Args&&... args) {
+                // maybe use std::packaged_task
+                using result_t = std::result_of_t<F(Args...)>;
+                std::function<result_t()> func = std::bind(
+                    std::forward<F>(func),
+                    std::forward<Args>(args)...
+                );
+                return this->submit(std::move(func));                
+            }
+
         private:
-            // funcs
+            // maybe use boost::lockfree::queue
+            // or some thread-safe queue
             std::deque<std::function<void()>> m_work;
             std::mutex m_mutex;
             // notice the thread to work
