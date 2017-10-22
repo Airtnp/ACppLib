@@ -38,17 +38,32 @@ namespace sn_Meta {
         template <typename T, std::size_t N>
         class static_vector {
         private:
-            constexpr static std::size_t m_size = N;
-            T m_data[N] {};
+            std::size_t m_size = 0;
+            // T m_data[N] {};
+            std::aligned_storage_t<sizeof(T), alignof(T)> m_data[N];
         public:
-            constexpr std::size_t size() const { return N; }
-            constexpr T& operator[](std::size_t n)
-            { return m_data[n]; }
-            constexpr const T& operator[](std::size_t n) const
-            { return m_data[n]; }
             using iterator = T*;
-            constexpr iterator begin() { return &m_data[0]; }
-            constexpr iterator end() { return &m_data[N]; }
+            
+            static_vector() {}
+            constexpr std::size_t size() const { return m_size; }
+            constexpr T& operator[](std::size_t n)
+            { return *reinterpret_cast<T*>(m_data + n); }
+            constexpr const T& operator[](std::size_t n) const
+            { return *reinterpret_cast<const T*>(m_data + n); }
+            constexpr iterator begin() { return m_data; }
+            constexpr iterator end() { return (m_data + N); }
+            template <typename ...Args>
+            void emplace_back(Args&&... args) {
+                if (m_size >= N)
+                    throw std::bad_alloc{};
+                new (m_data + m_size) T{std::forward<Args>(args)...};
+                ++m_size;
+            }
+            ~static_vector() {
+                for (std::size_t pos = 0; pos < m_size; ++pos) {
+                    reinterpret_cast<T*>(m_data + pos)->~T();
+                }
+            }
         };
 
         template <typename T, typename ...Names>
