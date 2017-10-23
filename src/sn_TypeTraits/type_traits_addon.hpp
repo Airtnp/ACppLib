@@ -164,4 +164,12 @@ namespace sn_TypeTraits {
 
 		constexpr static const bool value = sizeof(check(detail::Host<B, D>{}, int{})) == sizeof(Accept_t);
 	};
+
+	template <typename T>
+	struct is_function : 
+		std::integral_constant<bool, 
+			!std::is_object<T>::value &&	// Or: std::is_const<T const>
+			!std::is_void<T>::value &&		// libcxx: is_class || is_union || is_void || is_reference || is_nullptr_t
+			!std::is_reference::value
+		> {};
 }
