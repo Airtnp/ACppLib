@@ -3,6 +3,7 @@
 
 #include "sn_CommonHeader.h"
 
+// ref: https://zhuanlan.zhihu.com/p/27146532
 namespace sn_Macro { //useless namespace
 
 	//solve VS2015 macro expansion bugs

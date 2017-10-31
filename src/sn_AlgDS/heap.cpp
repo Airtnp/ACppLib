@@ -393,7 +393,50 @@ namespace heap {
             }
             ++m_sz;            
         }
-    }; 
+    };
+    
+    template <typename T>
+    struct SegTreeNode {
+        bool is_value;
+        T min;
+        T max;
+    };
+
+    template <typename T, typename Comp = std::less<T>>
+    class IntervalTree {
+        std::vector<SegTreeNode> m_data;
+    public:
+        IntervalTree(size_t n) {
+            m_data.resize(n);
+        }
+        // arr must be ordered?
+        void build(size_t root, T arr[], size_t beg, size_t end) {
+            if (beg == end)
+                m_data[root] = {true, arr[beg], arr[beg]};
+            else {
+                build(2 * root + 1, arr, beg, (beg + end) / 2);
+                build(2 * root + 2, arr, (beg + end) / 2 + 1, end);
+                m_data[root] = {
+                    false,
+                    std::min(m_data[2 * root + 1].min, m_data[2 * root + 2].min, Comp),
+                    std::max(m_data[2 * root + 1].max, m_data[2 * root + 2].max, Comp)
+                };
+            }
+        }
+        void query(size_t root, const T& vmin, const T& vmax, std::vector<T>& vec) {
+            if (Comp{}(m_data[root].max, vmin) || Comp{}(vmax, m_data[root])) {
+                return;
+            }
+            if (root.is_value) {
+                vec.push_back(root.min);
+                return;
+            }
+            query(root * 2 + 1, vmin, vmax, vec);
+            query(root * 2 + 2, vmin, vmax, vec);
+        }
+    };
+
+
 }
 
 

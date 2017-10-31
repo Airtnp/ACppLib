@@ -92,7 +92,7 @@ void _assert(char *msg , char *file , unsigned int line){
 		};
 
 		template <typename ClockT>
-		std::chrono::time_point<ClockT> profile::t{0};
+		std::chrono::time_point<ClockT> profile::t{0}; // std::chrono::duration<ClockT>::zero()
 
 		template <typename ClockT>
 		std::chrono::time_point<ClockT> profile::s;

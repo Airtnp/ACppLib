@@ -13,11 +13,11 @@ namespace graph {
         vector<int> weighted_quick_union(const vector<pair<int, int>>& edges, int vertex_num) {
             vector<int> res;
             vector<int> sz;
-            res.reserve(vertex_num);
-            sz.reserve(vertex_num);
+            res.resize(vertex_num);
+            sz.resize(vertex_num);
             for (int i = 0; i < vertex_num; ++i) {
-                res.push_back(i);
-                sz.push_back(1);
+                res[i] = i;
+                sz[i] = 1;
             }
             for (const auto& x : edges) {
                 int v1 = x.first;
@@ -42,11 +42,11 @@ namespace graph {
         vector<int> path_compression_union(const vector<pair<int, int>>& edges, int vertex_num) {
             vector<int> res;
             vector<int> sz;
-            res.reserve(vertex_num);
-            sz.reserve(vertex_num);
+            res.resize(vertex_num);
+            sz.resize(vertex_num);
             for (int i = 0; i < vertex_num; ++i) {
-                res.push_back(i);
-                sz.push_back(1);
+                res[i] = i;
+                sz[i] = 1;
             }
             for (const auto& x : edges) {
                 int v1 = x.first;
