@@ -404,7 +404,7 @@ namespace heap {
 
     template <typename T, typename Comp = std::less<T>>
     class IntervalTree {
-        std::vector<SegTreeNode> m_data;
+        std::vector<SegTreeNode<T>> m_data;
     public:
         IntervalTree(size_t n) {
             m_data.resize(n);
@@ -436,7 +436,172 @@ namespace heap {
         }
     };
 
+    template <typename T, typename DT = T>
+    struct ZKWHeapNode {
+        T value;
+        size_t L;
+        size_t R;
+        DT mark;
+        ZKWHeapNode() {}
+        ZKWHeapNode(const T& value_): value(value_) {}
+        ZKWHeapNode(T&& value_): value(std::move(value_)) {}
+    };
 
+    template <typename T, typename Op>
+    class ZKWHeap {
+        using Node = ZKWHeapNode<T>;
+        using Heap = ZKWHeap<T, Op>;
+        using Lazy = size_t;
+        static const constexpr init_lazy = 0;
+        Node* m_nodeList;
+        T* m_lazyList;
+        size_t* m_L, m_R;
+        size_t m_size;
+        T init_v;
+        
+        void fix(size_t pos) {
+            m_nodeList[pos] = Op{}(m_nodeList[pos << 1], m_nodeList[(pos << 1) + 1]);
+        }
+
+        template <typename U>
+        void push_down(size_t x, const U& op) {
+            if (m_lazyList[x] && x < m_sz) {
+                m_lazyList[x << 1] += m_lazyList[x];    // redefine sum
+                m_lazyList[(x << 1) + 1] += m_lazyList[x];
+                m_nodeList[x << 1] = op(m_nodeList[x << 1], m_lazyList[x]);
+                m_nodeList[(x << 1) + 1] = op(m_nodeList[(x << 1) + 1], m_lazyList[x]);
+                m_lazyList[x] = init_lazy;
+            }
+        }
+
+        template <typename U>
+        void apply_lazy(size_t x, const U& op) {
+            std::stack<int> s;
+            while (x) {
+                s.push(x);
+                x >>= 1;
+            }
+            while (!s.empty()) {
+                push_down(s.top(), op);
+                s.pop();
+            }
+        }
+
+        unsigned int log2(unsigned int x) {
+            unsigned int ret;
+            __asm__ __volatile__(
+                "brsl %1, %%eax"
+                :"=a"(ret)
+                :"m"(x)
+            );
+            return ret;
+        }
+    public:
+        ZKWHeap(size_t n, const T& init_v_) : init_v(init_v_) {
+            m_sz = 1 << (1 + (size_t)(log2(n)));
+            m_nodeList = new Node[m_sz << 1];
+            m_lazyList = new T[m_sz << 1];
+            for (size_t i = m_sz + 1; i <= m_sz + n; ++i) {
+                m_nodeList[i].value = init_v;
+                m_lazyList[i] = init_lazy;
+                m_nodeList[i].L = i - M;
+                m_nodeList[i].R = i - M; // Single point
+            }
+            for (size_t i = m_sz - 1; i > 0; --i) {
+                // fix(i); // If we have initial operation
+                m_nodeList[i].L = m_nodeList[i << 1].L;
+                m_nodeList[i].R = m_nodeList[(i << 1) + 1].R;
+                m_lazyList[i] = init_lazy;                
+            }
+        }
+
+        ~ZKWHeap() {
+            delete[] m_nodeList;
+            delete[] m_lazyList;
+        }
+
+        const T& top() {
+            return m_nodeList[1].value;
+        }
+
+        size_t top_pos() {
+            return m_nodeList[1].mark;
+        }
+
+        void modify(size_t pos, const T& new_v) {
+            int pos_ = pos + m_sz;
+            m_nodeList[pos_].value = new_v;
+            while(pos_) {
+                fix(pos_ >>= 1);
+            }
+        }
+
+        // For extreme, another way with fix up
+        // ref: https://zhuanlan.zhihu.com/p/29937723
+        template <typename U>
+        void modify_range(size_t l, size_t r, const T& new_v, const U& op) {
+            bool vl = false, vr = false; // 左右边第一个被访问的结点所在路径是否更新过
+            int x;
+            int sl, sr; // 记录左右两边第一个被访问的结点
+            for (l = l + m_sz - 1, r = r + m_sz + 1; l ^ r ^ 1; l >>= 1, r >>= 1) {
+                if (~l & 1) {
+                    x = l ^ 1;
+                    if (!vl) {
+                        sl = x;
+                        apply_lazy(x, op);
+                        vl = true; // 将第一个被访问结点所在路径的Tag更新到结点中
+                    }
+                    m_lazyList[x] = op(m_lazyList[x], new_v);
+                    m_nodeList[x] = op(m_nodeList[x], new_v);
+                }
+                if (r & 1) {
+                    x = r ^ 1;
+                    if (!vr) {
+                        sr = x;
+                        apply_lazy(x, op);
+                        vr = true; // 将第一个被访问结点所在路径的Tag更新到结点中
+                    }
+                    m_lazyList[x] = op(m_lazyList[x], new_v);
+                    m_nodeList[x] = op(m_nodeList[x], new_v);
+                }
+            }
+            for (sl >>= 1; sl; sl >>= 1) {
+                fix(sl);
+            }
+            for (sr >>= 1; sl; sr >>= 1) {
+                fix(sr);
+            }            
+        }
+
+        // lazy_operation
+        template <typename U, typename S>
+        void query_range(size_t l, size_t r, const U& op, S& sum) {
+            bool vl = false, vr = false;
+            // l ^ r ^ 1 == 0 => l, r is sibling
+            for (l = l + m_sz - 1, r = r + m_sz + 1; l ^ r ^ 1; l >>= 1, r >>= 1) {
+                if (~l & 1) {// L % 2 == 0 => l = lson(l / 2)
+                    if (!vl) {
+                        apply_lazy(l ^ 1, op);
+                        vl = true;
+                    }
+                    sum(tree[l ^ 1]);
+                }
+                if (r & 1) { // R % 2 == 0 => r = rson(r / 2)
+                    if (!vr) {
+                        apply_lazy(r ^ 1, op);
+                        vr = true;
+                    }
+                    sum(tree[r ^ 1]);
+                }
+            }
+        }
+
+        T pop() {
+            T res = m_nodeList[1].value;
+            modify(m_nodeList[1].mark, init_v);
+            return res;
+        }
+    };
 }
 
 
