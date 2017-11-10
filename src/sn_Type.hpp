@@ -989,7 +989,7 @@ namespace sn_Type {
 		constexpr decltype(auto) visit(Vis&& vis, Vars&&... vars) {
 			using result_type = decltype(
 				std::forward<Vis>(vis)(
-					get<0>(std::forward<Vars>(vars)...)
+					get<0>(std::forward<Vars>(vars))...
 				)
 			);
 			constexpr auto& vtable = vt::gen_vtable<result_type, Vis, Vars...>::S_vtable;
