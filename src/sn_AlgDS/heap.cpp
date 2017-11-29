@@ -602,6 +602,307 @@ namespace heap {
             return res;
         }
     };
+
+    
+    template <typename T>
+    struct FiboNode {
+        using Node = FiboNode<T>;
+        T value;
+        size_t degree;
+        Node* left, right, child, parent;
+        bool is_marked;
+        FiboNode(const T& value_)
+            : value{value_}, degree{0},
+            is_marked{false}, left{nullptr},
+            right{nullptr}, child{nullptr}, parent{nullptr} {
+            left = this;
+            right = this;
+        }
+    };
+
+    template <typename T, typename Comp = std::less<T>>
+    class FiboHeap {
+    public:
+        using FN = FiboNode<T>;
+        // FiboHeap() : m_sz{0}, m_maxdeg{0} {}
+        FiboHeap() : m_heap{nullptr} {}
+        ~FiboHeap() {
+            if (m_heap) {
+                delete_tree(m_heap);
+            }
+        }
+
+        FN* insert(const T& value_) {
+            FN* res = FN{value_};
+            m_heap = merge(m_heap, res);
+            return res;
+        }
+
+        T get_min() {
+            return m_heap->value;
+        }
+
+        T extract_min() {
+            FN* old = m_heap;
+            m_heap = remove_min(m_heap);
+            T res = old->value;
+            delete old;
+            return res;
+        }
+
+        void decrease_key(FN* node, const T& value) {
+            m_heap = decrease_node(m_heap, node, value);
+        }
+
+        /*
+        void combine(FiboHeap<T>* rhs) {
+            if (rhs == nullptr)
+                return;
+            if (rhs->m_maxdeg > m_maxdeg)
+                std::swap(*this, *rhs);
+            if (m_min == nullptr) {
+                m_min = rhs->m_min;
+                m_sz = rhs->m_sz;
+                delete rhs; // maybe rhs should still here
+            } else if (rhs->m_min == nullptr) {
+                delete rhs;
+            } else {
+                cat_list(m_min, rhs->m_min);
+                if (Comp{}(rhs->m_min->value, m_min->value)) {
+                    m_min = rhs->m_min;
+                }
+                m_sz += rhs->m_sz;
+                delete rhs;
+            }
+        }
+
+        FN* extract_min() {
+            FN* p = m_min;
+            if (p == p->right) {
+                m_min = nullptr;
+            } else {
+                remove_node(p);
+                m_min = p->right;
+            }
+            p->left = p->right = p;
+            return p;
+        }
+        */
+
+    private:
+
+        FN* merge(FN* lhs, FN* rhs) {
+            if (!lhs) return rhs;
+            if (!rhs) return lhs;
+            if (Comp{}(rhs->value, lhs->value)) {
+                std::swap(lhs, rhs);
+            }
+            FN* lhs_next = lhs->right;
+            FN* rhs_prev = rhs->left;
+            lhs->right = rhs;
+            rhs->left = lhs;
+            lhs_next->left = rhs;
+            rhs_prev->right = lhs;
+            return lhs;
+        }
+
+        void delete_tree(FN* node) {
+            if (node == nullptr)
+                return;
+            FN* p = node;
+            do {
+                FN* prev = p;
+                p = p->right;
+                delete_tree(prev->child);
+                delete prev;
+            } while (p != node);
+        }
+
+        void add_child(FN* parent, FN* child) {
+            child->left = child->right = child;
+            child->parent = parent;
+            ++parent->degree;
+            parent->child = merge(parent->child, child);
+        }
+
+        void unmark_all(FN* node) {
+            if (node == nullptr)
+                return;
+            FN* p = node;
+            do {
+                p->is_marked = false;
+                p->parent = nullptr;
+                p = p->right;
+            } while (p != node);
+        }
+
+        FN* remove_min(FN* node) {
+            unmark_all(node->child);
+            if (node->right == node)
+                node = node->child;
+            else {
+                node->right->left = node->left;
+                node->left->right = node->right;
+                node = merge(node->right, node->child);
+            }
+            if (node == nullptr)
+                return nullptr;
+            std::vector<FN*> trees;
+            trees.resize(64, nullptr);
+            while (true) {
+                if (trees[node->degree] != nullptr) {
+                    FN* t = trees[node->degree];
+                    if (t == node) break;
+                    trees[node->degree] = nullptr;
+                    t->left->right = t->right;
+                    t->right->left = t->left;    
+                    if (Comp{}(node->value, t->value)) {
+                        add_child(node, t);
+                    } else {
+                        if (node->right == node) {
+                            t->right = t->left = t;
+                            add_child(t, node);
+                            node = t;
+                        } else {
+                            node->left->right = t;
+                            node->right->left = t;
+                            t->right = node->right;
+                            t->left = node->left;
+                            add_node(t, node);
+                            node = t;
+                        }
+                    }
+                    continue;
+                } else {
+                    trees[node->degree] = node;
+                }
+                node = node->right;
+            }
+            FN* min = node;
+            FN* pn = node;
+            do {
+                if (Comp{}(pn->value, min->value)) {
+                    min = pn;
+                }
+                pn = pn->right;
+            } while(pn != node);
+            return min;
+        }
+
+        FN* cut(FN* heap, FN* node) {
+            if (node->right == node) {
+                node->parent->child = nullptr;
+            } else {
+                node->left->right = node->right;
+                node->right->left = node->left;
+                node->parent->child = node->right;
+            }
+            node->right = node->left = node;
+            node->is_marked = false;
+            return merge(heap, node);
+        }
+
+        FN* decrease_node(FN* heap, FN* node, const T& value) {
+            if (Comp{}(node->value, value)) return heap;
+            node->value = value;
+            if (Comp{}(node->value, node->parent->value)) {
+                heap = cut(heap, node);
+                FN* parent = node->parent;
+                node->parent = nullptr;
+                while (parent != nullptr && parent->is_marked) {
+                    heap = cut(heap, parent);
+                    node = parent;
+                    parent = node->parent;
+                    node->parent = nullptr;
+                }
+                if (parent != nullptr && parent->parent != nullptr) {
+                    parent->is_marked = true;
+                }
+            }
+            return heap;
+        }
+
+        /*
+        void add_node(FN* node, FN* root) {
+            node->left = root->left;
+            root->left->right = node;
+            node->right = root;
+            root->left = node;
+        }
+
+        void release_node(FN* node) {
+            if (x != nullptr) {
+                while (x->child != nullptr) {
+                    FN* tmp = extract_node(x->child);
+                    release_node(tmp);
+                }
+                delete x;
+            }
+        }
+
+        void cat_list(FN* lhs, FN* rhs) {
+            FN* tmp = lhs->right;
+            lhs->right = rhs->right;
+            rhs->right->left = lhs;
+            rhs->right = tmp;
+            tmp->left = rhs;
+        }
+
+        void insert_to_list(FiboNode* pos, FiboNode* pn) {
+            if (pos != nullptr) {
+                pos->right->left = pn;
+                pn->right = pos->right;
+                pos->right = pn;
+                pn->left = pos;
+                pn->parent = pos->parent;
+                if (pos->parent != nullptr)
+                    ++pos->parent->degree;
+            }
+        }
+
+        FiboNode* extract_node(FiboNode* pn) {
+            if (pn == nullptr)
+                return nullptr;
+            if (pn->parent != nullptr) {
+                pn->is_marked = false;
+                if (pn->right != pn) {
+                    pn->parent->child = pn->right;
+                } else {
+                    pn->parent->child = nullptr;
+                }
+                if (pn->parent->parent != nullptr)
+                    pn->parent->is_marked = true;
+                --pn->parent->degree;
+                pn->parent = nullptr;
+            }
+            if (pn->left != pn) {
+                pn->left->right = pn->right;
+                pn->right->left = pn->left;
+                pn->left = pn;
+                pn->right = pn;
+            }
+            pn->is_marked = false;
+            return pn;
+        }
+
+        void consolidate() {
+            if (m_min == nullptr)
+                return;
+            size_t max = static_cast<size_t>(log2(static_cast<float>(m_sz)));
+            
+        }*/
+
+        FN* m_heap;
+        /*
+        size_t m_sz;
+        size_t m_maxdeg;
+        FiboNode<T>* m_min = nullptr;
+        std::vector<FiboNode<T>*> m_cons;
+        */
+    };
+
+
+
 }
 
 
