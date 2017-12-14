@@ -70,7 +70,7 @@ namespace sn_Thread {
     
         class RWWriteGuard {
         private:
-            RWSpinLock * m_lock{};
+            RWSpinLock* m_lock{};
     
         public:
             RWWriteGuard() noexcept = default;

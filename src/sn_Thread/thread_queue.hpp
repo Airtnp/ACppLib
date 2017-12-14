@@ -26,7 +26,7 @@ namespace sn_Thread {
                 std::unique_lock<std::mutex> lock{m_mtx}:
                 m_queue.push(item);
                 lock.unlock();
-                m_cond.notify_one();
+                m_cond.notify_one(); // ref: http://blog.csdn.net/ykxggg/article/details/19193081
             }
         private:
             std::queue<T> m_queue;
