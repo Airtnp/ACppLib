@@ -9,6 +9,7 @@
 namespace sn_Thread {
     // @ref: https://www.justsoftwaresolutions.co.uk/threading/implementing-a-thread-safe-queue-using-condition-variables.html
     namespace queue {
+        // 单写单读
         template <typename T>
         class ThreadQueue {
         public:
@@ -26,7 +27,7 @@ namespace sn_Thread {
                 std::unique_lock<std::mutex> lock{m_mtx}:
                 m_queue.push(item);
                 lock.unlock();
-                m_cond.notify_one(); // ref: http://blog.csdn.net/ykxggg/article/details/19193081
+                m_cond.notify_one(); // 单写 + 保证不变量 ref: http://blog.csdn.net/ykxggg/article/details/19193081
             }
         private:
             std::queue<T> m_queue;
