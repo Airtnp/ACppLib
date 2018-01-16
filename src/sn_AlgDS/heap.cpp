@@ -1135,6 +1135,18 @@ namespace heap {
         delete node;
     }
 
+
+    // Tarjan
+    /*
+        先选择一个节点u为根节点，从根节点开始搜索。（标记u已访问过）
+        遍历该点u的所有儿子节点v，并标记v已访问过。
+        若v还有儿子节点，对v重复ii操作，否则进入下一操作。
+        把v合并到u上（并查集）。
+        把当前的点设为u，遍历与u有询问关系的节点v。
+        如果v在之前已经被访问过，那么u和v的最近公共祖先就是v通过并查集合并后的父亲节点（注意是合并后），即当前的find（v）。
+    */
+    // LCA => RMQ (just query by min depth of (id(L), id(R))) in order of DFS order
+    // RMQ => LCA 笛卡尔树
 }
 
 

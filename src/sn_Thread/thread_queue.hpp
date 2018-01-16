@@ -8,8 +8,10 @@
 
 namespace sn_Thread {
     // @ref: https://www.justsoftwaresolutions.co.uk/threading/implementing-a-thread-safe-queue-using-condition-variables.html
+    // @TODO: https://www.cs.rochester.edu/research/synchronization/pseudocode/queues.html
     namespace queue {
         // 单写单读
+        // 多写多读 => cond wakes up random thread => 读写cond分开
         template <typename T>
         class ThreadQueue {
         public:

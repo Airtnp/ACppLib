@@ -249,6 +249,32 @@ namespace misc {
     }
 
 
+    auto rmq_st(std::vector<int>& arr, size_t n) {
+        size_t log2n = log2(n) + 1;
+        std::vector<std::vector<int>> m(n, std::vector<int>(log2n, 0));
+        for (size_t i = 0; i < n; ++i) {
+            m[i][0] = i;
+        }
+        for (size_t j = 1; j < log2n; ++j) {
+            for (size_t i = 0; i + (1 << j) - 1 < n; ++i) {
+                if (arr[m[i][j - 1]] < arr[m[i + (1 << (j - 1))][j - 1]]) {
+                    m[i][j] = m[i][j - 1];
+                } else {
+                    m[i][j] = m[i + (1 << (j - 1))][j - 1];
+                }
+            }
+        }
+        auto rmq_query = [=](size_t i, size_t j) {
+            size_t k = log2(j - i + 1);
+            if (arr[m[i][k]] < arr[m[j - (1 << k) + 1][k]]) {
+                return m[i][k];
+            } else {
+                return m[j - (1 << k) + 1][k];
+            }
+        };
+        return rmq_query;
+    }
+
 }
 
 

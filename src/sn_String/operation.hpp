@@ -88,6 +88,50 @@ namespace sn_String {
         detail::string_formatter_impl(base_string, token_pos, format_list, params_copy);
         return base_string;
     }
+
+    // reverse words is just reverse whole + reverse every word
+    template <typename It>
+    void rotate(It a, It b, It c) {
+        // std::string res(a, c);
+        std::reverse(a, b);
+        std::reverse(b, c);
+        std::reverse(a, c);
+    }
+
+    std::pair<size_t, size_t> manacher(const std::string& r) {
+
+        std::string s;
+        for (size_t i = 0; i < r.size(); ++i) {
+            s += "#";
+            s += r[i];
+        }
+
+        size_t n = s.size();
+        std::vector<size_t> P(n); // MAX length of palindrome in pos i
+        size_t mx = 0; // max palindrome bound
+        size_t id = 0; // pos of bound
+        size_t max_len = 0;
+        size_t max_id = 0;
+        for (size_t i = 0; i < n; ++i) {
+            if (mx > i) {
+                P[i] = std::min(P[2 * id - i], mx - i);
+            } else {
+                P[i] = 1;
+            }
+            while (s[i + P[i]] == s[i - P[i]] && i - P[i] >= 0 && i + P[i] < n) {
+                ++P[i];
+            }
+            if (P[i] + i > mx) {
+                mx = P[i] + i;
+                id = i;
+            }
+            if (P[i] > max_len) {
+                max_len = P[i];
+                max_id = i;
+            }
+        }
+        return std::make_pair(max_id, max_len);
+    }
 }
 
 

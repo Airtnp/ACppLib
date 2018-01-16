@@ -19,6 +19,7 @@ namespace sn_Thread {
             using naive_handle_type = typename std::condition_variable::naive_handle_type;
         };
 
+        // Usually N for max / 0 for full / 1 for mutex
         class Semaphore : private SemaphoreBase {
         public:
 
