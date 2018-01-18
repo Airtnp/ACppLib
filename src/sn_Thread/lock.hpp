@@ -48,6 +48,94 @@ namespace sn_Thread {
             }
         };
         thread_local uint64_t hierarchy_mutex::this_thread_hv(ULONG_MAX);
+
+        class spinlock_mutex {
+			std::atomic_flag flg = ATOMIC_FLAG_INIT;
+		public:
+			template <typename F = void()>
+			void lock(F idle == []{}) {
+				while (flg.test_and_set(std::memory_order_acquire)) {
+					idle();
+				}
+			}
+			
+			void unlock() {
+				flg.clear(std::memory_order_release);
+			}
+
+			spinlock_mutex() = default;
+			spinlock_mutex(const spinlock_mutex &) = delete;
+			spinlock_mutex & operator = (const spinlock_mutex &) = delete;
+		};
+
+        #define cpu_relax() \
+            __asm__ __volatile__ ( "pause\n" : : : "memory")
+
+        inline int32_t cmpxchg(int32_t* ptr, int32_t i_old, int32_t i_new) {
+            int32_t ret;
+            __asm__ __volatile__ (
+                "lock\n" "cmpxchgl %2,%1\n"
+                : "=a" (ret), "+m" (*ptr)
+                : "r" (i_new), "0" (i_old)
+                : "memory");
+            return ret;
+        }
+
+        inline int32_t xchg(int32_t* ptr, int32_t x) {
+            __asm__ __volatile__ (
+                "lock\n" "xchgl %0,%1\n"
+                :"=r" (x), "+m" (*ptr)
+                :"0" (x)
+                :"memory");
+            return x;
+        }
+
+        class futex_mutex {
+            int32_t mtx;
+            static const constexpr size_t spin_n = 100;
+            enum class mtx_state {
+                MTX_FREE = 0,
+                MTX_LOCKED = 1,
+                MTX_LOCKED_AND_CONTESTED = 2
+            };
+        public:
+            void lock() {
+                int32_t c;
+                for (size_t i = 0; i < spin_n; ++i) {
+                    c = cmpxchg(&mtx, MTX_FREE, MTX_LOCKED);
+                    if(c == MTX_FREE) {
+                        return;
+                    }
+                    cpu_relax();
+                }
+                if (c == MTX_LOCKED) {
+                    c = xchg(&mtx, MTX_LOCKED_AND_CONTESTED);
+                }
+                while (c) {
+                    syscall(SYS_futex, &mtx, FUTEX_WAIT, MTX_LOCKED_AND_CONTESTED, NULL, NULL, 0);
+                    c = xchg(&mtx, MTX_LOCKED_AND_CONTESTED);
+                }
+            }
+
+            void unlock() {
+                if (mtx == MTX_LOCKED_AND_CONTESTED) {
+                    mtx == MTX_FREE;
+                } else if (xchg(&mtx, MTX_FREE) == MTX_LOCKED) {
+                    return;
+                }
+
+                for (size_t i = 0; i < spin_n; ++i) {
+                    if (mtx) {
+                        if (cmpxchg(&mtx, MTX_LOCKED, MTX_LOCKED_AND_CONTESTED) != MTX_FREE) {
+                            return;
+                        }
+                    }
+                    cpu_relax();
+                }
+                // here 1 means wakeup one
+                syscall(SYS_futex, &mtx, FUTEX_WAKE, 1, NULL, NULL, 0);
+            }
+        };
     }
 }
 

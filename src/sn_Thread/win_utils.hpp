@@ -107,44 +107,41 @@ namespace sn_Thread {
 		}
 	}
 
-	// ref: https://gist.github.com/LYP951018/36146c4eb3b0cef8cc526ef9e9543e3d
 	// synchapi.h
 	namespace fast_mutex {
-		class mutex {
+		class win_mutex {
+			std::atomic<bool> is_locked = false;
 		public:
+			// try lock and wait is just change parameters
 			void lock() {
-				while (true) {
-					std::uint32_t waiters = m_waiters.load(std::memory_order::memory_order_relaxed);
-					if ((waiters & 1) == 0)
-						break;
-					if (m_waiters.compare_exchange_strong(waiters, waiters + kWait)) {
-						WaitOnAddress(&m_waiters, &waiters, 4, INFINITE);
-					}
+				bool expected = false;
+				while (!is_locked.compare_exchange_weak(expected, true)) {
+					WaitOnAddress(&is_locked, &expected, 1, INFINITE);
 				}
+				// If not atomic
+				/*
+					while(!is_locked) {
+						WaitOnAddress(@is_locked, &expected, 1, INFINITE);
+					}
+				*/
 			}
 
-			void unlock() noexcept {
-				std::uint32_t waiters = m_waiters.load(std::memory_order::memory_order_relaxed);
-				while (!m_waiters.compare_exchange_strong(waiters, waiters & ~1u))
+			void unlock() {
+				bool expected = true;
+				while (!is_locked.compare_exchange_weak(expected, false))
 					;
-				while (true) {
-					waiters = m_waiters;
-					if (waiters < kWait)
-						return;
-					if (waiters & 1)
-						return;
-					if (m_waiters.compare_exchange_strong(waiters, waiters - kWait)) {
-						WakeByAddressSingle(const_cast<std::atomic<std::uint32_t>*>(&m_waiters));
-						break;
-					}
-				}
+				WakeByAddressSingle(&is_locked);
+				// If not atomic
+				// just set and wakeup
 			}
-		private:
-			enum : std::uint32_t {
-				kWait = 512;
-			};
-			volatile std::atomic<std::uint32_t> m_waiters{ 0 };
+
+			win_mutex() = default;
+			win_mutex(const win_mutex &) = delete;
+			win_mutex & operator = (const win_mutex &) = delete;
+
 		};
+
+
 	}
 
 #endif

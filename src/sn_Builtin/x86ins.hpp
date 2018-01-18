@@ -32,6 +32,17 @@ namespace sn_Builtin {
         */
 #endif
     }
+
+    inline int32_t exchange(int32_t* ptr, int32_t x) {
+        __asm__ __volatile__ (
+            "lock\n" 
+            "xchgl %0, %1\n"
+            : "=r" (x), "+m" (*ptr)
+            : "r" (x), "m"(*ptr)
+            : "memory"
+        );
+        return x;
+    }
 }
 
 #endif
