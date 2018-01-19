@@ -107,6 +107,16 @@ namespace sn_Thread {
 		}
 	}
 
+	inline int futex_wake(std::atomic<std::int32_t>* addr) {
+		::WakeByAddressSingle( static_cast< void * >(addr) );
+		return 0;
+	}
+
+	inline int futex_wait(std::atomic<std::int32_t> * addr, std::int32_t x) {
+		::WaitOnAddress(static_cast<volatile void *>( addr), &x, sizeof(x), INFINITE);
+		return 0;
+	}
+
 	// synchapi.h
 	namespace fast_mutex {
 		class win_mutex {
@@ -115,7 +125,11 @@ namespace sn_Thread {
 			// try lock and wait is just change parameters
 			void lock() {
 				bool expected = false;
-				while (!is_locked.compare_exchange_weak(expected, true)) {
+				while (!is_locked.compare_exchange_weak(expected, true
+					std::memory_order_acq_rel,
+					std::memory_order_acquire
+				)) {
+					// futex(x, FUTEX_WAIT_PRIVATE, v)
 					WaitOnAddress(&is_locked, &expected, 1, INFINITE);
 				}
 				// If not atomic
@@ -128,8 +142,12 @@ namespace sn_Thread {
 
 			void unlock() {
 				bool expected = true;
-				while (!is_locked.compare_exchange_weak(expected, false))
+				while (!is_locked.compare_exchange_weak(expected, false
+					std::memory_order_release,
+					std::memory_order_relaxed
+				))
 					;
+				// futex(x, FUTEX_WAKE_PRIVATE, 1)
 				WakeByAddressSingle(&is_locked);
 				// If not atomic
 				// just set and wakeup

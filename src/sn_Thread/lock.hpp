@@ -90,6 +90,18 @@ namespace sn_Thread {
             return x;
         }
 
+        inline int sys_futex( void * addr, std::int32_t op, std::int32_t x) {
+            return ::syscall( SYS_futex, addr, op, x, nullptr, nullptr, 0);
+        }
+
+        inline int futex_wake( std::atomic< std::int32_t > * addr) {
+            return 0 <= sys_futex( static_cast< void * >( addr), FUTEX_WAKE_PRIVATE, 1) ? 0 : -1;
+        }
+
+        inline int futex_wait( std::atomic< std::int32_t > * addr, std::int32_t x) {
+            return 0 <= sys_futex( static_cast< void * >( addr), FUTEX_WAIT_PRIVATE, x) ? 0 : -1;
+        }
+
         class futex_mutex {
             int32_t mtx;
             static const constexpr size_t spin_n = 100;
