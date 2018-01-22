@@ -1,12 +1,8 @@
-# SuperNaiveCppLib
+# ACppLib
 
-This is a Cpp library full of super naive wheels and **collected(copied)** wheels (see ref) based on C++1y.
+This is a Cpp library of some tricks and what I survey on.
 
-Because it's so naive, no comments and documentation supported. And its code-style is much messy.
-
-No common namespace, because loosely connected.
-
-I strongly recommend Herb Sutter's C++ Coding Standard / C++ API Design / SEI CERT C++ Coding Standard (2016), my code is full of junk (however, I strongly appreciate the reference code I copied).
+Not under a common namespace, because the components are loosely connected.
 
 ## Wheel List (super naive, all incomplete) (* even having no function)
 * sn_Alg: some algorithms
@@ -44,10 +40,6 @@ I strongly recommend Herb Sutter's C++ Coding Standard / C++ API Design / SEI CE
 * sn_Type: support type-erasing types.
 * sn_TypeLisp: support TypeList operation | Lisp 7 axioms (cons/car/cdr/cond/quote/atom/eq)
 * sn_TypeTraits: some interesting code in STL and support type traits
-
-
-## TODO
-* Many TODO
 
 
 ## License

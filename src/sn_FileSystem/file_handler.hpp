@@ -33,7 +33,7 @@ namespace sn_FileSystem {
 			} while (::FindNextFileW(file, &ffd));
 		}
 #endif
-
+		// Notice the deleter redirect std::unique_ptr<T, D> as another type
 		struct FileHandle {
 			::HANDLE m_fileHandle;
 			FileHandle(::HANDLE h) noexcept

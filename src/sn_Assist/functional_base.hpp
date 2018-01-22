@@ -108,7 +108,9 @@ namespace sn_Assist {
 				std::lock_guard<std::mutex> lock(m_mutex);
 				tmp = m_instance.load(std::memory_order_relaxed);
 				if (tmp == nullptr) {
-					tmp = new Singleton;
+					tmp = new Singleton; // Because new is not atomic
+					// p_tmp = operator now(sizeof(Singleton)) => this may not be updated
+					// tmp = new (p_tmp) Singleton;
 					std::atomic_thread_fence(std::memory_order_release);
 					m_instance.store(tmp, std::memory_order_relaxed);
 					// Or 
