@@ -29,6 +29,7 @@ namespace sn_Thread {
             Semaphore& operator=(const Semaphore) = delete;
             Semaphore& operator=(Semaphore&&) = delete;
 
+            // AKA down
             void wait() {
                 std::unique_lock<std::mutex> lock{m_mutex};
                 while(!m_count) {
@@ -36,6 +37,8 @@ namespace sn_Thread {
                 }
                 --m_count;
             }
+
+            // AKA up
             // or broadcast
             void notify() {
                 std::unique_lock<std::mutex> lock{m_mutex};

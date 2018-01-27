@@ -16,7 +16,8 @@ namespace binary {
         return x & (x - 1);  // or x ^= lowbit(x)
     }
 
-    //__builtin_clz
+    // __builtin_clz
+    // bsr
     inline int count_leading_zeros(unsigned long long x) {
         int count;
         while (x) {
@@ -27,6 +28,7 @@ namespace binary {
     }
 
     // __builtin_ctz
+    // bsl
     inline int count_trailing_zeros(unsigned long long x) {
         int count;
         unsigned long long l = lowbit(x);
@@ -36,6 +38,25 @@ namespace binary {
         }
         return count;
     }
+
+    /*
+        static char ntz_table[] = {
+            32,0,1,12,2,6,00,13,  
+            3,00,7,00,00,00,00,14,
+            10,4,00,00,8,00,00,25,
+            00,00,00,00,00,21,27,15,
+            31,11,5,00,00,00,00,00, 
+            9,00,00,24,00,00,20,26,
+            30,00,00,00,23,00,19, 
+            29,00,22,18,28,17,16,00
+        };
+        inline int ntz(uint32_t x) {
+            x = lowbit(x) * 0x450fbaf; 
+            // any number with consecutive 6 number different
+            // 100010100001111101110101111b
+            return ntz_table[(x >> 26) & 0x3F];
+        }
+    */
 
     // For detail, see http://www.matrix67.com/blog/archives/264 
     // divide and conquer 11001100 -> 11001100 -> 00110011 -> 00001100
