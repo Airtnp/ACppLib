@@ -50,6 +50,9 @@ namespace binary {
             30,00,00,00,23,00,19, 
             29,00,22,18,28,17,16,00
         };
+        // de Bruijn sequence
+        // @ref: https://www.ptt.cc/bbs/C_and_CPP/M.1246890591.A.459.html
+        // @ref: http://supertech.csail.mit.edu/papers/debruijn.pdf
         inline int ntz(uint32_t x) {
             x = lowbit(x) * 0x450fbaf; 
             // any number with consecutive 6 number different

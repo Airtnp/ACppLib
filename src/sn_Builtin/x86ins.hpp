@@ -33,6 +33,8 @@ namespace sn_Builtin {
 #endif
     }
 
+    // Nice explanation:
+    // @ref: https://www.zhihu.com/question/39711786
     inline int32_t exchange(int32_t* ptr, int32_t x) {
         __asm__ __volatile__ (
             "lock\n" 
