@@ -15,9 +15,10 @@ namespace sn_String {
         return str.substr(pos);
     }
 
+    /*
     struct split_option {
-			enum empty_t { empty_remain, empty_discard };
-		};
+        enum empty_t { empty_remain, empty_discard };
+    };
 		
     template<typename T>
     std::vector<T> split(const T& str, const T& delimiter = "\t", split_option::empty_t empty_option = split_option::empty_remain) {
@@ -35,6 +36,16 @@ namespace sn_String {
             next = str.find_first_of(delimiter, current);
             v.push_back(str.substr(current, next - current));
         } while (next != std::string::npos);
+        return v;
+    }
+    */
+
+    std::vector<std::string> split_str(const string& str, char delim = ' ') {
+        std::istringstream iss{str};
+        std::vector<std::string> v;
+        for(std::string token; std::getline(iss, token, delim);) {
+            v.push_back(token);
+        }
         return v;
     }
 

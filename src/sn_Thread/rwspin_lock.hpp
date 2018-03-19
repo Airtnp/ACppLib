@@ -4,6 +4,8 @@
 #include <atomic>
 #include <memory>
 #include <thread>
+#include <condition_variable>
+#include <utility>
 
 #if defined(__GNUC__)
 
@@ -20,7 +22,16 @@
 
 
 namespace sn_Thread {
-    
+
+    // @Note: Actually C++14/17 has shared_mutex
+    using std::mutex;
+    using std::condition_variable;
+    using std::unique_lock;
+    using std::atomic;
+    using std::memory_order;
+    using std::lock_guard;
+    using std::addressof;
+
     // @ref: https://stackoverflow.com/questions/41193648/c-shared-mutex-implementation
     class atomic_shared_mutex {
         atomic<uint32_t> m_refcnt{0};
