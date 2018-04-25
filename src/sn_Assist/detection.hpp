@@ -31,7 +31,7 @@ namespace sn_Assist {
 		template <class T, class V /* = std::void_t<>*/, template<class...> class Op, class... Args>
 		struct sn_detector {
 			using value_t = std::false_type;
-			using type = T;
+			using type = T; // Default
 		};
 
 		template <class T, template<class...> class Op, class... Args>
@@ -51,15 +51,15 @@ namespace sn_Assist {
 
 
 		/*
-		Usage:
-		template<class T>
-		using has_member_r = decltype(&T::r)
+			Usage:
+			template<class T>
+			using has_member_r = decltype(&T::r)
 
-		struct Type {
-			int r;
-		}
+			struct Type {
+				int r;
+			}
 
-		sn_is_detected_v<has_member_r, Type>
+			sn_is_detected_v<has_member_r, Type>
 		*/
 
 		template <bool>

@@ -52,8 +52,8 @@ namespace sn_Assist {
 
 		//function object / functor / lambda
 		template <typename F>
-		struct function_traits : public function_traits<decltype(&F::operator())> {
-			using type = decltype(&F::operator());
+		struct function_traits : public function_traits<decltype(&std::decay_t<F>::operator())> {
+			using type = decltype(&std::decay_t<F>::operator());
 		};
 
 	}

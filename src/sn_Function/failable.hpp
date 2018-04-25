@@ -1,12 +1,11 @@
 #ifndef SN_FUNCTION_FAILABLE_H
 #define SN_FUNCTION_FAILABLE_H
 
-#ifdef SN_ENABLE_CPP17_EXPERIMENTAL
-
 #include <optional>
 #include <utility>
 
 namespace sn_Function {
+#ifdef SN_ENABLE_CPP17_EXPERIMENTAL
     namespace failable {
         
         template <typename R, typename ... P>
@@ -44,10 +43,10 @@ namespace sn_Function {
             };
         }
     }
+#endif
     
 }
 
-#endif
 
 
 #endif

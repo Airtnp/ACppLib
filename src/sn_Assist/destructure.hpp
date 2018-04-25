@@ -3,6 +3,7 @@
 namespace sn_Assist {
 #ifdef SN_ENABLE_CPP17_EXPERIMENTAL
     namespace sn_destructure {
+        // Or not specify number, just write N structure match args
         template <std::size_t I, typename T, std::size_t ...Is>
         auto destruture_impl(T&& t, std::index_sequence<Is...>) {
             return std::forward_as_tuple(*std::next(std::begin(std::forward<T>(t)), I+Is)...);

@@ -3,7 +3,7 @@
 
 namespace sn_Function {
     namespace operation {
-        
+        // Use reserve if has size_trait & reserve_trait
         template <typename T, typename ...Args, template <typename...> typename C, typename F>
         auto map(const C<T, Args...>& container, const F& f) -> C<decltype(f(std::declval<T>()))> {
             using result_type = decltype(f(std::declval<T>()));
@@ -30,6 +30,8 @@ namespace sn_Function {
             return res;
         }
 
+        // If we need to check invocable
+        // @ref: https://github.com/rollbear/lift/blob/master/include/lift.hpp
         template <typename F>
         auto compose(F&& f) {
             return [fx = std::forward<F>(f)](auto&&... args) {
@@ -47,15 +49,15 @@ namespace sn_Function {
         }
 
         template <typename F>
-        auto connect(F&& f) {
+        auto pipeline(F&& f) {
             return [fx = std::forward<F>(f)](auto&&... args) {
                 return fx(std::forward<decltype(args)>(args)...);
             };
         }
 
         template <typename F, typename ...Fs>
-        auto connect(F&& f, Fs&&... fs) {
-            return [fx = std::forward<F>(f), tail = compose(std::forward<Fs>(fs)...)](auto&&... args) {
+        auto pipeline(F&& f, Fs&&... fs) {
+            return [fx = std::forward<F>(f), tail = pipeline(std::forward<Fs>(fs)...)](auto&&... args) {
                 return tail(fx(
                     std::forward<decltype(args)>(args)...
                 ));

@@ -25,12 +25,12 @@ namespace sn_Assist {
 
 
 		/* Usage:
-		struct Property {
+			struct Property {
+				template <typename T>
+				auto require(T&& v) -> decltype(++x);
+			}
 			template <typename T>
-			auto require(T&& v) -> decltype(++x);
-		}
-		template <typename T>
-		SN_REQUIRE(void, Property<T>) foo(T& x) { ++x; }
+			SN_REQUIRE(void, Property<T>) foo(T& x) { ++x; }
 		*/
 
 	}
