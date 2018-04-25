@@ -29,6 +29,38 @@ namespace sn_Function {
                     res.push_back(item);
             return res;
         }
+
+        template <typename F>
+        auto compose(F&& f) {
+            return [fx = std::forward<F>(f)](auto&&... args) {
+                return fx(std::forward<decltype(args)>(args)...);
+            };
+        }
+
+        template <typename F, typename ...Fs>
+        auto compose(F&& f, Fs&&... fs) {
+            return [fx = std::forward<F>(f), tail = compose(std::forward<Fs>(fs)...)](auto&&... args) {
+                return fx(tail(
+                    std::forward<decltype(args)>(args)...
+                ));
+            };
+        }
+
+        template <typename F>
+        auto connect(F&& f) {
+            return [fx = std::forward<F>(f)](auto&&... args) {
+                return fx(std::forward<decltype(args)>(args)...);
+            };
+        }
+
+        template <typename F, typename ...Fs>
+        auto connect(F&& f, Fs&&... fs) {
+            return [fx = std::forward<F>(f), tail = compose(std::forward<Fs>(fs)...)](auto&&... args) {
+                return tail(fx(
+                    std::forward<decltype(args)>(args)...
+                ));
+            };
+        }
         
     }
 }
