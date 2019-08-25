@@ -111,7 +111,7 @@ namespace sn_String {
 
     std::pair<size_t, size_t> manacher(const std::string& r) {
 
-        std::string s;
+        std::string s = "$";
         for (size_t i = 0; i < r.size(); ++i) {
             s += "#";
             s += r[i];
@@ -129,7 +129,7 @@ namespace sn_String {
             } else {
                 P[i] = 1;
             }
-            while (s[i + P[i]] == s[i - P[i]] && i - P[i] >= 0 && i + P[i] < n) {
+            while (i - P[i] >= 0 && i + P[i] < n && s[i + P[i]] == s[i - P[i]]) {
                 ++P[i];
             }
             if (P[i] + i > mx) {

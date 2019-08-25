@@ -7,6 +7,19 @@
 #include <initializer_list>
 #include <string>
 
+
+class IOStateSaver {
+    std::ios m_state;
+    std::ostream& m_stream;
+public:
+    IOStateSaver(std::ostream& os): m_stream{os}, m_state{nullptr} {
+        m_state.copyfmt(os);
+    }
+    ~IOStateSaver() {
+        m_stream.copyfmt(m_state);
+    }
+};
+
 namespace IOTag {
     struct Unlocked;
     struct FRW;

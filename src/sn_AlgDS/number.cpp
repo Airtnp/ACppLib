@@ -38,10 +38,17 @@ namespace number {
 
         constexpr size_t PRIME_LIMIT = 10000;
 
-        bool is_prime(unsigned int n) {
-            for (size_t i = 2; i < floor(sqrt(n)); ++i) {
-                if (i % n)
-                    return false;
+        bool is_prime(size_t n) {
+            if (n <= 3) {
+                return n > 1;
+            } else if (n % 2 == 0 || n % 3 == 0) {
+                return false;
+            } else {
+                size_t max_i = floor(sqrt(n));
+                for (size_t i = 5; i < floor(sqrt(n)); i += 6) {
+                    if (n % i == 0 || n % (i + 2) == 0)
+                        return false;
+                }
             }
             return true;
         }
@@ -56,6 +63,28 @@ namespace number {
                     sieve_arr[i * prime[j]] = 1;
                     if (!(i % prime[j]))
                         break;
+                }
+            }
+            return prime;
+        }
+
+        vector<uint32_t> sundaram_prime_sieve(uint32_t n) {
+            bitset<PRIME_LIMIT> sieve_arr{0};
+            vector<uint32_t> prime;
+            uint32_t m = (n - 2) / 2;
+            // sieve all 2(i + j + 2ij) + 1 odd number (that's all odd non-prime)
+            for (size_t i = 0; i < m; ++i) {
+                uint32_t j = i;
+                uint64_t p = (uint64_t)i + j + 2 * i * j;
+                for (; p <= m; ++j, p = (uint64_t)i + j + 2 * i * j) {
+                    sieve_arr[p] = 1;
+                }
+            }
+            prime.reserve(m + 1);
+            prime.push_back(2);
+            for (size_t i = 1; i <= m; ++i) {
+                if (!sieve_arr[i]) {
+                    prime.push_back(2 * i + 1);
                 }
             }
             return prime;
@@ -196,10 +225,83 @@ namespace number {
         }
 
         //ax \\equiv 1 (mod n)
-        int solve_reverse_element(int a, int n) {
+        int solve_reverse_element_exgcd(int a, int n) {
             return solve_module_equation(a, 1, n);
         }
 
+        int modpow(int base, int exp, int modulus) {
+            base %= modulus;
+            int result = 1;
+            while (exp > 0) {
+                if (exp & 1) {
+                    result = (result * base) % modulus;
+                    base = (base * base) % modulus);
+                    exp >>= 1;
+                }
+            }
+            return result;
+        }
+
+        // ax \equiv 1 (mod p), Fermat little theorem
+        int solve_reverse_element_fermat(int a, int p) {
+            return modpow(a, p - 2, p);
+        }
+
+        // prime index of n!
+        int prime_index_factor(int n, int p) {
+            int ans = 0;
+            long long rec = p;
+            while (n >= rec) {
+                ans += n / rec;
+                rec *= p;
+            }
+            return ans;
+        }
+
+        /// mod of combination number
+        /// 1. C(n, m) = C(n - 1, m - 1) + C(n, m - 1)
+        /// 2. Factorization. For each p,  the prime index pi(n) - pi(m) - pi(n - m) should contribute to the final result by power of p. Then do modpow
+        /// 3. Lucas theorem. C(sp+r, up+v) \equiv C(s, u)C(r, v) (mod p)
+        int mod_comb(int m, int n, int p) {
+            // table of n! mod p
+            vector<int> modtable(p + 1, 0);
+            modtable[0] = 1;
+            for (int i = 1; i <= m; ++i) {
+                modtable[i] = ((long long)modtable[i - 1] * i) % p;
+            }
+            long long ans = 1;
+            while (m || n) {
+                int a = m % p;
+                int b = n % p;
+                m /= p;
+                n /= p;
+                int dividend = modtable[a];
+                int divisor = (modtable[b] * modtable[a - b]) % p;
+                int gcd = ::gcd(dividend, divisor);
+                dividend /= gcd;
+                divisor /= gcd;
+                int rev_divisor = (solve_reverse_element_exgcd(divisor, p) + p) % p;
+                ans = (ans * dividend * rev_divisor) % p;
+            }
+            return ans;
+        }
+
+        // # of numbers in 1..m which is not a coprime with factors.
+        int notcoprimes(int m, const vector<int>& factors) {
+            vector<int> ps;
+            ps.push_back(-1);
+            for (int f : factors) {
+                int N = ps.size();
+                for (int j = 0; j < N; ++j) {
+                    ps.push_back(ps[j] * f * (-1));
+                }
+            }
+            int sum = 0;
+            for (int i = 1; i < ps.size(); ++i) {
+                sum += m / ps[i];
+            }
+            return sum;
+        }
     }
 
 }

@@ -122,6 +122,36 @@ namespace binary {
     inline int bin_average(int x, int y) {
         return (x & y) + ((x ^ y) >> 1);
     }
+
+    float rsqrt(float x) {
+        long i = *reinterpret_cast<long*>(&x);
+        i = 0x5f3759df - (i >> 1);
+        return *reinterpret_cast<float*>(&x);
+    }
+
+    // @ref: http://www.bullshitmath.lol/FastRoot.slides.html
+    // Use i2f(M + C * f2i(x)) to approximate x^C with constraint that qpow(1) == 1
+    // Refinement for -1/2 @ref: http://www.phailed.me/2014/10/0x5f400000-understanding-fast-inverse-sqrt-the-easyish-way/#Epilogue_%E2%80%93_The_Hard_Parts
+    float qpow(float x, float exponent) {
+        constexpr uint32_t MAGIC = 0x3f800000;
+        long i = *reinterpret_cast<long*>(&x);
+        i = (1 - exponent) * MAGIC + exponent * i;
+        return *reinterpret_cast<float*>(&x);
+    }
+
+    // @ref: http://www.phailed.me/2012/08/somewhat-fast/
+    inline float approx_nthroot(float x, int n) {
+        constexpr uint32_t MAN_MASK = 0x7fffff;
+        constexpr uint32_t EXP_MASK = 0x7f800000;
+        constexpr uint32_t EXP_BIAS = 0x3f800000;
+        uint32_t bits = *reinterpret_cast<int*>(&x); // obviously ub
+        uint32_t man = bits & MAN_MASK; // mantissa
+        uint32_t expo = (bits & EXP_MASK) - EXP_BIAS; // exponents
+        uint32_t res = (man + man / n) | ((EXP_BIAS + expo / n) & EXP_MASK);
+        return *reinterpret_cast<float*>(&res)
+    }
+
+    // some other float hacks @ref: https://github.com/leegao/float-hacks/blob/master/README.md
 }
 
 
