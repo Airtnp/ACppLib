@@ -18,11 +18,12 @@ namespace binary {
 
     // __builtin_clz
     // bsr
+    // @todo: looks suspicious, fix?
     inline int count_leading_zeros(unsigned long long x) {
-        int count;
+        int count = 0;
         while (x) {
             count++;
-            x ^= lowbit(x);
+            x << 1;
         }
         return count;
     }
@@ -30,11 +31,11 @@ namespace binary {
     // __builtin_ctz
     // bsl
     inline int count_trailing_zeros(unsigned long long x) {
-        int count;
+        int count = 0;
         unsigned long long l = lowbit(x);
-        while (x) {
+        while (l) {
             count++;
-            x /= 2;
+            l /= 2;
         }
         return count;
     }
@@ -64,6 +65,7 @@ namespace binary {
     // For detail, see http://www.matrix67.com/blog/archives/264 
     // divide and conquer 11001100 -> 11001100 -> 00110011 -> 00001100
     // For __builtin_popcount, get popcount table, see http://www.xuebuyuan.com/828691.html
+    // Or just x ^= lowbit(x)
     inline unsigned long long count_bits(unsigned long long x) {
         x = (x & 0x5555555555555555LL) + ((x & 0xAAAAAAAAAAAAAAAALL) >> 1);
         x = (x & 0x3333333333333333LL) + ((x & 0xCCCCCCCCCCCCCCCCLL) >> 2);

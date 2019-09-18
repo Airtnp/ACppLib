@@ -7,7 +7,8 @@ using namespace std;
 
 namespace number {
     
-    int get_max(int* a,int l){
+    // get maximum in array pointer by a and array length equals l
+    int get_max_element(int* a,int l){
         // assert(l%4==0);
         // assert(sse4);
         int ret,tmp[4];
