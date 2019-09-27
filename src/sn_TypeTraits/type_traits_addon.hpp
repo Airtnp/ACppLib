@@ -172,6 +172,16 @@ namespace sn_TypeTraits {
 			!std::is_void<T>::value &&		// libcxx: is_class || is_union || is_void || is_reference || is_nullptr_t
 			!std::is_reference<T>::value
 		> {};
+
+    template<class T>
+    struct remove_cvref {
+        typedef std::remove_cv_t<std::remove_reference_t<T>> type;
+    };
+
+    template <class T>
+    using remove_cvref_t = typename remove_cvref<T>::type;
+
+
 }
 
 #endif

@@ -19,9 +19,10 @@
 // TODO: Integrate typeclass from notes
 /*
 	Usage:
-		// q :: (Eq int) => int -> char -> int
-		// q int x, char y  x + y
-		// q int x          x
+		// q :: (Ord a, Eq a) => a -> Char -> Int
+        // q
+		// q x :: Int, y :: Char = x + y
+		// q x :: Int, _         = x
 		template <typename T>
 		auto q_tem = F |= ( R<lib::Ord<T>> | R<lib::Eq(T, T)> ) >>= Ty<T> >= Ty<char> >= Ty<int>;
 		auto q_def = q_tem<int>;
@@ -138,19 +139,19 @@ namespace sn_PM {
 
 		template <typename Arg, typename ...Args>
 		struct RClass<Arg, Args...> {
-			using concept = TypeList<Arg, Args...>;
+			using rconcept = TypeList<Arg, Args...>;
 			constexpr static const bool value = Require<Arg>::value && RClass<Args...>::value;
 		};
 
 		template <typename ...Args>
 		struct RClass<TypeList<Args...>> {
-			using concept = TypeList<Args...>;
+			using rconcept = TypeList<Args...>;
 			constexpr static const bool value = RClass<Args...>::value;
 		};
 
 		template <>
 		struct RClass<> {
-			using concept = TypeList<>;
+			using rconcept = TypeList<>;
 			constexpr static const bool value = true;
 		};
 
@@ -281,14 +282,14 @@ namespace sn_PM {
 
 		template <typename Arg, typename ...Args, typename ...Args2>
 		struct VariantFuncList<TypeList<Arg, Args...>, TypeList<Args2...>> {
-			using current_param_list = sn_TypeLisp::TypeDropOne_t<
+			using current_param_list = sn_TypeLisp::TypeDrop_t<
 				typename VariantFuncList<
 				TypeList<Args...>,
 				TypeList<Args2...>
-				>::current_param_list
+				>::current_param_list, 1
 			>;
 			using param_list = sn_TypeLisp::TypeAppend_t<
-				TypeList<current_param_list>,
+				current_param_list,
 				typename VariantFuncList<
 				TypeList<Args...>,
 				TypeList<Args2...>
@@ -315,7 +316,7 @@ namespace sn_PM {
 
 		template <typename R, typename ...Args2>
 		struct VariantFuncList<TypeList<R>, TypeList<Args2...>> {
-			using current_param_list = sn_TypeLisp::TypeDropOne_t<TypeList<Args2...>>;
+			using current_param_list = sn_TypeLisp::TypeDrop_t<TypeList<Args2...>, 1>;
 			using param_list = TypeList<current_param_list>;
 			using current_result_list = TypeList<R>;
 			using result_list = TypeList<current_result_list>;
@@ -332,7 +333,7 @@ namespace sn_PM {
 		template <typename ...Args, typename U>
 		struct FuncTypeWrapper <RClass<Args...>, Type<U>> : FuncTypeWrapperHead {
 			using rclass = RClass<Args...>;
-			using require_list = typename rclass::concept;
+			using require_list = typename rclass::rconcept;
 			constexpr static const bool rvalue = rclass::value;
 			static_assert(rvalue, "Classes not satisfied.");
 
@@ -391,7 +392,7 @@ namespace sn_PM {
 		template <typename U>
 		struct FuncTypeWrapper<Type<U>> : FuncTypeWrapperHead {
 			using rclass = RClass<>;
-			using require_list = typename rclass::concept;
+			using require_list = typename rclass::rconcept;
 			constexpr static const bool rvalue = true;
 
 			using type = U;
@@ -639,10 +640,10 @@ namespace sn_PM {
 	auto F = def::FuncTypeWrapperHead{};
 
 	template <typename ...Args>
-	auto Switch = pattern::Switch<Args...>;
+	auto Switch = pattern::Switch<Args...>{};
 
 	template <typename ...Args>
-	auto S = pattern::Switch<Args...>;
+	auto S = pattern::Switch<Args...>{};
 
 #endif
 	/* 
@@ -723,7 +724,7 @@ namespace sn_PM {
 		template <typename T>
 		struct is_pattern<predicate<T>> : std::true_type {};
 
-		using sn_TypeTraits::functor::is_closure;
+		using sn_TypeTraits::is_closure;
 
 		template <typename T>
 		inline auto predicate_converter(T&& arg) -> std::enable_if_t<is_closure<T>::value, predicate<T&&>> {
@@ -745,7 +746,7 @@ namespace sn_PM {
 
 #define Regex(...) sn_PM::runtime::regex{ MACRO_EXPAND(__VA_ARGS__) }
 
-		using sn_TypeTraits::address::addressofex;
+		using sn_TypeTraits::addressofex;
 
 		// Match Base* b = new Derived<T>
 		// Type(Derived<T>)

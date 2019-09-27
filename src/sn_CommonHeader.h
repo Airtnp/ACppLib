@@ -87,7 +87,6 @@ for detail: https://gcc.gnu.org/onlinedocs/libstdc++/ext/pb_ds/
 #include <exception>
 #include <system_error>
 
-
 // For platform-related
 #ifdef _WIN32
 #include <fstream>
@@ -130,5 +129,7 @@ using observer_ptr = T*;
 
 template <typename T>
 using owned_ptr = T*;
+
+using size_t = std::size_t;
 
 #endif
