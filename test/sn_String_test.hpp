@@ -5,7 +5,7 @@
 
 namespace sn_String_test {
 	void sn_string_test() {
-		std::cout << sn_String::formatter::string_formatter("{1}, {0}", "abbb", "b") << std::endl;
+		std::cout << sn_String::format("{1}, {0}", "abbb", "b") << std::endl;
 	}
 }
 

@@ -32,7 +32,7 @@ namespace sn_TypeLisp {
 		constexpr static const bool value = true;
 	};
 
-#ifndef __clang__
+#if defined(SN_CONFIG_COMPILER_GCC) && __GNUC__ < 8
     template <template <typename ...TArgs> typename Op, typename ...FArgs>
     struct TypeCurry {
         template <typename ...LArgs>
@@ -79,6 +79,9 @@ namespace sn_TypeLisp {
 	struct TypeAtom {
 		using type = TypeTrue;
 	};
+
+	template <typename ...Args>
+	struct TypeList;
 
 	template <template <typename ...> typename TL, typename H, typename ...T>
 	struct TypeAtom<TL<H, T...>> {

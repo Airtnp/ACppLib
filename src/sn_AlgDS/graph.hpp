@@ -2,7 +2,7 @@
 #define SN_ALGDS_GRAPH_H
 
 #include <bits/stdc++.h>
-#include "basic_ds.cpp"
+#include "basic_ds.hpp"
 using namespace std;
 
 namespace graph {
@@ -98,7 +98,7 @@ namespace graph {
             }
         }
 
-        using sn_DS::basic::queue;
+        using ::basic::queue;
 
         template <typename T, typename E>
         vector<graph_node<T>> graph_bfs(const graph<T, E>& gh) {
@@ -127,14 +127,15 @@ namespace graph {
     }
 
     namespace distance {
-        using sn_DS::basic::graph;
-        using sn_DS::basic::graph_node;
-        using sn_DS::basic::bitvec;
+        using ::basic::graph;
+        using ::basic::graph_node;
+        using ::basic::bitvec;
         
         template <typename E>
         vector<int> dijkstra(const graph<int, E>& gh, const int& start_index) {
             vector<int> v_dis(gh.size, INT_MAX);
-            priority_queue<int, vector<int>, [&v_dis](int a, int b) { return v_dis[a] < v_dis[b]; }> p;
+            auto comp = [&v_dis](int a, int b) { return v_dis[a] < v_dis[b]; };
+            priority_queue<int, vector<int>, decltype(comp)> p;
             bitvec visit(gh.size);
             p.push(start_index);
             v_dis[start_index] = 0;
@@ -185,11 +186,11 @@ namespace graph {
                             in_queue[index] = 1;
                             in_queue_sum[index] += 1;
                             if (in_queue_sum[index] > gh.size)
-                                return NULL;
+                                return {};
                         }
                     }
                     if (v_dis[start_index] < 0)
-                        return NULL;
+                        return {};
                 }
             }
             return v_dis;

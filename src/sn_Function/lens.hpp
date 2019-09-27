@@ -11,7 +11,7 @@ namespace sn_Function {
 			std::function<V(V, F)> setter;
 
 			V apply(const V& v, const std::function<F(F)>& trans) const {
-				auto z = getter(value);
+				auto z = getter(v);
 				return setter(v, trans(z));
 			}
 		};
@@ -31,7 +31,7 @@ namespace sn_Function {
 				rerolled.m_lens = lx;
 			}
 			template <typename F>
-			F get(const V& f) const {
+			F get(const F& f) const {
 				return f;
 			}
 			template <typename F>
@@ -76,7 +76,7 @@ namespace sn_Function {
 			base_type& m_base = static_cast<base_type&>(*this);
 			L m_lens;
 			
-		}
+		};
 
 		// Implement of infix
 		struct Proxy {};

@@ -4,8 +4,8 @@
 #include "../sn_CommonHeader.h"
 
 namespace sn_Thread {
-    
-#ifdef _WIN32 && SN_ENABLE_WINDOWS_API
+
+#if defined(__WIN32__) && defined(SN_ENABLE_WINDOWS_API)
 
 	// ref: https://gist.github.com/LYP951018/88eb616b939f19dad90bd6b087baa4d9
 	namespace win32_handler {

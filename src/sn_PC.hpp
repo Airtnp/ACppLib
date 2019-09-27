@@ -217,7 +217,7 @@ namespace sn_PC {
 		};
 
 		
-		template <typename P, typename = P::is_predicate_type>
+		template <typename P, typename = typename P::is_predicate_type>
 		string format_name(const P& p, const int rank) {
 			if (p.rank > rank)
 				return "(" + p.name() + ")";
@@ -273,12 +273,14 @@ namespace sn_PC {
 
 	}
 
-	template <typename P1, typename P2, typename = P1::is_predicate_type, typename = P2::is_predicate_type>
+	template <typename P1, typename P2,
+	        typename = typename P1::is_predicate_type, typename = typename P2::is_predicate_type>
 	constexpr is_assist::is_either<P1, P2> const operator||(const P1& p1, const P2& p2) {
 		return is_assist::is_either<P1, P2>(p1, p2);
 	}
 
-	template <typename P1, typename P2, typename = P1::is_predicate_type, typename = P2::is_predicate_type>
+	template <typename P1, typename P2,
+	        typename = typename P1::is_predicate_type, typename = typename P2::is_predicate_type>
 	constexpr is_assist::is_except<P1, P2> const operator-(const P1& p1, const P2& p2) {
 		return is_assist::is_except<P1, P2>(p1, p2);
 	}
@@ -317,7 +319,7 @@ namespace sn_PC {
 				else
 					++i;
 			}
-			err << what << " at line: " << row << " column: " << f - line_start + 1 << endl;
+			err << what << " at line: " << row << " column: " << f - line_start + 1 << std::endl;
 
 			bool in = true;
 			for (It i(line_start); (i != r.last) && (in || *i != '\n'); ++i) {
@@ -414,7 +416,7 @@ namespace sn_PC {
 	template <typename ...Args>
 	string concat(const string& sep, const string& str, const Args& ...strs) {
 		string s = str;
-		std::initializer_list<int>{ (s += seq + strs, 0)... };
+		std::initializer_list<int>{ (s += sep + strs, 0)... };
 		return s;
 	}
 
@@ -432,31 +434,31 @@ namespace sn_PC {
 	class recogniser_accept {
 		const P& m_p;
 	public:
-using is_parser_type = std::true_type;
-using is_handle_type = std::false_type;
-using has_side_effects = std::false_type;
-using result_type = std::string;
-const std::size_t rank;
+        using is_parser_type = std::true_type;
+        using is_handle_type = std::false_type;
+        using has_side_effects = std::false_type;
+        using result_type = std::string;
+        const std::size_t rank;
 
-constexpr explicit recogniser_accept(const P& p)
-	: m_p(p), rank(p.rank) {}
-template <typename It, typename R, typename Base = default_base>
-bool operator()(It& i, const R& r, string* result = nullptr, Base* st = nullptr) const {
-	int sym;
-	if (i == r.last)
-		sym = EOF;
-	else
-		sym = *it;
-	if (!m_p(sym))
-		return false;
-	++i;
-	if (result != nullptr)
-		result->push_back(sym);
-	return true;
-}
-string enbf(unique_defs& defs = nullptr) const {
-	return p.name();
-}
+        constexpr explicit recogniser_accept(const P& p)
+            : m_p(p), rank(p.rank) {}
+        template <typename It, typename R, typename Base = default_base>
+        bool operator()(It& i, const R& r, string* result = nullptr, Base* st = nullptr) const {
+            int sym;
+            if (i == r.last)
+                sym = EOF;
+            else
+                sym = *i;
+            if (!m_p(sym))
+                return false;
+            ++i;
+            if (result != nullptr)
+                result->push_back(sym);
+            return true;
+        }
+        string enbf(unique_defs& defs = nullptr) const {
+            return m_p.name();
+        }
 	};
 
 	template <typename P, typename = typename P::is_predicate_type>
@@ -484,7 +486,7 @@ string enbf(unique_defs& defs = nullptr) const {
 				++i;
 			}
 			if (result != nullptr)
-				result->append(s);
+				result->append(m_s);
 			return true;
 		}
 		string ebnf(unique_defs* defs = nullptr) const {
@@ -694,7 +696,7 @@ string enbf(unique_defs& defs = nullptr) const {
 				if (result != nullptr) {
 					call_all<F, Base> call_f(f);
 					try {
-						call_f.template all<result_type, tmp_type, I...>(result, j, tmp, st, I...);
+						call_f.template all<result_type, tmp_type, I...>(result, r, tmp, st, I...);
 					}
 					catch (std::runtime_error& e) {
 						throw parse_error(e.what(), *this, first, i, r);
@@ -953,7 +955,8 @@ string enbf(unique_defs& defs = nullptr) const {
 			: p(new holder_poly<P>(std::forward<P>(p_))) {}
 		constexpr parser_handle(const parser_handle& rhs) : p(rhs.p) {}
 		constexpr parser_handle(parser_handle&& rhs) : p(std::move(rhs.p)) {}
-		template <typename P, typename = typename enable_if<is_same<typename P::is_parser_type, true_type>::value>::type>
+		template <typename P,
+		        typename = typename std::enable_if<std::is_same<typename P::is_parser_type, std::true_type>::value>::type>
 		parser_handle& operator= (P const &p_) {
 			p = std::shared_ptr<const holder_base>(new holder_poly<P>(p_));
 			return *this;
@@ -1078,7 +1081,10 @@ string enbf(unique_defs& defs = nullptr) const {
 		}
 	};
 
-	template <typename P, typename = std::enable_if_t<is_same<typename P::is_parser_type, true_type>::value || is_same<typename P::is_handle_type, true_type>::value>>
+	template <typename P,
+	        typename = std::enable_if_t<
+	                std::is_same<typename P::is_parser_type, std::true_type>::value
+	                || std::is_same<typename P::is_handle_type, std::true_type>::value>>
 	constexpr parser_log<P> log(const string& s, const P& p) {
 		return parser_log<P>(s, p);
 	}

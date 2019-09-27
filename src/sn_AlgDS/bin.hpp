@@ -104,9 +104,9 @@ namespace binary {
 
     inline bool set_k_bit(long long x, bool k_set) {
         if (k_set == 0)
-            return (x &= ~(1 << k));
+            return (x &= ~(1 << k_set));
         else
-            return (x |= 1 << k);
+            return (x |= 1 << k_set);
     }
 
     inline bool and_all(long long x) {
@@ -150,7 +150,7 @@ namespace binary {
         uint32_t man = bits & MAN_MASK; // mantissa
         uint32_t expo = (bits & EXP_MASK) - EXP_BIAS; // exponents
         uint32_t res = (man + man / n) | ((EXP_BIAS + expo / n) & EXP_MASK);
-        return *reinterpret_cast<float*>(&res)
+        return *reinterpret_cast<float*>(&res);
     }
 
     // some other float hacks @ref: https://github.com/leegao/float-hacks/blob/master/README.md

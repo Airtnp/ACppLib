@@ -293,6 +293,7 @@ sizeof(s) > 2 && (s)[sizeof(s)-3] == '/' ? (s) + sizeof(s) - 2 : (s))
 			loc.m_func = func;
 			loc.m_line = line;
 			loc.m_col = col;
+			return loc;
 		}
 		constexpr source_location() noexcept
 			: m_file("Unknown"), m_func(m_file), m_line(0), m_col(0) {}

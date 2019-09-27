@@ -100,7 +100,7 @@ namespace sn_Builtin {
 		public:
 			template <typename ...Args>
 			unique_wrapper(Args&&... args)
-				: m_storage(std::make_unqiue<T>(std::forward<Args>(args)...)) {}
+				: m_storage(std::make_unique<T>(std::forward<Args>(args)...)) {}
 			template <typename U>
 			operator U& () noexcept {
 				return static_cast<U&>(*m_storage);

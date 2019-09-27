@@ -317,10 +317,12 @@ namespace sn_LC {
 		using result = typename Eval<Body, typename VarBinding<VarList<I...>, ValList<Args...>, Env>::result>::result;
 	};
 
+	/*
 	template <std::size_t I, typename Body, typename Env, typename T>
 	struct Apply<Closure<VarLambda<VarList<I>, Body>, Env>, T> {
 		using result = typename Eval<Body, typename VarBinding<VarList<I>, ValList<T>, Env>::result>::result;
 	};
+	 */
 
 	/*
 	template <std::size_t ...I, typename Body, typename Env, typename ...Args>
@@ -548,11 +550,10 @@ namespace sn_LC {
 							>
 						>;
 
-	// template <std::size_t F, std::size_t U, std::size_t X, typename L>
+	template <std::size_t F, std::size_t U, std::size_t X, typename L>
 	using YFunc = Application<YCombinator, L>;
 
-	// template <std::size_t X, std::size_t Y>
-	
+	template <std::size_t X, std::size_t Y>
 	using TCombinator = Application<
 							Lambda<X,
 								Lambda<Y, 
@@ -578,9 +579,8 @@ namespace sn_LC {
 							>
 						>;
 
-	// template <std::size_t X, std::size_t Y, typename L>
-	
-	using TFunc = Application<TCombinator, L>;
+	template <std::size_t X, std::size_t Y, typename L>
+	using TFunc = Application<TCombinator<X, Y>, L>;
 
 	// TODO: Add call/cc
 	// To implement this, we need full-context-CPS / Stimulaton Device

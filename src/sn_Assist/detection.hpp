@@ -174,8 +174,8 @@ namespace sn_Assist {
 		
 		*/
 
-		struct yes_type { char[2] m; };
-		struct no_type { char[1] m; };
+		struct yes_type { char m[2]; };
+		struct no_type { char m[1]; };
 		// consider member/ADL/global
 		// When the test is false, call ADL swap. Otherwise, perform a function-pointer based test. Call apply2 by
 		// taking the address of swap, which is known to be possible because at least one swap exists.

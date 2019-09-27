@@ -10,14 +10,14 @@ namespace sn_TypeTraits {
     };
 
     template <typename T, typename U>
-    struct concate {};
+    struct concat {};
 
     template <std::size_t ...I1, std::size_t ...I2>
-    struct concate<index_sequence<I1...>, index_sequence<I2...>>
+    struct concat<index_sequence<I1...>, index_sequence<I2...>>
         : index_sequence<I1..., (I2 + sizeof...(I1))...> {};
     template <std::size_t N>
     struct make_index_sequence_impl
-        : concate<
+        : concat<
             typename make_index_sequence_impl<N / 2>::type,
             typename make_index_sequence_impl<N - N / 2>::type
         > {};
@@ -73,22 +73,29 @@ namespace sn_TypeTraits {
     using integer_pack_merge_t = typename integer_pack_merge<T, P1, P2>::type;
 
     template <typename T, typename P1, typename P2>
-    struct integer_pack_concate {};
+    struct integer_pack_concat {};
+
+    // To avoid using template parameters in partial specialization
+    template <bool>
+    struct wrap0;
+    template <bool>
+    struct wrap1;
 
     template <typename T, T ...Is1, T ...Is2>
-    struct integer_pack_concate<T, integer_pack<T, Is1...>, integer_pack<T, Is2...>>
-        : integer_pack<T, I1..., (I2 + sizeof...(I1))...> {};
-    template <typename T, T N>
+    struct integer_pack_concat<T, integer_pack<T, Is1...>, integer_pack<T, Is2...>>
+        : integer_pack<T, Is1..., (Is2 + sizeof...(Is1))...> {};
+    template <typename T, T N, typename = wrap0<true>, typename = wrap1<true>>
     struct make_integer_pack_impl
-        : integer_pack_concate<
+        : integer_pack_concat<
+            T,
             typename make_integer_pack_impl<T, N / 2>::type,
             typename make_integer_pack_impl<T, N - N / 2>::type
         > {};
 
-    template <typename T>
-    struct make_integer_pack_impl<T, 0> : integer_pack<T> {};
-    template <typename T>
-    struct make_integer_pack_impl<T, 1> : integer_pack<T, 0> {};
+    template <typename T, T N>
+    struct make_integer_pack_impl<T, N, wrap0<!(N == 0)>, wrap1<true>> : integer_pack<T> {};
+    template <typename T, T N>
+    struct make_integer_pack_impl<T, N, wrap0<true>, wrap1<!(N == 1)>> : integer_pack<T, 0> {};
 
     template <typename T, T N>
     using make_integer_pack = typename make_integer_pack_impl<T, N>::type;
@@ -100,7 +107,7 @@ namespace sn_TypeTraits {
     struct make_integer_pack_range_impl {
     private:
         static_assert(nvals % step == 0, "bad step value.");
-        template <typename T, bool dir>
+        template <typename U, bool dir>
         struct make_integer_pack_range_assist {};
 
         template <T ...Is>

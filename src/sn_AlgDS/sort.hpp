@@ -6,7 +6,7 @@ using namespace std;
 
 namespace sort {
     template <typename T>
-    void insertion_sort(T arr[], size_t left, size_t right) {
+    void insertion_sort(T a[], size_t left, size_t right) {
         for (size_t i = right - 1; i > left; --i) {
             if (a[i - 1] > a[i]) {
                 std::swap(a[i - 1], a[i]);
@@ -24,7 +24,7 @@ namespace sort {
     }
 
     template <typename T>
-    void selection_sort(T arr[], size_t left, size_t right) {
+    void selection_sort(T a[], size_t left, size_t right) {
         for (size_t i = left; i < right - 1; ++i) {
             size_t min = i;
             for (size_t j = i + 1; j < right; ++i) {
@@ -37,7 +37,7 @@ namespace sort {
     }
 
     template <typename T>
-    void bubble_adaptive(T arr[], size_t left, size_t right) {
+    void bubble_adaptive(T a[], size_t left, size_t right) {
         for (size_t i = left; i < right - 1; ++i) {
             bool swapped = false;
             for (size_t j = right - 1; j > i; --j) {
@@ -52,7 +52,7 @@ namespace sort {
     }
 
     template <typename T>
-    size_t partition(T arr[], size_t left, size_t right) {
+    size_t partition(T a[], size_t left, size_t right) {
         size_t pivot = --right;
         while (true) {
             while (a[left] < a[pivot] && left < right)
@@ -80,7 +80,7 @@ namespace sort {
     // ref: https://github.com/liuxinyu95/AlgoXY/blob/algoxy/sorting/merge-sort/src/mergesort.c
     // ref: linked-list-merge-sort
     template <typename T>
-    void merge(T arr[], size_t left, size_t mid, size_t right) {
+    void merge(T a[], size_t left, size_t mid, size_t right) {
         size_t sz = right - left + 1;
         vector<T> c(sz);
 

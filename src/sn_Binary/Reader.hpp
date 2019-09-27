@@ -38,7 +38,7 @@ namespace sn_Binary {
 			template <typename T>
 			std::enable_if_t<std::is_pod<T>::value> read_pod(T& obj) {
 				len_t read_bytes;
-				if ((read_bytes = m_stream->read_bytes(reinterpret_cast<byteptr_t>(&obj))) < sizeof(T)) {
+				if ((read_bytes = m_stream->read_bytes(reinterpret_cast<byteptr_t>(&obj), sizeof(T))) < sizeof(T)) {
 					SN_LOG_ERROR_WTL(sn_Error::CheckFailed, "Cannot read sizeof(T) bytes.");
 				}
 				if (m_needSwapEndian) {

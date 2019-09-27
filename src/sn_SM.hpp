@@ -14,8 +14,8 @@ namespace sn_SM {
 			using guard_t = std::function<bool()>;
 			using action_t = std::function<void()>;
 			struct Trans {
-				S from;
-				S to;
+				S m_from;
+				S m_to;
 				Tr trigger;
 				guard_t guard;
 				action_t action;
@@ -32,8 +32,8 @@ namespace sn_SM {
 
 			FSM(S init)
 				: m_initial(init), m_currentState(init), m_trans() {}
-			void reset(S s = m_initial) {
-				m_currentState = s;
+			void reset(S s) {
+				m_currentState = m_initial;
 			}
 			template <typename It>
 			void add_transitions(It start, It end) {

@@ -82,7 +82,7 @@ namespace sn_LINQ {
 		public:
 			TSelf& operator++() {
 				++(static_cast<T*>(this)->m_iterator);
-				return *(static_cast<T*>(this))
+				return *(static_cast<T*>(this));
 			}
 			TSelf operator++(int) {
 				TSelf t = *(static_cast<T*>(this));
@@ -561,8 +561,8 @@ namespace sn_LINQ {
 	LinqEnumerable<NAME##_iterator<TIt, TFunc>> NAME(const TFunc& f) const { \
 		return LinqEnumerable<NAME##_iterator<TIt, TFunc>>( \
 			NAME##_iterator<TIt, TFunc>(m_begin, m_end, f), \
-			NAME##_iterator<TIt, TFunc>(m_end, m_end, f), \
-			); \
+			NAME##_iterator<TIt, TFunc>(m_end, m_end, f) \
+        ); \
 	} \
 
 
@@ -570,16 +570,16 @@ namespace sn_LINQ {
 			LinqEnumerable<select_iterator<TIt, TFunc>> select(const TFunc& f) const {
 				return LinqEnumerable<select_iterator<TIt, TFunc>>(
 					select_iterator<TIt, TFunc>(m_begin, f),
-					select_iterator<TIt, TFunc>(m_end, f),
-					);
+					select_iterator<TIt, TFunc>(m_end, f)
+                );
 			}
 
 			template <typename TFunc>
 			LinqEnumerable<where_iterator<TIt, TFunc>> where(const TFunc& f) const {
 				return LinqEnumerable<where_iterator<TIt, TFunc>>(
 					where_iterator<TIt, TFunc>(m_begin, m_end, f),
-					where_iterator<TIt, TFunc>(m_end, m_end, f),
-					);
+					where_iterator<TIt, TFunc>(m_end, m_end, f)
+                );
 			}
 
 
@@ -590,30 +590,30 @@ namespace sn_LINQ {
 			LinqEnumerable<skip_iterator<TIt>> skip(std::size_t count) const {
 				return LinqEnumerable<skip_iterator<TIt>>(
 					skip_iterator<TIt>(m_begin, m_end, count),
-					skip_iterator<TIt>(m_end, m_end, count),
-					);
+					skip_iterator<TIt>(m_end, m_end, count)
+                );
 			}
 
 			LinqEnumerable<take_iterator<TIt>> take(std::size_t count) const {
 				return LinqEnumerable<skip_iterator<TIt>>(
 					take_iterator<TIt>(m_begin, m_end, count),
-					take_iterator<TIt>(m_end, m_end, count),
-					);
+					take_iterator<TIt>(m_end, m_end, count)
+                );
 			}
 
 			template <typename TIt2>
 			LinqEnumerable<concat_iterator<TIt, TIt2>> concat_(const LinqEnumerable<TIt2>& e) const {
 				return LinqEnumerable<concat_iterator<TIt, TIt2>>(
 					concat_iterator<TIt, TIt2>(m_begin, m_end, e.begin(), e.end()),
-					concat_iterator<TIt, TIt2>(m_end, m_end, e.end(), e.end()),
-					);
+					concat_iterator<TIt, TIt2>(m_end, m_end, e.end(), e.end())
+                );
 			}
 
 			SN_LINQ_SUPPORT_STL_CONTAINER(concat)
 
 			template <typename T>
 			bool contains(const T& t) const {
-				for (auto it = m_begin; it != m_end; ++i)
+				for (auto it = m_begin; it != m_end; ++it)
 					if (*it == t)
 						return true;
 				return false;
@@ -621,7 +621,7 @@ namespace sn_LINQ {
 
 			std::size_t count() const {
 				std::size_t counter = 0;
-				for (auto it = m_begin; it != m_end; ++i)
+				for (auto it = m_begin; it != m_end; ++it)
 					++counter;
 				return counter;
 			}
@@ -636,7 +636,7 @@ namespace sn_LINQ {
 			TElement element_at(std::size_t index) const {
 				if (index >= 0) {
 					std::size_t counter = 0;
-					for (auto it = m_begin; it != m_end; ++i) {
+					for (auto it = m_begin; it != m_end; ++it) {
 						if (counter == index)
 							return *it;
 						++counter;
@@ -702,7 +702,7 @@ namespace sn_LINQ {
 				auto x = m_begin;
 				auto xe = m_end;
 				auto y = e.m_begin;
-				auto y2 = e.m_end;
+				auto ye = e.m_end;
 
 				while (x != xe && y != ye)
 					if (*x++ != *y++)
@@ -834,7 +834,7 @@ namespace sn_LINQ {
 				-> Linq<deference_type<iterator_type<std::result_of_t<decltype(f)(TElement)>>>> {
 				using TCollection = std::result_of_t<decltype(f)(TElement)>;
 				using TValue = deference_type<iterator_type<TCollection>>;
-				return select(f).aggregate(from_empty<TValue>{}, [](const Linq<TValue>& a, const TCollection& b) {
+				return select(f).aggregate(from_empty<TValue>(), [](const Linq<TValue>& a, const TCollection& b) {
 					return a.concat(b);
 				});
 			}
@@ -998,9 +998,9 @@ namespace sn_LINQ {
 			auto first_order_by(const TFunc& f) const
 				-> Linq<Linq<TElement>> {
 				using TKey = std::remove_reference_t<std::result_of_t<decltype(f)(TElement)>>;
-				return group_by(f).select([](const zip_pair<TKey, Linq<TElement>>& p{
+				return group_by(f).select([](const zip_pair<TKey, Linq<TElement>>& p) {
 					return p.m_second;
-				}));
+				});
 			}
 
 			template <typename TFunc>
@@ -1023,7 +1023,7 @@ namespace sn_LINQ {
 			LinqEnumerable<zip_iterator<TIt, TIt2>> zip_with_(const LinqEnumerable<TIt2>& e) const {
 				return LinqEnumerable<zip_iterator<TIt, TIt2>>(
 					zip_iterator<TIt, TIt2>(m_begin, m_end, e.begin(), e.end()),
-					zip_iterator<TIt, TIt2>(m_end, m_end, e.end(), e.end()),
+					zip_iterator<TIt, TIt2>(m_end, m_end, e.end(), e.end())
 				);
 			}
 
@@ -1051,7 +1051,7 @@ namespace sn_LINQ {
 			}
 
 			template <typename TFunc>
-			std::map<std::result_of_t<decltype(f)(TElement)>, TElement> to_map(const TFunc& f) const {
+			std::map<std::result_of_t<TFunc(TElement)>, TElement> to_map(const TFunc& f) const {
 				std::map<std::result_of_t<decltype(f)(TElement)>, TElement> container;
 				for (auto it = m_begin; it != m_end; ++it)
 					container.insert(std::make_pair(f(*it), *it));

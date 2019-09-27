@@ -58,7 +58,7 @@ namespace sn_Function {
 		// {2, 3} | f
 		template <typename ...Fns, typename F>
 		inline auto operator|(Chain<Fns...>&& chain, F&& f) {
-			return Chain.add(std::forward<F>(f));
+			return chain.add(std::forward<F>(f));
 		}
 
 	}

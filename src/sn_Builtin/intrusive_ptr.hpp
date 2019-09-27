@@ -232,10 +232,11 @@ namespace sn_Builtin {
 			bool clear_owner() {
 				const std::lock_guard<std::mutex> lock{ m_mutex };
 				m_owner = nullptr;
+				return true;
 			}
 
-			template <typename T>
-			IR_ptr<T> lock_owner() const {
+			template <typename U>
+			IR_ptr<U> lock_owner() const {
 				const std::lock_guard<std::mutex> lock{ m_mutex };
 				const auto other = sn_Assist::sn_cast::static_dynamic_cast<owner_ptr_t>(m_owner);
 				if (!other)
@@ -351,7 +352,7 @@ namespace sn_Builtin {
 				IntrusiveWeakReferencePtr{ std::move(ptr) }.swap(*this);
 			}
 
-			void swap(IntrusiveWeakReferencePtr& rhs) noexcept {
+			void swap(IntrusiveWeakReferencePtr& other) noexcept {
 				const auto view = m_view;
 				m_view = other.m_view;
 				other.m_view = view;

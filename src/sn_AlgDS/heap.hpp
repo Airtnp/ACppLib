@@ -1,7 +1,7 @@
 #ifndef SN_ALGDS_HEAP_H
 #define SN_ALGDS_HEAP_H
 
-#include <bits/stdc++.cpp>
+#include <bits/stdc++.h>
 using namespace std;
 
 namespace heap {
@@ -27,7 +27,7 @@ namespace heap {
         }
 
         LCRSBinaryTreeNode*& kth_child(size_t k) noexcept {
-            TreeNode* res = m_left;
+            LCRSBinaryTreeNode* res = m_left;
             while (k != 0 && res != nullptr) {
                 res = res->sibling();
                 --k;
@@ -51,7 +51,7 @@ namespace heap {
             return m_value;
         }
 
-        const T& value() noexcept {
+        const T& value() const noexcept {
             return m_value;
         }
 
@@ -306,8 +306,8 @@ namespace heap {
 
     // Max-heap
     void adjust_heap(int arr[], size_t sz, size_t parent) {
-        size_t left = idx * 2;
-        size_t right = idx * 2 + 1;
+        size_t left = parent * 2;
+        size_t right = parent * 2 + 1;
         size_t large = parent;
         while (left < sz || right <sz) {
             if (left < sz && arr[parent] < arr[left]) {
@@ -418,8 +418,8 @@ namespace heap {
                 build(2 * root + 2, arr, (beg + end) / 2 + 1, end);
                 m_data[root] = {
                     false,
-                    std::min(m_data[2 * root + 1].min, m_data[2 * root + 2].min, Comp),
-                    std::max(m_data[2 * root + 1].max, m_data[2 * root + 2].max, Comp)
+                    std::min(m_data[2 * root + 1].min, m_data[2 * root + 2].min),
+                    std::max(m_data[2 * root + 1].max, m_data[2 * root + 2].max)
                 };
             }
         }
@@ -427,8 +427,8 @@ namespace heap {
             if (Comp{}(m_data[root].max, vmin) || Comp{}(vmax, m_data[root])) {
                 return;
             }
-            if (root.is_value) {
-                vec.push_back(root.min);
+            if (m_data[root].is_value) {
+                vec.push_back(m_data[root].min);
                 return;
             }
             query(root * 2 + 1, vmin, vmax, vec);
@@ -452,11 +452,11 @@ namespace heap {
         using Node = ZKWHeapNode<T>;
         using Heap = ZKWHeap<T, Op>;
         using Lazy = size_t;
-        static const constexpr init_lazy = 0;
+        static const constexpr uint32_t init_lazy = 0;
         Node* m_nodeList;
         T* m_lazyList;
         size_t* m_L, m_R;
-        size_t m_size;
+        size_t m_sz;
         T init_v;
         
         void fix(size_t pos) {
@@ -490,7 +490,7 @@ namespace heap {
         unsigned int log2(unsigned int x) {
             unsigned int ret;
             __asm__ __volatile__(
-                "brsl %1, %%eax"
+                "bsr %1, %%eax"
                 :"=a"(ret)
                 :"m"(x)
             );
@@ -504,8 +504,8 @@ namespace heap {
             for (size_t i = m_sz + 1; i <= m_sz + n; ++i) {
                 m_nodeList[i].value = init_v;
                 m_lazyList[i] = init_lazy;
-                m_nodeList[i].L = i - M;
-                m_nodeList[i].R = i - M; // Single point
+                m_nodeList[i].L = i - m_sz;
+                m_nodeList[i].R = i - m_sz; // Single point
             }
             for (size_t i = m_sz - 1; i > 0; --i) {
                 // fix(i); // If we have initial operation
@@ -584,14 +584,14 @@ namespace heap {
                         apply_lazy(l ^ 1, op);
                         vl = true;
                     }
-                    sum(tree[l ^ 1]);
+                    sum(m_nodeList[l ^ 1]);
                 }
                 if (r & 1) { // R % 2 == 0 => r = rson(r / 2)
                     if (!vr) {
                         apply_lazy(r ^ 1, op);
                         vr = true;
                     }
-                    sum(tree[r ^ 1]);
+                    sum(m_nodeList[r ^ 1]);
                 }
             }
         }

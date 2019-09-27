@@ -265,7 +265,7 @@ namespace sn_PIC {
 			m_processes.insert(m_processes.end(), p.m_processes.begin(), p.m_processes.end());
 			return *this;
 		}
-		void Parallel::operator()() {
+		void operator()() {
 			std::vector<std::thread> threads;
 			for (auto& p : m_processes) {
 				threads.emplace_back(&Process::operator(), p);
@@ -439,14 +439,13 @@ namespace sn_PIC {
 				m_notFull.notify_one();
 				return result;
 			}
-			value_type push(const value_type& item) {
+			void push(const value_type& item) {
 				std::unique_lock<std::mutex> mlock(m_mtx);
 				while (size() >= m_max)
 					m_notFull.wait(mlock);
 				m_queue.push_back(item);
 				mlock.unlock();
 				m_notEmpty.notify_one();
-				return result;
 			}
 			std::size_t size() const {
 				return m_queue.size();

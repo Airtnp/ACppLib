@@ -7,9 +7,9 @@ namespace sn_Range {
         public:
             using iterator_category = typename std::iterator_traits<It>::iterator_category;
             using value_type = typename std::iterator_traits<It>::value_type;
-            using difference_type = std::iterator_traits<It>::difference_type;
-            using reference = std::iterator_traits<It>::reference;
-            using pointer = std::iterator_traits<It>::pointer;
+            using difference_type = typename std::iterator_traits<It>::difference_type;
+            using reference = typename std::iterator_traits<It>::reference;
+            using pointer = typename std::iterator_traits<It>::pointer;
 
             constexpr Span(It begin, It end)
                 : m_begin(begin), m_end(end) {}
@@ -84,9 +84,9 @@ namespace sn_Range {
         public:
             using iterator_category = typename std::iterator_traits<It>::iterator_category;
             using value_type = typename std::iterator_traits<It>::value_type;
-            using difference_type = std::iterator_traits<It>::difference_type;
-            using reference = std::iterator_traits<It>::reference;
-            using pointer = std::iterator_traits<It>::pointer;
+            using difference_type = typename std::iterator_traits<It>::difference_type;
+            using reference = typename std::iterator_traits<It>::reference;
+            using pointer = typename std::iterator_traits<It>::pointer;
 
             constexpr explicit SpanIterator(It iter)
                 : m_iter(iter) {}
@@ -103,10 +103,10 @@ namespace sn_Range {
                 return *this -= 1;
             }
             SpanIterator operator+(difference_type n) const {
-                return SpanIterator(std::next(m_iter, n)));
+                return SpanIterator(std::next(m_iter, n));
             }
             SpanIterator operator-(difference_type n) const {
-                return SpanIterator(std::prev(m_iter, n)));
+                return SpanIterator(std::prev(m_iter, n));
             }
             SpanIterator& operator+=(difference_type n) & {
                 std::advance(m_iter, n);

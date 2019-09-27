@@ -40,7 +40,7 @@ namespace sn_String {
     }
     */
 
-    std::vector<std::string> split_str(const string& str, char delim = ' ') {
+    std::vector<std::string> split_str(const std::string& str, char delim = ' ') {
         std::istringstream iss{str};
         std::vector<std::string> v;
         for(std::string token; std::getline(iss, token, delim);) {
@@ -80,7 +80,9 @@ namespace sn_String {
         std::string::size_type current_pos = 0;
         std::string::size_type previous_length = 3;
         std::array<std::string, sizeof...(args)> params{ args... };
-        std::initializer_list<int>{(token_pos.push_back(find_string_token(base_string, current_pos, previous_length, args)), 0)...};
+        std::initializer_list<int>{
+            (token_pos.push_back(
+                    detail::find_string_token(base_string, current_pos, previous_length, args)), 0)...};
         std::array<std::size_t, sizeof...(args)> idx;
         for (std::size_t i = 0; i < idx.size(); ++i) {
             idx[i] = i;

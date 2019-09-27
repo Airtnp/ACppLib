@@ -1,10 +1,11 @@
 #ifndef SN_DB_H
 #define SN_DB_H
 
-#include "sn_CommonHeader.h"
+#include "../sn_CommonHeader.h"
+#include "../sn_String.hpp"
 #include <windows.h>
-#include "../3rdParty/mysql/include/mysql.h"
-#include "../3rdParty/gsl/string_span"
+#include "../../3rdParty/mysql/include/mysql.h"
+#include "../../3rdParty/gsl/string_span"
 
 
 #pragma comment(lib, "../3rdParty/mysql/lib/libmysql.lib")
@@ -78,7 +79,9 @@ namespace sn_DBImpl {
 
 		wstring gbk_to_wstring(const string& gbk_str) {
 			string gbk_locale_name = ".936";
-			std::wstring_convert<std::codecvt_byname<wchar_t, char, mbstate_t>> conv(new std::codecvt_byname<wchar_t, char, mbstate_t>(gbk_locale_name));
+			// avoid protected codecvt
+            typedef sn_String::convert::deletable_facet<std::codecvt_byname<wchar_t, char, std::mbstate_t>> F;
+			std::wstring_convert<std::codecvt_byname<wchar_t, char, mbstate_t>> conv(new F(gbk_locale_name));
 			return conv.from_bytes(gbk_str);
 		}
 

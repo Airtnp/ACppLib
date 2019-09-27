@@ -33,7 +33,7 @@ namespace sn_Function {
 			constexpr TrampolineFunc(F&& fn, Args&& args)
 				: m_func(std::forward<F>(fn), std::forward<Args>(args)) {}
 			constexpr auto operator()() const {
-				return m_func(std::forward<Args>(args));
+				return m_func(std::forward<Args>(m_args));
 			}
 		private:
 			template <std::size_t ...I>

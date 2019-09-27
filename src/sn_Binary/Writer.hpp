@@ -33,7 +33,7 @@ namespace sn_Binary {
 				len_t write_bytes;
 				auto p = reinterpret_cast<const byteptr_t>(&obj);
 				byte_t buffer[sizeof(T)];
-				if (m_NeedSwapEndian)
+				if (m_needSwapEndian)
 				{
 #ifdef _MSC_VER
 					const auto copyIterator = stdext::make_checked_array_iterator(buffer, std::size(buffer));
@@ -41,7 +41,7 @@ namespace sn_Binary {
 					const auto copyIterator = buffer;
 #endif
 					std::reverse_copy(p, p + sizeof(T), copyIterator);
-					pRead = buffer;
+					p = buffer;
 				}
 				if ((write_bytes = m_stream->write_bytes(p, sizeof(T)) < sizeof(T))) {
 					SN_LOG_ERROR_WTL(sn_Error::CheckFailed, "Cannot write sizeof(T) bytes.");

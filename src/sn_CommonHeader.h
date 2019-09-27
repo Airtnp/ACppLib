@@ -9,7 +9,6 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cmath>
-#include <intrin.h>
 #include <inttypes.h>
 #include <ctime>
 #include <cassert>
@@ -27,7 +26,8 @@
 /* gcc policy-based data structure
 for detail: https://gcc.gnu.org/onlinedocs/libstdc++/ext/pb_ds/
 */
-#include <ext/pb_ds/>
+#include <ext/pb_ds/assoc_container.hpp>
+#include <ext/pb_ds/tree_policy.hpp>
 #include <x86intrin.h>
 #include <cxxabi.h>
 #else
@@ -80,6 +80,7 @@ for detail: https://gcc.gnu.org/onlinedocs/libstdc++/ext/pb_ds/
 #include <unordered_set>
 #include <stack>
 #include <regex>
+#include <variant>
 
 // For exception
 #include <stdexcept>
@@ -90,27 +91,26 @@ for detail: https://gcc.gnu.org/onlinedocs/libstdc++/ext/pb_ds/
 // For platform-related
 #ifdef _WIN32
 #include <fstream>
-	#ifdef SN_ENABLE_STACK_WALKER
-	#include <stdio.h>
-	#include <windows.h>
-	#include <tchar.h>
-	#pragma comment(lib, "version.lib")
-	#endif
+#include <windows.h>
+
+#ifdef SN_ENABLE_STACK_WALKER
+#include <stdio.h>
+#include <tchar.h>
+#pragma comment(lib, "version.lib")
+#endif
+
 #elif defined(__linux__)
 #include <fcntl.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/mman.h>
+#include <unistd.h>
 	#ifdef SN_ENABLE_STACK_WALKER
         #include <signal.h>
         #include <stdio.h>
         #include <stdlib.h>
         #include <execinfo.h>
-        #include <sys/types.h>
-        #include <sys/stat.h>
         #include <string.h>
-        #include <unistd.h>
-	#endif
-	#ifdef SN_ENABLE_FILE_MAP
-		#include <unistd.h>
-		#include <sys/mman.h>
 	#endif
 #endif
 

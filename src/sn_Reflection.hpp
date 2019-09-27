@@ -75,7 +75,7 @@ namespace sn_Reflection {
 		template <typename T, std::size_t... I>
 		constexpr auto type_to_array_of_type_ids(std::size_t* types) noexcept
 			-> decltype(T{ ubiq<I>{types}... }) {
-			return T{ ubiq<T>{types}... };
+			return T{ ubiq<I>{types}... };
 		}
 
 		template <typename Arr>
@@ -134,7 +134,7 @@ namespace sn_Reflection {
 		template <typename T, std::size_t ...I>
 		constexpr auto array_of_type_ids_to_index_sequence(std::index_sequence<I...>) noexcept {
 			constexpr auto arr = array_of_type_ids<T>();
-			return std::index_sequence<get<I>(a)...>{};
+			return std::index_sequence<get<I>(arr)...>{};
 		}
 
 
@@ -174,7 +174,7 @@ namespace sn_Reflection {
 				return t.value;
 			}
 
-			template <std::size_t N, typename T>
+			template <std::size_t N, typename ...T>
 			constexpr decltype(auto) get(const tuple<T...>& t) noexcept {
 				static_assert(N < tuple<T...>::size_v, "Tuple index out of bounds");
 				return get_impl<N>(t);

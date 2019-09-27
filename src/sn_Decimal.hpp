@@ -49,7 +49,10 @@ namespace sn_Decimal {
 		static const size_t block_size = std::is_same<T, sn_decimal_bit>::value ? T::size : 8 * type_size - static_cast<size_t>(std::is_signed<T>::value);
 		static const size_t type_sign = std::is_same<T, sn_decimal_bit>::value ? T::sign : static_cast<size_t>(std::is_signed<T>::value);
 		using block_max_t = typename std::conditional<std::is_same<T, sn_decimal_bit>::value, short, T>::type;
-		static const block_max_t block_max = std::is_same<T, sn_decimal_bit>::value ? sn_decimal_bit::max : static_cast<T>(static_cast<long long>(1 << block_size) - 1);
+		static const block_max_t block_max =
+		        std::is_same<T, sn_decimal_bit>::value ?
+		        static_cast<block_max_t>(sn_decimal_bit::max)
+		        : static_cast<block_max_t>(static_cast<long long>(1 << block_size) - 1);
 		size_t length;
 		sn_block_array() noexcept : capacity(0), length(0), blocks(nullptr) {
 		}
@@ -144,11 +147,13 @@ namespace sn_Decimal {
 
 		sn_unsigned_decimal(const std::string& str, sn_number_string format = sn_number_string::dec) {
 			std::string trim_str = trim_zero(str);
+			int idx = 0;
 			switch (format) {
 			case(sn_number_string::dec):
 				block_arr.allocate_cap(trim_str.length());
 				for (const auto& c : trim_str) {
-					block_arr[i] = c - '0';
+					block_arr[idx] = c - '0';
+					++idx;
 				}
 				break;
 			case(sn_number_string::bin):
@@ -158,7 +163,7 @@ namespace sn_Decimal {
 			case(sn_number_string::hex):
 				break;
 			default:
-				sn_basic_log(cerr, std::string("Format not supported"))
+				SN_BASIC_LOG(std::cerr, std::string("Format not supported"));
 				break;
 			}
 		}
@@ -192,8 +197,8 @@ namespace sn_Decimal {
 			T block_last_left = 0;
 			
 			for (size_t i = 0; i < block_cnt_max + 1; ++i) {
-				long long int lhs_v = (i < block_arr.length ? block_arr[i] : 0);
-				long long int rhs_v = (i < rhs.block_arr.length ? rhs.block_arr[i] : 0);
+				long long int lhs_v = (i < block_arr.length ? (long long)block_arr[i] : 0);
+				long long int rhs_v = (i < rhs.block_arr.length ? (long long)rhs.block_arr[i] : 0);
 
 				long long int block_cur_sum = lhs_v + rhs_v + block_last_left; //avoid overflow
 				if (block_cur_sum > M) {

@@ -1,8 +1,6 @@
 #ifndef SN_FUNCTION_CURRY_H
 #define SN_FUNCTION_CURRY_H
 
-#ifdef SN_ENABLE_EXPERIMENTAL_CPP17
-
 #include <utility>
 #include <tuple>
 #include <type_traits>
@@ -39,13 +37,13 @@ namespace sn_Function {
 			constexpr forward_capture_tuple(TF&& x) noexcept(std::is_nothrow_constructible<base_t, TF>::value)
 				: base_t(std::forward<TF>(x)) {}
 		public:
-			constexpr auto& get() noexcept {
+			constexpr auto& get() & noexcept {
 				return std::get<0>(as_tuple());
 			}
 			constexpr const auto& get() const & noexcept {
 				return std::get<0>(as_tuple());
 			}
-			constexpr auto get() && noexcept(std::is_move_constructible<decay_t>::value) {
+			constexpr auto&& get() && noexcept(std::is_move_constructible<decay_t>::value) {
 				return std::move(std::get<0>(as_tuple()));
 			}	
 		};
@@ -66,25 +64,29 @@ namespace sn_Function {
 			using base_t = forward_capture_tuple<T>;
 		public:
 			template <typename TF>
-			constexpr forward_capture_wrapper(TF&& x) noexcept(std::is_nothrow_constructible<base_t, TF>::value)
+			constexpr forward_copy_capture_wrapper(TF&& x) noexcept(std::is_nothrow_constructible<base_t, TF>::value)
 				: base_t(x) {}
 		};
 
 		template <typename T>
-		constexpr auto make_forward_capture(T&& x) noexcept(forward_capture_wrapper<T>(std::forward<T>(x))) {
+		constexpr auto make_forward_capture(T&& x)
+		    noexcept(forward_capture_wrapper<T>::forward_capture_wrapper(std::declval<T>())) {
 			return forward_capture_wrapper<T>(std::forward<T>(x));
 		}
 		template <typename T>
-		constexpr auto make_forward_copy_capture(T&& x) noexcept(forward_copy_capture_wrapper<T>(std::forward<T>(x))) {
+		constexpr auto make_forward_copy_capture(T&& x)
+		    noexcept(forward_copy_capture_wrapper<T>::forward_copy_capture_wrapper(std::declval<T>())) {
 			return forward_copy_capture_wrapper<T>(std::forward<T>(x));
 		}
 
 		template <typename ...Ts>
-		constexpr auto make_forward_capture_as_tuple(Ts&&... xs) noexcept(std::make_tuple(forward_capture_wrapper(std::forward<Ts>(xs))...)) {
+		constexpr auto make_forward_capture_as_tuple(Ts&&... xs)
+		    noexcept(std::make_tuple(forward_capture_wrapper<Ts>::forward_capture_wrapper(std::declval<Ts>())...)) {
 			return std::make_tuple(forward_capture_wrapper(std::forward<Ts>(xs))...);
 		}
 		template <typename ...Ts>
-		constexpr auto make_forward_copy_capture_as_tuple(Ts&&... xs) noexcept(std::make_tuple(forward_copy_capture_wrapper(std::forward<Ts>(xs))...)) {
+		constexpr auto make_forward_copy_capture_as_tuple(Ts&&... xs)
+		    noexcept(std::make_tuple(forward_copy_capture_wrapper<Ts>::forward_copy_capture_wrapper(std::declval<Ts>())...)) {
 			return std::make_tuple(forward_copy_capture_wrapper(std::forward<Ts>(xs))...);
 		}
 
@@ -109,7 +111,7 @@ namespace sn_Function {
 		template <typename T, typename U>
 		using as_if_forwarded = std::conditional_t<!std::is_reference<U>::value,
 			std::add_rvalue_reference_t<std::remove_reference_t<T>>,
-		    copy_referenceness<T, U>>;
+		    copy_referenceness_impl<T, U>>;
 
 		// forwards the passed argument with the same value category of the potentially-unrelated specified type. It basically copies the "lvalue/rvalue-ness" of the user-provided template parameter and applies it to its argument.
 		template <typename U, typename T>
@@ -121,7 +123,7 @@ namespace sn_Function {
 
 		template <typename TF>
 		constexpr decltype(auto) make_lambda_curry(TF&& f) {
-			if constexpr (std::is_callable_v<TF&&()>) {
+			if constexpr (std::is_invocable_v<TF>) {
 				return std::forward<TF>(f)();
 			}
 			else {
@@ -138,8 +140,8 @@ namespace sn_Function {
 										-> decltype(forward_like<TF>(yf.get())(std::forward<decltype(ys)>(ys)...)) {
 										return forward_like<TF>(yf.get())(std::forward<decltype(ys)>(ys)...);
 									},
-									partial_pack, make_forward_capture_as_tuple(std::forward<decltype(xs)>(xs)...);
-								)
+									partial_pack, make_forward_capture_as_tuple(std::forward<decltype(xs)>(xs)...)
+								);
 						}
 					);
 				};
@@ -148,7 +150,5 @@ namespace sn_Function {
 	}
 
 }
-
-#endif
 
 #endif

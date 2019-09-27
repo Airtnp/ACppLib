@@ -2,14 +2,37 @@
 #define SN_THREAD_LOCK_GUARD_H
 
 #include "../sn_CommonHeader.h"
+#include "../sn_Config.hpp"
 
 namespace sn_Thread {
     
 	namespace lock_guard {
 
+#if defined(SN_CONFIG_COMPILER_MSVC)
+// only MSVC non-standard can concatenate .##func
 		SN_HAS_MEMBER_FUNCTION(lock)
 		SN_HAS_MEMBER_FUNCTION(unlock)
+#else
+        template <typename C, typename R, typename V = std::void_t<>, typename... Args>
+        struct sn_has_member_function_lock : std::false_type {};
+        template <typename C, typename R, typename... Args>
+        struct sn_has_member_function_lock<C, R(Args...),
+		std::enable_if_t<
+			std::is_same<
+				R, decltype(std::declval<C>().lock(std::declval<Args>()...))
+			>::value, R
+		>, Args...> : std::true_type {};
 
+        template <typename C, typename R, typename V = std::void_t<>, typename... Args>
+        struct sn_has_member_function_unlock : std::false_type {};
+        template <typename C, typename R, typename... Args>
+        struct sn_has_member_function_unlock<C, R(Args...),
+                std::enable_if_t<
+                        std::is_same<
+                                R, decltype(std::declval<C>().unlock(std::declval<Args>()...))
+                        >::value, R
+                >, Args...> : std::true_type {};
+#endif
 		
 		template <typename T>
 		struct IsLockableAndUnLockable {
@@ -23,7 +46,7 @@ namespace sn_Thread {
 		private:
 			static_assert(std::conjunction<IsLockableAndUnLockable<Args>...>::value, "Locks should be lockable and unlockable");
 			
-			template <std::size_t a, std::size_t b, std::size_t step>
+			template <std::size_t a, std::size_t b, std::size_t step = 1>
 			struct GetNextConstant : std::conditional_t < a < b, std::integral_constant<std::size_t, a + step>, std::integral_constant<std::size_t, a - step>> {};
 
 			template <std::size_t current, std::size_t target>
@@ -31,13 +54,13 @@ namespace sn_Thread {
 				template <typename T>
 				static void lock(T&& tp) {
 					std::get<current>(tp).lock();
-					LockImpl<GetNextConstant<current, target>::value, target>::lock(tp);
+					Impl<GetNextConstant<current, target>::value, target>::lock(tp);
 				}
 
 				template <typename T>
 				static void unlock(T&& tp) {
 					std::get<current>(tp).unlock();
-					LockImpl<GetNextConstant<current, target>::value, target>::unlock(tp);
+					Impl<GetNextConstant<current, target>::value, target>::unlock(tp);
 				}
 			};
 
@@ -72,7 +95,7 @@ namespace sn_Thread {
 			T& thd;
 		public:
 			scope_thread(T& t) : thd{t} {}
-			~scope_thread {
+			~scope_thread() {
 				if (thd.joinable()) {
 					thd.join();
 				}
@@ -124,9 +147,9 @@ namespace sn_Thread {
 			valid.set_value(); // Unblock async_wrapper waiting for "future" to become valid
 			moved_future.wait(); // Wait for "future" to actually be moved
 		}
-	}
+	};
 
-	constexpr const unsigned int32_t max_hazard_pointers = 100;
+	constexpr const unsigned int max_hazard_pointers = 100;
 
 	// Every reader thread contains a single-writer multiple-reader pointer
 	struct hazard_pointer {
@@ -153,7 +176,7 @@ namespace sn_Thread {
 			}
 
 			if (!hp) {
-				throw std::runtime_error(“No hazard pointers available.”);
+				throw std::runtime_error("No hazard pointers available.");
 			}
 		}
 

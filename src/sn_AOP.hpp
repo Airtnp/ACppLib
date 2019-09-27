@@ -16,10 +16,29 @@ namespace sn_AOP {
 			template <typename F>
 			VoidAspect(const F& f) : m_func(f) {	}
 
-#if defined(__GNUC__)
-			sn_has_member_function(before)
-				sn_has_member_function(after)
-				//or if constexpr
+#if defined(SN_CONFIG_COMPILER_MSVC)
+			SN_HAS_MEMBER_FUNCTION(before)
+			SN_HAS_MEMBER_FUNCTION(after)
+#else
+            template <typename C, typename R, typename V = std::void_t<>, typename... Args>
+            struct sn_has_member_function_before : std::false_type {};
+            template <typename C, typename R, typename... Args>
+            struct sn_has_member_function_before<C, R(Args...),
+                    std::enable_if_t<
+                            std::is_same<
+                                    R, decltype(std::declval<C>().before(std::declval<Args>()...))
+                            >::value, R
+                    >, Args...> : std::true_type {};
+
+            template <typename C, typename R, typename V = std::void_t<>, typename... Args>
+            struct sn_has_member_function_after : std::false_type {};
+            template <typename C, typename R, typename... Args>
+            struct sn_has_member_function_after<C, R(Args...),
+                    std::enable_if_t<
+                            std::is_same<
+                                    R, decltype(std::declval<C>().after(std::declval<Args>()...))
+                            >::value, R
+                    >, Args...> : std::true_type {};
 #endif
 
 				template <typename T>
@@ -32,12 +51,12 @@ namespace sn_AOP {
 				__if_exists(value::after) {
 					value.after();
 				}
-#elif defined(__GNUC__)
-				if (sn_has_member_function_value(value, before, void, void)) {
+#else
+				if (sn_has_member_function_before<T, void(void)>::value) {
 					value.before();
 				}
 				m_func();
-				if (sn_has_member_function_value(value, after, void, void)) {
+				if (sn_has_member_function_after<T, void(void)>::value) {
 					value.after();
 				}
 #endif
@@ -54,12 +73,12 @@ namespace sn_AOP {
 					head.after();
 				}
 #elif defined(__GNUC__)
-				if (sn_has_member_function_value(head, before, void, void)) {
-					value.before();
+				if (sn_has_member_function_before<H, void(void)>::value) {
+					head.before();
 				}
-				m_func();
-				if (sn_has_member_function_value(head, after, void, void)) {
-					value.after();
+				invoke(std::forward<TArgs>(tail)...);
+				if (sn_has_member_function_after<H, void(void)>::value) {
+					head.after();
 				}
 #endif
 			}

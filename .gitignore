@@ -853,3 +853,16 @@ some_worth_implement.md
 *.jpg
 
 *.stackdump
+
+Debug/
+
+cmake-build-debug/
+
+CMakeCache.txt
+
+CMakeFiles/
+
+ACppTest
+
+.idea/
+

@@ -6,10 +6,18 @@
 namespace sn_String {
 	// TODO: add https://www.codeproject.com/Articles/38242/Reading-UTF-with-C-streams
     namespace convert {
+        // @ref: https://en.cppreference.com/w/cpp/locale/wstring_convert/wstring_convert
+        // utility wrapper to adapt locale-bound facets for wstring/wbuffer convert
+        template<class Facet>
+        struct deletable_facet : Facet {
+            using Facet::Facet; // inherit constructors
+            ~deletable_facet() {}
+        };
+
         constexpr const std::size_t MAXBUFFERSIZE = 2048;
         inline char* UTF8_to_string(const char* src, char* dest, unsigned int dest_size) {
             wchar_t wbuffer[MAXBUFFERSIZE];
-#ifdef __WIN32__ && SN_ENABLE_WINDOWS_API
+#if defined(__WIN32__) && defined(SN_ENABLE_WINDOWS_API)
             ::MultiByteToWideChar(CP_ACP, 0, src, -1, wbuffer, MAXBUFFERSIZE);
             ::WideCharToMultiByte(CP_UTF8, 0, wbuffer, -1, dest, dest_size, NULL, NULL);
 #else
@@ -25,25 +33,30 @@ namespace sn_String {
 		using std::setw;
 		using std::setfill;
 		string wstring_to_utf8(const wstring& str) {
-			std::wstring_convert<std::codecvt_utf8<wchar_t>> myconv;
+            using F = deletable_facet<std::codecvt_utf8<wchar_t>>;
+			std::wstring_convert<F> myconv;
 			return myconv.to_bytes(str);
 		}
 
 		wstring gbk_to_wstring(const string& gbk_str) {
 			string gbk_locale_name = ".936";
-			std::wstring_convert<std::codecvt_byname<wchar_t, char, mbstate_t>> conv(new std::codecvt_byname<wchar_t, char, mbstate_t>(gbk_locale_name));
+            using F = deletable_facet<std::codecvt_byname<wchar_t, char, std::mbstate_t>>;
+			std::wstring_convert<F> conv(
+			        new F(gbk_locale_name));
 			return conv.from_bytes(gbk_str);
 		}
 
 		//for outputing chinese rows, we use wcout(.imbue(local("chs"))) << utf8_to_wstring(content)
 		wstring utf8_to_wstring(const string& str) {
-			std::wstring_convert<std::codecvt_utf8<wchar_t>> myconv;
+            using F = deletable_facet<std::codecvt_utf8<wchar_t>>;
+			std::wstring_convert<F> myconv;
 			return myconv.from_bytes(str);
 		}
 
 		wstring string_to_wstring(const string& str) {
+            using F = deletable_facet<std::codecvt_utf8_utf16<wchar_t>>;
 			try {
-				std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> conv;
+				std::wstring_convert<F> conv;
 				wstring wstr = conv.from_bytes(str);
 				return wstr;
 			}
@@ -55,7 +68,8 @@ namespace sn_String {
 		}
 
 		string wstring_to_string(const wstring& wstr) {
-			std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> conv;
+            using F = deletable_facet<std::codecvt_utf8_utf16<wchar_t>>;
+			std::wstring_convert<F> conv;
 			string str = conv.to_bytes(wstr);
 			return str;
 		}
@@ -94,7 +108,7 @@ namespace sn_String {
 			std::cout << std::dec << '\n';
 		}
 
-#ifdef __WIN32__ && SN_ENABLE_WINDOWS_API
+#if defined(__WIN32__) && defined(SN_ENABLE_WINDOWS_API)
 		std::string ConvertFromUtf16ToUtf8(const std::wstring& wstr) {
 			std::string convertedString;
 			int requiredSize = WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), -1, 0, 0, 0, 0);

@@ -20,12 +20,13 @@ namespace dynamic_programming {
             auto p = mt.find(capacity);
             if (p != mt.end())
                 return p->second;
+            // should return last item negative...
             if (capacity < 0)
-                return -item[0];
+                return 0;
             if (index == value.size())
                 return 0;
-            res1 = recursive_1d_knapsack_helper(capacity, index + 1, size, value, mt);
-            res2 = recursive_1d_knapsack_helper(capacity - size[index], index + 1, size, value, mt) + value[index];
+            T res1 = recursive_1d_knapsack_helper(capacity, index + 1, size, value, mt);
+            T res2 = recursive_1d_knapsack_helper(capacity - size[index], index + 1, size, value, mt) + value[index];
             T res = res1 > res2 ? res1 : res2;
             mt.insert({ capacity, res });
             return res;

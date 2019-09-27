@@ -525,7 +525,7 @@ namespace sn_Function {
 						m_internal->m_isEvaluated = true;
 						m_internal->m_value = sn_Assist::sn_tuple_assist::invoke_tuple(m_internal->m_evaluator, m_internal->m_args);
 					}
-					return m_internal_value;
+					return m_internal;
 				}
 				throw std::bad_exception("Uninitialized internal value");
 			}
@@ -546,7 +546,7 @@ namespace sn_Function {
 
 		template <typename R, typename ...Args>
 		Lazy<R, Args...> make_lazy(Func<R(Args...)>&& func, Args&&... args) {
-			return Lazy(std::forward<Func(R(Args...))> func, std::forward<Args>(args)...);
+			return Lazy(std::forward<Func<R(Args...)>>(func), std::forward<Args>(args)...);
 		}
 
 	}

@@ -27,7 +27,6 @@ namespace point {
 }
 
 namespace basic {
-    //˳��� ����/����/��չ/���������֣�/����/ɾ��
     template <typename T>
     class vector {
     private:
@@ -129,7 +128,7 @@ namespace basic {
                 head = node;
                 return;
             }
-            node<T> *current_node = head;
+            ::basic::node<T>* current_node = head;
             int count = 0;
             while (current_node->next != NULL && count < index - 1) {
                 current_node = current_node->next;
@@ -230,7 +229,7 @@ namespace basic {
             head = (head + 1) % length;
             count--;
         }
-        void empty() {
+        bool empty() {
             return count == 0;
         }
         bool find(const T& elem) {
@@ -413,7 +412,7 @@ namespace basic {
     template <typename T>
     class binary_tree {
     private:
-        bin_node *root;
+        bin_node<T> *root;
     public:
         binary_tree() {
             root = nullptr;
@@ -740,9 +739,10 @@ namespace basic {
         const int size;
         vector<E> data;
         graph(int size_) : size(size_) {
-            for (int i = 0; i < size; ++i)
+            for (int i = 0; i < size; ++i) {
                 E me(size);
-            data.push_back(move(me));
+                data.push_back(move(me));
+            }
         }
         E& operator[] (const int& index) {
             return data[index];
@@ -784,6 +784,9 @@ namespace basic {
                     return false;
             }
             return true;
+        }
+        bool operator[](std::size_t idx) {
+            return data[idx];
         }
     };
 

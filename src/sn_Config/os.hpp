@@ -6,7 +6,7 @@ namespace sn_Config {
         struct windows32 {};
         struct windows64 {};
         struct macosx {};
-        struct linux {};
+        struct klinux {};
         struct other_os {};
     }
 }
@@ -33,7 +33,7 @@ typedef sn_Config::os::macosx sn_platform_type;
 
 #elif defined(__linux__)
 
-typedef sn_Config::os::linux sn_platform_type;
+typedef sn_Config::os::klinux sn_platform_type;
 #define SN_CONFIG_OS_LINUX
 #define SN_CONFIG_OS_REPL "Linux"
 

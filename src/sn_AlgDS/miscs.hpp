@@ -70,11 +70,11 @@ namespace misc {
 #endif
     }
         
-    inline void fread_adj(void *data, size_t size, size_t count, FILE *stream) {
+    inline int fread_adj(void *data, size_t size, size_t count, FILE *stream) {
 #if defined(__POSIX__)
-        fread_unlocked(data, size, count, stream);
+        return fread_unlocked(data, size, count, stream);
 #else
-        fread(data, size, count, stream);
+        return fread(data, size, count, stream);
 #endif
     }
 
@@ -83,9 +83,9 @@ namespace misc {
     char* sn_alg_fread_s = sn_alg_fread_buf + SN_ALG_FREAD_BUFFER_SIZE;
     size_t sn_alg_fread_sz = SN_ALG_FREAD_BUFFER_SIZE;
 
-    inline char getc_fread(void) {
+    inline char getc_fread() {
         if (sn_alg_fread_s >= sn_alg_fread_buf + SN_ALG_FREAD_BUFFER_SIZE) {
-            sn_alg_fread_sz = fread_unlocked(sn_alg_fread_buf, sizeof(char), SN_ALG_FREAD_BUFFER_SIZE, stdin);
+            sn_alg_fread_sz = fread_adj(sn_alg_fread_buf, sizeof(char), SN_ALG_FREAD_BUFFER_SIZE, stdin);
             sn_alg_fread_s = sn_alg_fread_buf;
         }
         return *(sn_alg_fread_s++);
@@ -102,7 +102,6 @@ namespace misc {
             x = (x << 3) + (x << 1) + c - 48;
             c = getchar_adj();
         }
-        return fg;
     }
     
     inline void read_int(int& x) {
@@ -147,7 +146,6 @@ namespace misc {
             x = (x << 3) + (x << 1) + c - 48;
             c = getc_fread();
         }
-        return fg;
     }
     
     inline void read_int_f(int& x) {
@@ -220,7 +218,7 @@ namespace misc {
     inline unsigned int log2(unsigned int x) {
         unsigned int ret;
         __asm__ __volatile__(
-            "brsl %1, %%eax"
+            "bsr %1, %%eax"
             :"=a"(ret)
             :"m"(x)
         );
@@ -235,8 +233,7 @@ namespace misc {
             "tdivl %%ecx\n"
             :"=d"(ret)
             :"a"(a)
-            ,"b"(b)
-            "c"(m)
+            ,"b"(b), "c"(m)
         );
         return ret;
     }

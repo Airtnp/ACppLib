@@ -187,8 +187,8 @@ namespace sn_JSON {
 				}
 
 				basic_json& operator=(const char* p) noexcept {
-					m_type(value_t::string);
-					m_value(std::string(p));
+					m_type = value_t::string;
+					m_value = std::string(p);
 					return *this;
 				}
 

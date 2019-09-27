@@ -12,4 +12,4 @@ namespace sn_Decimal_test {
 	}
 }
 
-#endif SN_TEST_ALG_H
+#endif

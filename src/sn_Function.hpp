@@ -34,7 +34,7 @@ namespace sn_Function {
 	using trampoline::make_trampoline_wrapper;
 	using YCombinator::Y;
 	using YCombinator::YA;
-	using template_currying::TPC;
+	// using template_currying::TPC;
 
 }
 

@@ -173,7 +173,7 @@ namespace sn_Type {
 				create(val);
 			}
 			Optional(T&& val) : m_isInit(false) {
-				create(std::move(v));
+				create(std::move(val));
 			}
 			~Optional() {
 				destroy();
@@ -1104,19 +1104,18 @@ namespace sn_Type {
 			const std::type_info* m_info;
 		public:
 			typeinfo()
-				: m_info(0) {}
+				: m_info(nullptr) {}
 			typeinfo(const std::type_info& t)
-				: m_info(&t);
+				: m_info(&t) {};
 			inline const char* name() const {
 				return m_info ? m_info->name() : "";
 			}
 			inline bool operator<(const typeinfo& rhs) const {
 				return (m_info != rhs.m_info) &&
-					(!m_info !! (rhs.m_info && static_cast<bool>(m_info->before(*rhs.m_info))));
+					(!m_info != (rhs.m_info && static_cast<bool>(m_info->before(*rhs.m_info))));
 			}
-			inline bool operator==(const typeinfo& that) const {
-				return (m_info == rhs.m_info) &&
-					(m_info !! (rhs.m_info && static_cast<bool>(m_info == rhs.m_info));
+			inline bool operator==(const typeinfo& rhs) const {
+				return (m_info == rhs.m_info);
 			}
 		};
 
@@ -1159,7 +1158,7 @@ namespace sn_Type {
 			}
 			template <typename T>
 			bool find(const userkey_t& name) const {
-				return m_map.find(key_t(name, typeid(T))) != map_.end();
+				return m_map.find(key_t(name, typeid(T))) != m_map.end();
 			}
 			template <typename T>
 			bool get(T& dest, const userkey_t& name) const {
@@ -1171,7 +1170,14 @@ namespace sn_Type {
 			}
 			template <typename T>
 			T get(const userkey_t& name) const {
-				std::initialized_value<T> v;
+				// wish there be something like that...
+			    // std::uninitialized_value<T> v;
+			    // @HACK: that's UB I guess, prefer aligned_storage<sizeof(T), alignof(T>>?
+			    union uninitialized_value {
+			        T result;
+			        char temp[sizeof(T)];
+			    };
+			    uninitialized_value v;
 				get(v.result, name);
 				return v.result;
 			}
@@ -1245,7 +1251,7 @@ namespace sn_Type {
 	namespace helper {
 		template <typename T, typename ...Args>
 		any::Any make_any(Args&&... args) {
-			return any::Any<T, Args...>(std::forward<Args>(args)...); 
+			return any::Any::Any<T, Args...>(std::forward<Args>(args)...);
 		}
 		
 		template <typename T>
@@ -1254,14 +1260,16 @@ namespace sn_Type {
 		}
 
 		template <typename T, typename ...Args>
-		constexpr optional::Optional<std::decay_t<T>> make_optional(T&& value) {
+		constexpr optional::Optional<std::decay_t<T>> make_optional(T&& value, Args&&... args) {
 			return optional::Optional<std::decay_t<T>>(std::forward<T>(value)).emplace(std::forward<Args>(args)...);
 		}
 
 		// actual it's not constexpr index()
 		template <typename Overloader, typename ...Args>
 		constexpr auto visit(Overloader&& vis, variant::Variant<Args...> var) {
-			return sn_Assist::sn_invoke(std::forward<Overloader>(vis), var.get<sn_Assist::sn_type_assist::visit_at<var.index(), Args...>>());
+			return sn_Assist::sn_invoke::invoke(
+			        std::forward<Overloader>(vis),
+			        var.template get<typename sn_Assist::sn_type_assist::visit_at<var.index(), Args...>::type>());
 		}
 
 		/* Usage:

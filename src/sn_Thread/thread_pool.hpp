@@ -40,7 +40,7 @@ namespace sn_Thread {
 
             void wait_for_completion() {
                 stop();
-                joinAll();
+                join_all();
                 assert(m_work.empty());
             }
 
@@ -71,43 +71,15 @@ namespace sn_Thread {
                 return std::move(future);
             }
 
-            template<>
-            std::future<void> submit(std::function<void()>&& function) {
-                if (m_exit) {
-                    throw std::runtime_error("Caught work submission to work queue that is desisting.");
-                }
-                // Workaround for lack of lambda move capture
-                typedef std::pair<std::promise<void>, std::function<void()>> retpair_t;
-                std::shared_ptr<retpair_t> data = std::make_shared<retpair_t>(std::promise<void>(), std::move(function));
-
-                std::future<void> future = data->first.get_future();
-
-                {
-                    std::lock_guard<std::mutex> lg(m_mutex);
-                    m_work.emplace_back([data](){
-                        try {
-                            data->second();
-                            data->first.set_value();
-                        }
-                        catch (...) {
-                            data->first.set_exception(std::current_exception());
-                        }
-                    });
-                }
-                m_signal.notify_one();
-
-                return std::move(future);
-            }
-
             template <typename F, typename ...Args>
             auto submit(F&& func, Args&&... args) {
                 // maybe use std::packaged_task
                 using result_t = std::result_of_t<F(Args...)>;
-                std::function<result_t()> func = std::bind(
-                    std::forward<F>(func),
-                    std::forward<Args>(args)...
+                std::function<result_t()> xfunc = std::bind(
+                        std::forward<F>(func),
+                        std::forward<Args>(args)...
                 );
-                return this->submit(std::move(func));                
+                return this->submit(std::move(xfunc));
             }
 
         private:
@@ -148,6 +120,34 @@ namespace sn_Thread {
             void operator=(const WorkQueue&) = delete;
             WorkQueue(const WorkQueue&) = delete;
         };
+
+        template<>
+        std::future<void> WorkQueue::submit(std::function<void()>&& function) {
+            if (m_exit) {
+                throw std::runtime_error("Caught work submission to work queue that is desisting.");
+            }
+            // Workaround for lack of lambda move capture
+            typedef std::pair<std::promise<void>, std::function<void()>> retpair_t;
+            std::shared_ptr<retpair_t> data = std::make_shared<retpair_t>(std::promise<void>(), std::move(function));
+
+            std::future<void> future = data->first.get_future();
+
+            {
+                std::lock_guard<std::mutex> lg(m_mutex);
+                m_work.emplace_back([data](){
+                    try {
+                        data->second();
+                        data->first.set_value();
+                    }
+                    catch (...) {
+                        data->first.set_exception(std::current_exception());
+                    }
+                });
+            }
+            m_signal.notify_one();
+
+            return std::move(future);
+        }
     }
 }
 

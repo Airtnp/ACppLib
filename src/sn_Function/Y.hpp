@@ -34,19 +34,20 @@ namespace sn_Function {
 			YBuilder(FT partial_)
 				: partial(std::forward<FT>(partial_)) {}
 			
-			R operator(Args&&... args) {
+			R operator()(Args&&... args) {
 				return partial(
 					[this](Args&&... args) {
 						return this->operator()(std::forward<Args>(args)...);
 					}, std::forward<Args>(args)...);
-				)
 			}
 		};
 
+        template <typename F>
+        using Tr = sn_Assist::sn_function_traits::function_traits<F>;
+
 		template <typename C>
 		auto Y(C&& partial) {
-			using Tr = sn_Assist::sn_function_traits::function_traits;
-			using FT = typename Tr<C>::function_type;
+		    using FT = typename Tr<C>::function_type;
 			return YBuilder<FT>(std::forward<C>(partial));
 		}
 
@@ -63,19 +64,21 @@ namespace sn_Function {
 			});
 		*/
 
-		auto YL = [](auto f) { return 
-						[](auto x) { 
-							return x (x); 
-						}
-					}(
-						[=](auto y) { return 
-							f (
-								[=](auto a) { return 
-									(y(y))(a); 
-								}
-							);
-						}
-					);
+		auto YL() {
+            return [](auto f) {
+                return [](auto x) {
+                    return x(x);
+                };
+            }(
+                [=](auto y) {
+                    return f(
+                        [=](auto a) {
+                            return (y(y))(a);
+                        }
+                    );
+                }
+            );
+        }
 
 	}
 }

@@ -75,7 +75,7 @@ namespace sn_Assist {
 
 		//For p::f() & and p::f() &&
 
-		SN_INVOKE_GEN(SN_INVOKE_EMPTY_ARGUMENT)
+		// SN_INVOKE_GEN(SN_INVOKE_EMPTY_ARGUMENT)
 		SN_INVOKE_GEN(&)
 		SN_INVOKE_GEN(&&)
 		SN_INVOKE_GEN(const)

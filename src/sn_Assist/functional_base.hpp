@@ -89,10 +89,10 @@ namespace sn_Assist {
 			singleton_of() = delete;
 		public:
 			static T* get_instance() {
-				std::call_once(guard, []{ ptr = make_shared<T>() });
+				std::call_once(guard, []{ ptr = std::make_shared<T>(); });
 				return ptr;
 			}
-		}
+		};
 
 		/* DCLP
 		std::atomic<Singleton*> Singleton::m_instance;
@@ -123,8 +123,8 @@ namespace sn_Assist {
 		*/
 
 		template <typename T>
-		std::once_flag singleton_of::guard;
+		std::once_flag singleton_of<T>::guard;
 		template <typename T>
-		T* singleton_of::ptr;
+		std::shared_ptr<T> singleton_of<T>::ptr;
 	}
 }

@@ -23,12 +23,12 @@ namespace sn_Range {
 
 
 		template <std::size_t N>
-		FakeIt begin(StaticForRange<N>& fr) {
+		FakeIt<std::size_t> begin(StaticForRange<N>& fr) {
 			return { 0 };
 		}
 
 		template <std::size_t N>
-		FakeIt end(StaticForRange<N>& fr) {
+        FakeIt<std::size_t> end(StaticForRange<N>& fr) {
 			return { N };
 		}
 

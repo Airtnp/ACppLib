@@ -626,8 +626,8 @@ namespace sn_Stream {
 
 		class FileStream : public sn_Builtin::reference_counter::ReferenceCounter<IStream> {
 		public:
-#ifdef _WIN32
-			using handle_t = HANDLE;
+#if defined(SN_CONFIG_OS_WIN)
+		using handle_t = HANDLE;
 #else
 			using handle_t = int;
 #endif
@@ -828,13 +828,13 @@ namespace sn_Stream {
 					return m_mappedStream;
 				m_mappedFile = CreateFileMapping(m_file, NULL,
 					m_writable ? PAGE_READWRITE : PAGE_READONLY,
-					NULL, NULL, NULL);
+					0, 0, NULL);
 				if (!m_mappedFile || m_mappedFile == INVALID_HANDLE_VALUE)
 					SN_LOG_ERROR_WTL(sn_Error::APIFailed, "CreateFileMapping failed.");
 
 				auto pFile = MapViewOfFile(m_mappedFile,
 					(m_readable ? FILE_MAP_READ : 0) | (m_writable ? FILE_MAP_WRITE : 0),
-					NULL, NULL, NULL);
+					0, 0, 0);
 				if (!pFile)
 					SN_LOG_ERROR_WTL(sn_Error::APIFailed, "MapViewOfFile failed.");
 
@@ -867,11 +867,6 @@ namespace sn_Stream {
 					SN_LOG_ERROR_WTL(sn_Error::InternalError, "Cannot open file.");
 			}
 
-			FileStream(handle_t file, bool readable, bool writable, bool transferowner) :
-				m_file{ file }, m_dispose{ transferowner }, m_isEndOfFile{}, m_filename{ filename }, m_readable{ readable }, m_writable{ writable } {
-				if (m_file < 0)
-					SN_LOG_ERROR_WTL(sn_Error::InvalidArgs, "File descriptor should be positive");
-			}
 
 			bool is_end_of_stream() const {
 				return m_isEndOfFile;
@@ -898,7 +893,7 @@ namespace sn_Stream {
 				return static_cast<len_t>(lseek(m_file, 0, SEEK_CUR));
 			}
 
-			len_t set_position(seek_t origin, len_t offset) {
+			void set_position(seek_t origin, len_t offset) {
 				int tOrigin;
 				switch (origin) {
 				case seek_t::begin:
@@ -1003,13 +998,14 @@ namespace sn_Stream {
 			IR_ptr<FixedMemoryStream> m_mappedStream;
 			const bool m_isAsync;
 #else
-			bool m_isEndofFile;
+			bool m_isEndOfFile;
 #endif
 
 		};
 
 	}
 
+#if defined(SN_CONFIG_OS_LINUX)
 	// @ref: https://www.zhihu.com/question/49272859
 	// #include <sys/stat.h>
 	// #include <sys/mman.h>
@@ -1023,7 +1019,7 @@ namespace sn_Stream {
 			struct stat sb;
 			fstat(fd, &sb);
 			file_sz = sb.st_size;
-			buf = reinterpret_cast<char*>(mmap(0, size, PROT_READ, MAP_PRIVATE, fd, 0));
+			buf = reinterpret_cast<char*>(mmap(0, file_sz, PROT_READ, MAP_PRIVATE, fd, 0));
 			p = buf;
 			madvise((void*)buf, file_sz, MADV_WILLNEED || MADV_SEQUENTIAL);
 		}
@@ -1055,6 +1051,8 @@ namespace sn_Stream {
 			}
 		}
 	};
+
+#endif
 }
 
 

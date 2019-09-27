@@ -24,7 +24,8 @@ namespace sn_Assist {
 
 		template <typename T, typename Tp>
 		/*constexpr*/ T make_from_tuple(Tp&& t) {
-			return make_from_tuple_impl<T>(std::forward<Tp>(t), std::make_index_sequence<std::tuple_size<std::decay_t<Tp>>>{});
+			return make_from_tuple_impl<T>(std::forward<Tp>(t),
+			        std::make_index_sequence<std::tuple_size<std::decay_t<Tp>>::value>{});
 		}
 
 		template<
@@ -50,7 +51,7 @@ namespace sn_Assist {
 		constexpr
 		typename std::tuple_element<0,typename std::remove_reference<Tuple>::type>::type&
 		runtime_get(Tuple&& t,size_t index){
-			using tuple_type =t ypename std::remove_reference<Tuple>::type;
+			using tuple_type = typename std::remove_reference<Tuple>::type;
 			if(index >= std::tuple_size<tuple_type>::value)
 				throw std::runtime_error("Out of range");
 			return runtime_get_func_table<tuple_type>::table[index](t);

@@ -4,7 +4,7 @@ namespace sn_FileSystem {
     
     namespace file_handler {
 
-#ifdef SN_ENABLE_CPP_17_EXPERIMENTAL
+#if defined(SN_CONFIG_OS_WIN) && defined(SN_CONFIG_COMPILER_MSVC)
 		[[noreturn]] void file_throw_system() {
 			throw std::system_error{static_cast<int>(::GetLastError()), std::system_category()};
 		}
@@ -32,7 +32,6 @@ namespace sn_FileSystem {
 				}
 			} while (::FindNextFileW(file, &ffd));
 		}
-#endif
 		// Notice the deleter redirect std::unique_ptr<T, D> as another type
 		struct FileHandle {
 			::HANDLE m_fileHandle;
@@ -70,5 +69,10 @@ namespace sn_FileSystem {
 
 		//  unique_file_ptr f.reset(::CreateFile(LR"(.\1.txt)", GENERIC_WRITE, {}, {}, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, {}));
 		//  const auto h = unique_local_memory_ptr{ ::LocalAlloc(LMEM_FIXED, 20) };
+
+#endif
+
 	}
+
+
 }

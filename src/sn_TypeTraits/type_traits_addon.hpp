@@ -170,6 +170,8 @@ namespace sn_TypeTraits {
 		std::integral_constant<bool, 
 			!std::is_object<T>::value &&	// Or: std::is_const<T const>
 			!std::is_void<T>::value &&		// libcxx: is_class || is_union || is_void || is_reference || is_nullptr_t
-			!std::is_reference::value
+			!std::is_reference<T>::value
 		> {};
 }
+
+#endif

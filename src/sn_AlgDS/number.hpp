@@ -6,7 +6,7 @@ using namespace std;
 
 
 namespace number {
-    
+    /*
     // get maximum in array pointer by a and array length equals l
     int get_max_element(int* a,int l){
         // assert(l%4==0);
@@ -33,7 +33,8 @@ namespace number {
             :"%eax"
         );
         return ret;
-    }        
+    }
+     */
 
     namespace prime {
 
@@ -134,7 +135,7 @@ namespace number {
             while (d == 1) {
                 x = f(x);
                 y = f(x); // f(f(y))
-                d = gcd(abs(x - y), n);
+                d = gcd((unsigned int)std::abs((double)x - y), n);
             }
             if (d == n)
                 return 0;
@@ -175,7 +176,7 @@ namespace number {
                 return r;
 
             //get lowest bit of r
-            r = sn_Alg::binary::lowbit(r);
+            r = ::binary::lowbit(r);
 
             while (!(b & r))
                 b >>= 1;
@@ -236,7 +237,7 @@ namespace number {
             while (exp > 0) {
                 if (exp & 1) {
                     result = (result * base) % modulus;
-                    base = (base * base) % modulus);
+                    base = (base * base) % modulus;
                     exp >>= 1;
                 }
             }

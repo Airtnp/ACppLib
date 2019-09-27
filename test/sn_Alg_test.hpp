@@ -2,6 +2,8 @@
 #define SN_TEST_ALG_H
 
 #include "sn_CommonHeader_test.h"
+#include "../src/sn_Alg.hpp"
+
 
 namespace sn_Alg_test {
 	using namespace std;
@@ -31,7 +33,7 @@ namespace sn_Alg_test {
 			make_pair(0, 2),
 			make_pair(6, 1)
 		};
-		cout << sn_Alg::graph::connectivity::weighted_quick_union(test_edges, 10);
+		cout << graph::connectivity::weighted_quick_union(test_edges, 10);
 
 	}
 
@@ -57,17 +59,17 @@ namespace sn_Alg_test {
 			a.push_back(rand());
 			b.push_back(rand());
 		}
-		c1 = sn_Alg::misc::get_clock_cycle();
+		c1 = misc::get_clock_cycle();
 		t1 = clock();
 		for (int i = 0; i < s; ++i) {
-			vc1.push_back(sn_Alg::number_theory::gcd::gcd(a[i], b[i]));
+			vc1.push_back(number::gcd::gcd(a[i], b[i]));
 		}
-		c2 = sn_Alg::misc::get_clock_cycle();
+		c2 = misc::get_clock_cycle();
 		t2 = clock();
 		for (int i = 0; i < s; ++i) {
-			vc2.push_back(sn_Alg::number_theory::gcd::gcd(a[i], b[i]));
+			vc2.push_back(number::gcd::gcd(a[i], b[i]));
 		}
-		c3 = sn_Alg::misc::get_clock_cycle();
+		c3 = misc::get_clock_cycle();
 		t3 = clock();
 		cout << c2 - c1 << endl;
 		cout << c3 - c2 << endl;

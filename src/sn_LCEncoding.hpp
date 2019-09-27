@@ -21,7 +21,7 @@ namespace sn_LCEncoding {
 	namespace Combinator {
 
 		enum {
-			V1, V2, V3, V4,  V5, A, B, C, D, E, F
+			V1, V2, V3, V4,  V5, A, B, C, D, E, F,
 			V6, V7, V8, V9, V10, X, Y, N, M, U
 		};
 
@@ -42,16 +42,16 @@ namespace sn_LCEncoding {
 
 		// U = lambda .x lambda .y y (x x y)
 		using UCombinator = Lambda<
-								X, 
+								X,
 								Lambda<
-									Y, 
+								    Y,
 									Application<
-										Y, 
+                                        Reference<Y>,
 										Application<
-											X, 
+										    Reference<X>,
 											Application<
-												X, 
-												Y
+											    Reference<X>,
+											    Reference<Y>
 											>
 										>
 									>
@@ -61,12 +61,10 @@ namespace sn_LCEncoding {
 		// omega := lambda .x x x
 		using omega = Lambda<
 							V1,
-							Application<
-								Application<
-									Reference<V1>
-									Reference<V1>
-								>
-							>
+                            Application<
+                                Reference<V1>,
+                                Reference<V1>
+                            >
 						>;
 
 		// Omega := omega omega
@@ -296,7 +294,7 @@ namespace sn_LCEncoding {
 		using ChurchMult = VarLambda<
 								VarList<M, N>,
 								VarLambda<
-									VarList<F, X>
+									VarList<F, X>,
 									Application<
 										Reference<M>,
 										ValList<
@@ -424,7 +422,7 @@ namespace sn_LCEncoding {
 												ChurchPred,
 												Reference<M>
 											>
-										>
+										>,
 										ValList<
 											Reference<F>,
 											Reference<X>

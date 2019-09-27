@@ -11,9 +11,7 @@
 #include <utility>
 #include <typeindex>
 #include <iterator>
-#include "../src/sn_DBPool.hpp"
-#include "../src/sn_DB.hpp"
-#include "../src/sn_Alg.hpp"
+// #include "../src/sn_Alg.hpp" // due to byte conflict
 #include "../src/sn_Decimal.hpp"
 #include "../src/sn_Assist.hpp"
 #include "../src/sn_Reflection.hpp"
@@ -31,8 +29,6 @@
 //#include "../src/sn_TC.hpp"
 #include "../src/sn_Range.hpp"
 #include "../src/sn_TypeLisp.hpp"
-#include "../src/sn_RegexD.hpp"
-#include "../src/sn_RegexT.hpp"
 #include "../src/sn_LINQ.hpp"
 #include "../src/sn_StdStream.hpp"
 #include "../src/sn_PC.hpp"
