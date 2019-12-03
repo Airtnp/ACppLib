@@ -832,6 +832,8 @@ test/*.vcxproj
 
 test/*.vcxproj.filters
 
+test/*.vcxproj.user
+
 packages.config
 
 *.sln
@@ -839,6 +841,9 @@ packages.config
 *.vcxproj
 
 *.vcxproj.filters
+
+*.vcxproj.user
+
 
 ## Misc
 
@@ -855,14 +860,17 @@ some_worth_implement.md
 *.stackdump
 
 Debug/
+Release/
 
-cmake-build-debug/
+cmake-build*/
 
 CMakeCache.txt
 
 CMakeFiles/
 
 ACppTest
+
+test/Debug/
 
 .idea/
 

@@ -82,6 +82,48 @@ namespace sn_Thread {
         private:
             std::size_t m_count;
         };
+
+        /// @ref: https://stackoverflow.com/questions/15717289/countdownlatch-equivalent
+        class CountDownLatch {
+        public:
+            explicit CountDownLatch(const unsigned int count): m_count(count) { }
+
+            void await(void) {
+                std::unique_lock<std::mutex> lock(m_mutex);
+                if (m_count > 0) {
+                    m_cv.wait(lock, [this](){ return m_count == 0; });
+                }
+            }
+
+            template <class Rep, class Period>
+            bool await(const std::chrono::duration<Rep, Period>& timeout) {
+                std::unique_lock<std::mutex> lock(m_mutex);
+                bool result = true;
+                if (m_count > 0) {
+                    result = m_cv.wait_for(lock, timeout, [this](){ return m_count == 0; });
+                }
+
+                return result;
+            }
+
+            void countDown(void) {
+                std::unique_lock<std::mutex> lock(m_mutex);
+                if (m_count > 0) {
+                    m_count--;
+                    m_cv.notify_all();
+                }
+            }
+
+            unsigned int getCount(void) {
+                std::unique_lock<std::mutex> lock(m_mutex);
+                return m_count;
+            }
+
+        protected:
+            std::mutex m_mutex;
+            std::condition_variable m_cv;
+            unsigned int m_count = 0;
+        };
     }
 }
 

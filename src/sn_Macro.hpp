@@ -17,6 +17,13 @@ namespace sn_Macro { //useless namespace
 #define MACRO_RAW_CONCAT_IMPL(A, B) A##B
 #define MACRO_RAW_CONCAT(A, B) MACRO_RAW_CONCAT_IMPL(A, B)
 
+#define MACRO_ID(expr) expr
+
+// use (,) to escape commas, force every separator passed by enclosing ()
+#define MACRO_UNPAREN_IMPL(...) __VA_ARGS__
+#define MACRO_UNPAREN_HELPER(expr) expr
+#define MACRO_UNPAREN(args) MACRO_UNPAREN_HELPER(MACRO_UNPAREN_IMPL args)
+
 // Or __COUNTER__
 #define ANONYMOUS_VARIABLE(str) MACRO_RAW_CONCAT(str, __LINE__)
 
@@ -100,6 +107,18 @@ namespace sn_Macro { //useless namespace
 
 #define SN_APPLY_MULTI_N(N, F) APPLY_VARIADIC_MACRO(MACRO_CONCAT(SN_APPLY_MULTI, N), F)
 
+#define SN_APPLY_MULTI_WITH_SEP_1(sep, F) F(1)
+#define SN_APPLY_MULTI_WITH_SEP_2(sep, F) SN_APPLY_MULTI_WITH_SEP_1(sep, F) MACRO_UNPAREN(sep) F(2)
+#define SN_APPLY_MULTI_WITH_SEP_3(sep, F) SN_APPLY_MULTI_WITH_SEP_2(sep, F) MACRO_UNPAREN(sep) F(3)
+#define SN_APPLY_MULTI_WITH_SEP_4(sep, F) SN_APPLY_MULTI_WITH_SEP_3(sep, F) MACRO_UNPAREN(sep) F(4)
+#define SN_APPLY_MULTI_WITH_SEP_5(sep, F) SN_APPLY_MULTI_WITH_SEP_4(sep, F) MACRO_UNPAREN(sep) F(5)
+#define SN_APPLY_MULTI_WITH_SEP_6(sep, F) SN_APPLY_MULTI_WITH_SEP_5(sep, F) MACRO_UNPAREN(sep) F(6)
+#define SN_APPLY_MULTI_WITH_SEP_7(sep, F) SN_APPLY_MULTI_WITH_SEP_6(sep, F) MACRO_UNPAREN(sep) F(7)
+#define SN_APPLY_MULTI_WITH_SEP_8(sep, F) SN_APPLY_MULTI_WITH_SEP_7(sep, F) MACRO_UNPAREN(sep) F(8)
+#define SN_APPLY_MULTI_WITH_SEP_9(sep, F) SN_APPLY_MULTI_WITH_SEP_8(sep, F) MACRO_UNPAREN(sep) F(9)
+
+#define SN_APPLY_MULTI_WITH_SEP_N(N, sep, F) APPLY_VARIADIC_MACRO(MACRO_CONCAT(SN_APPLY_MULTI_WITH_SEP, N), sep, F)
+
 // F(F(F(F(....L()))))
 #define SN_APPLY_REPEAT_0(F, L, ...)
 
@@ -116,6 +135,53 @@ namespace sn_Macro { //useless namespace
 #define SN_APPLY_REPEAT_N(N, F, ...) APPLY_VARIADIC_MACRO(MACRO_CONCAT(SN_APPLY_REPEAT, N), F, F, MACRO_EXPAND(__VA_ARGS__))
 #define SN_APPLY_REPEATEX_N(N, F, L, ...) APPLY_VARIADIC_MACRO(MACRO_CONCAT(SN_APPLY_REPEAT, N), F, L, MACRO_EXPAND(__VA_ARGS__))
 
+#define SN_APPLY_ARG_LIST_WITH_SEP_1(sep, op, arg, ...) op(arg)
+#define SN_APPLY_ARG_LIST_WITH_SEP_2(sep, op, arg, ...) op(arg) MACRO_UNPAREN(sep) MACRO_EXPAND(SN_APPLY_ARG_LIST_WITH_SEP_1(op, __VA_ARGS__))
+#define SN_APPLY_ARG_LIST_WITH_SEP_3(sep, op, arg, ...) op(arg) MACRO_UNPAREN(sep) MACRO_EXPAND(SN_APPLY_ARG_LIST_WITH_SEP_2(op, __VA_ARGS__))
+#define SN_APPLY_ARG_LIST_WITH_SEP_4(sep, op, arg, ...) op(arg) MACRO_UNPAREN(sep) MACRO_EXPAND(SN_APPLY_ARG_LIST_WITH_SEP_3(op, __VA_ARGS__))
+#define SN_APPLY_ARG_LIST_WITH_SEP_5(sep, op, arg, ...) op(arg) MACRO_UNPAREN(sep) MACRO_EXPAND(SN_APPLY_ARG_LIST_WITH_SEP_4(op, __VA_ARGS__))
+#define SN_APPLY_ARG_LIST_WITH_SEP_6(sep, op, arg, ...) op(arg) MACRO_UNPAREN(sep) MACRO_EXPAND(SN_APPLY_ARG_LIST_WITH_SEP_5(op, __VA_ARGS__))
+#define SN_APPLY_ARG_LIST_WITH_SEP_7(sep, op, arg, ...) op(arg) MACRO_UNPAREN(sep) MACRO_EXPAND(SN_APPLY_ARG_LIST_WITH_SEP_6(op, __VA_ARGS__))
+#define SN_APPLY_ARG_LIST_WITH_SEP_8(sep, op, arg, ...) op(arg) MACRO_UNPAREN(sep) MACRO_EXPAND(SN_APPLY_ARG_LIST_WITH_SEP_7(op, __VA_ARGS__))
+#define SN_APPLY_ARG_LIST_WITH_SEP_9(sep, op, arg, ...) op(arg) MACRO_UNPAREN(sep) MACRO_EXPAND(SN_APPLY_ARG_LIST_WITH_SEP_8(op, __VA_ARGS__))
+#define SN_APPLY_ARG_LIST_WITH_SEP_10(sep, op, arg, ...) op(arg) MACRO_UNPAREN(sep) MACRO_EXPAND(SN_APPLY_ARG_LIST_WITH_SEP_9(op, __VA_ARGS__))
+#define SN_APPLY_ARG_LIST_WITH_SEP_11(sep, op, arg, ...) op(arg) MACRO_UNPAREN(sep) MACRO_EXPAND(SN_APPLY_ARG_LIST_WITH_SEP_10(op, __VA_ARGS__))
+#define SN_APPLY_ARG_LIST_WITH_SEP_12(sep, op, arg, ...) op(arg) MACRO_UNPAREN(sep) MACRO_EXPAND(SN_APPLY_ARG_LIST_WITH_SEP_11(op, __VA_ARGS__))
+#define SN_APPLY_ARG_LIST_WITH_SEP_13(sep, op, arg, ...) op(arg) MACRO_UNPAREN(sep) MACRO_EXPAND(SN_APPLY_ARG_LIST_WITH_SEP_12(op, __VA_ARGS__))
+#define SN_APPLY_ARG_LIST_WITH_SEP_14(sep, op, arg, ...) op(arg) MACRO_UNPAREN(sep) MACRO_EXPAND(SN_APPLY_ARG_LIST_WITH_SEP_13(op, __VA_ARGS__))
+#define SN_APPLY_ARG_LIST_WITH_SEP_15(sep, op, arg, ...) op(arg) MACRO_UNPAREN(sep) MACRO_EXPAND(SN_APPLY_ARG_LIST_WITH_SEP_14(op, __VA_ARGS__))
+#define SN_APPLY_ARG_LIST_WITH_SEP_16(sep, op, arg, ...) op(arg) MACRO_UNPAREN(sep) MACRO_EXPAND(SN_APPLY_ARG_LIST_WITH_SEP_15(op, __VA_ARGS__))
+#define SN_APPLY_ARG_LIST_WITH_SEP_17(sep, op, arg, ...) op(arg) MACRO_UNPAREN(sep) MACRO_EXPAND(SN_APPLY_ARG_LIST_WITH_SEP_16(op, __VA_ARGS__))
+#define SN_APPLY_ARG_LIST_WITH_SEP_18(sep, op, arg, ...) op(arg) MACRO_UNPAREN(sep) MACRO_EXPAND(SN_APPLY_ARG_LIST_WITH_SEP_17(op, __VA_ARGS__))
+#define SN_APPLY_ARG_LIST_WITH_SEP_19(sep, op, arg, ...) op(arg) MACRO_UNPAREN(sep) MACRO_EXPAND(SN_APPLY_ARG_LIST_WITH_SEP_18(op, __VA_ARGS__))
+#define SN_APPLY_ARG_LIST_WITH_SEP_20(sep, op, arg, ...) op(arg) MACRO_UNPAREN(sep) MACRO_EXPAND(SN_APPLY_ARG_LIST_WITH_SEP_19(op, __VA_ARGS__))
+
+#define SN_APPLY_ARG_LIST_WITH_SEP(N, sep, op, arg, ...) \
+    MACRO_CONCAT(SN_APPLY_ARG_LIST_WITH_SEP, N)(sep, op, arg, __VA_ARGS__)
+
+#define SN_APPLY_ARG_LIST_1(op, arg, ...) op(arg)
+#define SN_APPLY_ARG_LIST_2(op, arg, ...) op(arg) MACRO_EXPAND(SN_APPLY_ARG_LIST_1(op, __VA_ARGS__))
+#define SN_APPLY_ARG_LIST_3(op, arg, ...) op(arg) MACRO_EXPAND(SN_APPLY_ARG_LIST_2(op, __VA_ARGS__))
+#define SN_APPLY_ARG_LIST_4(op, arg, ...) op(arg) MACRO_EXPAND(SN_APPLY_ARG_LIST_3(op, __VA_ARGS__))
+#define SN_APPLY_ARG_LIST_5(op, arg, ...) op(arg) MACRO_EXPAND(SN_APPLY_ARG_LIST_4(op, __VA_ARGS__))
+#define SN_APPLY_ARG_LIST_6(op, arg, ...) op(arg) MACRO_EXPAND(SN_APPLY_ARG_LIST_5(op, __VA_ARGS__))
+#define SN_APPLY_ARG_LIST_7(op, arg, ...) op(arg) MACRO_EXPAND(SN_APPLY_ARG_LIST_6(op, __VA_ARGS__))
+#define SN_APPLY_ARG_LIST_8(op, arg, ...) op(arg) MACRO_EXPAND(SN_APPLY_ARG_LIST_7(op, __VA_ARGS__))
+#define SN_APPLY_ARG_LIST_9(op, arg, ...) op(arg) MACRO_EXPAND(SN_APPLY_ARG_LIST_8(op, __VA_ARGS__))
+#define SN_APPLY_ARG_LIST_10(op, arg, ...) op(arg) MACRO_EXPAND(SN_APPLY_ARG_LIST_9(op, __VA_ARGS__))
+#define SN_APPLY_ARG_LIST_11(op, arg, ...) op(arg) MACRO_EXPAND(SN_APPLY_ARG_LIST_10(op, __VA_ARGS__))
+#define SN_APPLY_ARG_LIST_12(op, arg, ...) op(arg) MACRO_EXPAND(SN_APPLY_ARG_LIST_11(op, __VA_ARGS__))
+#define SN_APPLY_ARG_LIST_13(op, arg, ...) op(arg) MACRO_EXPAND(SN_APPLY_ARG_LIST_12(op, __VA_ARGS__))
+#define SN_APPLY_ARG_LIST_14(op, arg, ...) op(arg) MACRO_EXPAND(SN_APPLY_ARG_LIST_13(op, __VA_ARGS__))
+#define SN_APPLY_ARG_LIST_15(op, arg, ...) op(arg) MACRO_EXPAND(SN_APPLY_ARG_LIST_14(op, __VA_ARGS__))
+#define SN_APPLY_ARG_LIST_16(op, arg, ...) op(arg) MACRO_EXPAND(SN_APPLY_ARG_LIST_15(op, __VA_ARGS__))
+#define SN_APPLY_ARG_LIST_17(op, arg, ...) op(arg) MACRO_EXPAND(SN_APPLY_ARG_LIST_16(op, __VA_ARGS__))
+#define SN_APPLY_ARG_LIST_18(op, arg, ...) op(arg) MACRO_EXPAND(SN_APPLY_ARG_LIST_17(op, __VA_ARGS__))
+#define SN_APPLY_ARG_LIST_19(op, arg, ...) op(arg) MACRO_EXPAND(SN_APPLY_ARG_LIST_18(op, __VA_ARGS__))
+#define SN_APPLY_ARG_LIST_20(op, arg, ...) op(arg) MACRO_EXPAND(SN_APPLY_ARG_LIST_19(op, __VA_ARGS__))
+
+#define SN_APPLY_ARG_LIST(N, op, arg, ...) \
+    MACRO_CONCAT(SN_APPLY_ARG_LIST, N)(op, arg, __VA_ARGS__)
 
 
 #define SN_CLONE_L(N, a, ...) a

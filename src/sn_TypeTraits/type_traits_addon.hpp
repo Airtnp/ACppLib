@@ -181,7 +181,21 @@ namespace sn_TypeTraits {
     template <class T>
     using remove_cvref_t = typename remove_cvref<T>::type;
 
+    template <typename ...Args>
+    struct all_same;
 
+    template <typename T, typename U, typename ...Ts>
+    struct all_same<T, U, Ts...> : std::conditional_t<
+            std::is_same_v<T, U>,
+            all_same<U, Ts...>,
+            std::false_type
+    > {};
+
+    template <typename T, typename U>
+    struct all_same<T, U> : std::is_same<T, U> {};
+
+    template <typename ...Args>
+    inline constexpr bool all_same_v = all_same<Args...>::value;
 }
 
 #endif

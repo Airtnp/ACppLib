@@ -7,6 +7,8 @@ add_definitions(${CXX_EXTRA_FLAGS})
 
 # configure_file()
 
+include_directories("src")
+
 file(GLOB_RECURSE SOURCES RELATIVE ${CMAKE_SOURCE_DIR} "src/*.hpp")
 add_library(ACppLib SHARED
         ${SOURCES}
@@ -14,5 +16,5 @@ add_library(ACppLib SHARED
 target_link_libraries(ACppLib)
 set_target_properties(ACppLib PROPERTIES LINKER_LANGUAGE CXX)
 
-set(TESTS test/sn_test.cpp src/sn_DB.hpp src/sn_Concept.hpp)
+set(TESTS test/sn_test.cpp src/sn_DB.hpp src/sn_Concept.hpp src/sn_Exception/source_location_extend.hpp)
 add_executable(ACppTest ${TESTS})
